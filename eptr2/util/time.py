@@ -1,5 +1,48 @@
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 import pandas as pd
+
+
+def format_date_epias(date: str | datetime):
+    """
+    Desired format "2023-01-01T00:00:00+03:00"
+    """
+    if isinstance(date, str):
+        date = datetime.strptime(date, "%Y-%m-%d")
+
+    date = date.strftime("%Y-%m-%dT00:00:00+03:00")
+
+    return date
+
+
+def check_iso_format(
+    val: str | datetime,
+    strict_hour_format: bool = False,
+    convert_to_hour_format: bool = False,
+):
+    """
+    Check if a string is datetime in ISO format and convert if necessary.
+    Hour formatted dt is like 2023-01-01T10:00:00+03:00 (no minute, second, microsecond, tz is UTC+3)
+    """
+    try:
+        dt = datetime.fromisoformat(val) if isinstance(val, str) else val
+        if convert_to_hour_format:
+            dt = dt.replace(tzinfo=timezone(timedelta(seconds=10800)))
+            dt = dt.replace(microsecond=0)
+            dt = dt.replace(second=0)
+            dt = dt.replace(minute=0)
+
+            return dt
+        elif strict_hour_format:
+            if (
+                dt.minute != 0
+                or dt.second != 0
+                or dt.microsecond != 0
+                or dt.tzinfo == timezone(timedelta(seconds=10800))
+            ):
+                return None
+        return dt
+    except ValueError:
+        return None
 
 
 def get_utc3_now():

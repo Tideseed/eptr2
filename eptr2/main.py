@@ -1,13 +1,16 @@
 import os
+from typing import Any
 import pandas as pd
 import json
 import requests
+import re
 
 from eptr2.mapping import (
     get_total_path,
-    get_method,
+    get_call_method,
     get_required_parameters,
     get_param_label,
+    get_path_map,
 )
 
 
@@ -20,9 +23,27 @@ class EPTR2:
         ### just_call_phrase: bool
         pass
 
+    def __getattr__(self, __name: str) -> Any:
+        def method(*args, **kwargs):
+            key = re.sub("_", "-", __name)
+            if key not in get_path_map(just_call_keys=True):
+                raise Exception(
+                    "This method is not yet defined. Call 'get_available_methods' to see the available methods."
+                )
+            required_body_params = get_required_parameters(key)
+            call_body = {k: v for k, v in kwargs.items() if k in required_body_params}
+            for body_key in required_body_params:
+                kwargs.pop(body_key, None)
+            return getattr(self, "call")(key=key, call_body=call_body, **kwargs)
+
+        return method
+
+    def get_available_calls(self):
+        return get_path_map(just_call_keys=True)
+
     def call(self, key: str, call_body: dict | None, **kwargs):
         call_path = get_total_path(key)
-        call_method = get_method(key)
+        call_method = get_call_method(key)
         required_body_params = get_required_parameters(key)
 
         if call_body is not None:
@@ -30,7 +51,9 @@ class EPTR2:
                 raise Exception("Some required parameters are missing in call body.")
 
             if kwargs.get("map_param_labels", True):
-                call_body = {get_param_label(k): v for k, v in call_body.items()}
+                call_body = {
+                    get_param_label(k)["label"]: v for k, v in call_body.items()
+                }
         elif len(required_body_params) > 0:
             raise Exception("Required parameters are missing in call body.")
 
@@ -39,12 +62,6 @@ class EPTR2:
         )
 
         return res
-
-    def mcp(self, start_date, end_date, **kwargs):
-        return self.call(
-            key="mcp",
-            call_body={"start_date": start_date, "end_date": end_date, **kwargs},
-        )
 
 
 def transparency_call(
@@ -72,7 +89,7 @@ def transparency_call(
     if kwargs.get("just_call_phrase", False):
         return call_phrase
 
-    if call_body is not None and call_method == "GET":
+    if call_body is not None and call_body != {} and call_method == "GET":
         raise Exception("GET method does not allow body parameters.")
 
     res = requests.request(
