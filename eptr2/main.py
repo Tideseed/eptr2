@@ -23,12 +23,13 @@ class EPTR2:
         ### just_call_phrase: bool
         pass
 
+    ## Ref: https://stackoverflow.com/a/62303969/3608936
     def __getattr__(self, __name: str) -> Any:
         def method(*args, **kwargs):
             key = re.sub("_", "-", __name)
             if key not in get_path_map(just_call_keys=True):
                 raise Exception(
-                    "This method is not yet defined. Call 'get_available_methods' to see the available methods."
+                    "This call is not yet defined. Call 'get_available_calls' method to see the available calls."
                 )
             required_body_params = get_required_parameters(key)
             call_body = {k: v for k, v in kwargs.items() if k in required_body_params}
@@ -97,7 +98,7 @@ def transparency_call(
         url=call_phrase,
         json=call_body,
         verify=kwargs.get(
-            "secure", False
+            "verify_with_local_ssl", False
         ),  ## With Openssl 3.0 it is possible to get errors like "certificate verify failed: unable to get local issuer certificate (_ssl.c:1123)"
         **kwargs,
     )

@@ -1,1 +1,1 @@
-from eptr2.main import EPTR2
+from eptr2.main import EPTR2, transparency_call
