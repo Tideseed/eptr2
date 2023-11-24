@@ -13,6 +13,8 @@ from eptr2.mapping import (
     get_path_map,
 )
 
+from eptr2.processing import preprocess_parameter
+
 
 class EPTR2:
     def __init__(self, **kwargs) -> None:
@@ -32,7 +34,11 @@ class EPTR2:
                     "This call is not yet defined. Call 'get_available_calls' method to see the available calls."
                 )
             required_body_params = get_required_parameters(key)
-            call_body = {k: v for k, v in kwargs.items() if k in required_body_params}
+            call_body = {
+                k: preprocess_parameter(k, v)
+                for k, v in kwargs.items()
+                if k in required_body_params
+            }
             for body_key in required_body_params:
                 kwargs.pop(body_key, None)
             return getattr(self, "call")(key=key, call_body=call_body, **kwargs)
