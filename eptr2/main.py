@@ -102,7 +102,7 @@ def transparency_call(
 
     res = requests.request(
         method=call_method,
-        url=urljoin(call_phrase),
+        url=urljoin(call_phrase, ""),
         json=call_body,
         verify=kwargs.get(
             "verify_with_local_ssl", False
