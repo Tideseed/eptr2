@@ -4,6 +4,7 @@ import pandas as pd
 import json
 import requests
 import re
+from urllib.parse import urljoin
 
 from eptr2.mapping import (
     get_total_path,
@@ -101,7 +102,7 @@ def transparency_call(
 
     res = requests.request(
         method=call_method,
-        url=call_phrase,
+        url=urljoin(call_phrase),
         json=call_body,
         verify=kwargs.get(
             "verify_with_local_ssl", False
