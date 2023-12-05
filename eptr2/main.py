@@ -76,7 +76,7 @@ def transparency_call(
     call_path: dict,
     call_method: str,
     call_body: dict | None = None,
-    root_phrase: str = "https://seffaflik-prp.epias.com.tr",
+    root_phrase: str = "https://seffaflik.epias.com.tr",
     **kwargs,
 ):
     ## kwargs are
@@ -94,20 +94,20 @@ def transparency_call(
             [str(k) + "=" + str(v) for k, v in q_params.items()]
         )
 
-    if kwargs.get("just_call_phrase", False):
+    if kwargs.pop("just_call_phrase", False):
         return call_phrase
 
     if call_body is not None and call_body != {} and call_method == "GET":
         raise Exception("GET method does not allow body parameters.")
 
+    verify_with_local_ssl = kwargs.pop("verify_with_local_ssl", False)
+
     res = requests.request(
         method=call_method,
         url=urljoin(call_phrase, ""),
         json=call_body,
-        verify=kwargs.get(
-            "verify_with_local_ssl", False
-        ),  ## With Openssl 3.0 it is possible to get errors like "certificate verify failed: unable to get local issuer certificate (_ssl.c:1123)"
-        **kwargs,
+        verify=verify_with_local_ssl,  ## With Openssl 3.0 it is possible to get errors like "certificate verify failed: unable to get local issuer certificate (_ssl.c:1123)"
+        **kwargs.get("request_kwargs", {}),
     )
 
     if res.status_code not in [200, 201]:
