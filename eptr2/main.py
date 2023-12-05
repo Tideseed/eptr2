@@ -14,7 +14,7 @@ from eptr2.mapping import (
     get_path_map,
 )
 
-from eptr2.processing import preprocess_parameter
+from eptr2.processing import preprocess_parameter, postprocess_items_to_df
 
 
 class EPTR2:
@@ -69,9 +69,13 @@ class EPTR2:
             call_path=call_path,
             call_method=call_method,
             call_body=call_body,
-            ssl_verify=self.ssl_verify.name,
+            ssl_verify=self.ssl_verify,
             **kwargs,
         )
+
+        if kwargs.get("postprocess_to_df", False):
+            df = postprocess_items_to_df(res)
+            return df
 
         return res
 
