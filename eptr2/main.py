@@ -24,7 +24,7 @@ class EPTR2:
         ### secure: bool
         ### query_parameters: dict
         ### just_call_phrase: bool
-        pass
+        self.ssl_verify = False
 
     ## Ref: https://stackoverflow.com/a/62303969/3608936
     def __getattr__(self, __name: str) -> Any:
@@ -66,7 +66,11 @@ class EPTR2:
             raise Exception("Required parameters are missing in call body.")
 
         res = transparency_call(
-            call_path=call_path, call_method=call_method, call_body=call_body, **kwargs
+            call_path=call_path,
+            call_method=call_method,
+            call_body=call_body,
+            ssl_verify=self.ssl_verify.name,
+            **kwargs,
         )
 
         return res
@@ -100,13 +104,13 @@ def transparency_call(
     if call_body is not None and call_body != {} and call_method == "GET":
         raise Exception("GET method does not allow body parameters.")
 
-    verify_with_local_ssl = kwargs.pop("verify_with_local_ssl", False)
+    ssl_verify = kwargs.pop("ssl_verify", False)
 
     res = requests.request(
         method=call_method,
         url=urljoin(call_phrase, ""),
         json=call_body,
-        verify=verify_with_local_ssl,  ## With Openssl 3.0 it is possible to get errors like "certificate verify failed: unable to get local issuer certificate (_ssl.c:1123)"
+        verify=ssl_verify,
         **kwargs.get("request_kwargs", {}),
     )
 
