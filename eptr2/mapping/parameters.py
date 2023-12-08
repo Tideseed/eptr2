@@ -55,6 +55,8 @@ def get_required_parameters(key):
         "imb-org-list": ["start_date", "end_date"],
         "mcp-smp-imb": ["start_date", "end_date"],
         "bpm-orders-w-avg": ["date_time"],
+        "market-participants": [],
+        "market-participants-organization-list": [],
     }
     ## UPDATE: As a precaution every call should have an input parameter
     return d[key]
@@ -66,6 +68,7 @@ def get_optional_parameters(key):
         "bi-long": ["org_id"],
         "bi-short": ["org_id"],
         "imb-qty-g": ["imb_org_id"],
+        "market-participants": ["org_id"],
     }
 
     return d.get(key, [])

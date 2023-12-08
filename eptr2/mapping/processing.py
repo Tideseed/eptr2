@@ -44,6 +44,8 @@ def get_postprocess_function(key):
         "interim-mcp",
         "mcp-smp-imb",
         "bpm-orders-w-avg",
+        "market-participants",
+        "market-participants-organization-list",
     ]:
         return postprocess_items_to_df
 

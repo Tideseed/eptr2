@@ -213,12 +213,25 @@ def get_path_map(just_call_keys: bool = False):
                 "prev": "electricity-service",
                 "label": "date-init",
             },
+            ## Piyasa Katılımcıları
+            "market-participants": {
+                "prefix": "data",
+                "prev": "general-data",
+                "label": "market-participants",
+            },
+            ##Piyasa Katılımcıları Organizasyon
+            "market-participants-organization-list": {
+                "prefix": "data",
+                "prev": "general-data",
+                "label": "market-participants-organization-filter-list",
+            },
         },
         ## category
         "idm": {"prev": "markets"},
         "dam": {"prev": "markets"},
         "bpm": {"prev": "markets"},
         "bilateral-contracts": {"prev": "markets"},
+        "general-data": {"prev": "markets"},
         "imbalance": {"prev": "markets"},
         "markets": {"prev": "electricity-service"},
         #### services
@@ -257,7 +270,11 @@ def get_call_method(key):
     """
     Get the call method for a given key. If the key is in the list of keys that require GET method, return GET, else return POST.
     """
-    get_methods = ["date-init", "interim-mcp-status"]
+    get_methods = [
+        "date-init",
+        "interim-mcp-status",
+        "market-participants-organization-list",
+    ]
 
     if key in get_methods:
         return "GET"
