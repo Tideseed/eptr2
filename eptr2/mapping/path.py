@@ -51,13 +51,13 @@ def get_path_map(just_call_keys: bool = False):
             ## GÖP Eşleşme Miktarı
             "dam-clearing": {
                 "prefix": "data",
-                "prev": "markets",
+                "prev": "dam",
                 "label": "clearing-quantity",
             },
             ## Göp Eşleşme Miktarı Organizasyon Listeleme
             "dam-clearing-org-list": {
                 "prefix": "data",
-                "prev": "markets",
+                "prev": "dam",
                 "label": "clearing-quantity-organization-list",
             },
             ## SMF
@@ -130,7 +130,7 @@ def get_call_method(key):
     """
     Get the call method for a given key. If the key is in the list of keys that require GET method, return GET, else return POST.
     """
-    get_methods = ["date-init"]
+    get_methods = ["date-init", "interim-mcp-status"]
 
     if key in get_methods:
         return "GET"

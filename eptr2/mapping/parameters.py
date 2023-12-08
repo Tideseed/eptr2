@@ -15,6 +15,9 @@ def get_param_label(key):
 def get_required_parameters(key):
     d = {
         "mcp": ["start_date", "end_date"],
+        "interim-mcp": ["start_date", "end_date"],
+        "interim-mcp-status": [],
+        "date-init": [],
         "smp": ["start_date", "end_date"],
         "da-volume": ["start_date", "end_date"],
         "pi-offer": ["start_date", "end_date"],
@@ -22,11 +25,12 @@ def get_required_parameters(key):
         "dam-bid": ["start_date", "end_date"],
         "dam-offer": ["start_date", "end_date"],
         "supply-demand": ["date_time"],
-        "dam-clearing": ["date_time"],
+        "dam-clearing": ["start_date", "end_date"],
         "dam-clearing-org-list": ["period"],
         "dam-block-bid": ["start_date", "end_date"],
         "dam-block-offer": ["start_date", "end_date"],
         "mcp-smp-imb": ["start_date", "end_date"],
         "bpm-orders-w-avg": ["date_time"],
     }
-    return d.get(key, [])
+    ## UPDATE: As a precaution every call should have an input parameter
+    return d[key]
