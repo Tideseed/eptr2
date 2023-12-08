@@ -84,6 +84,54 @@ def get_path_map(just_call_keys: bool = False):
                 "prev": "dam",
                 "label": "side-payments",
             },
+            ## GİP Ağırlıklı Ortalama Fiyat
+            "wap": {
+                "prefix": "data",
+                "prev": "idm",
+                "label": "weighted-average-price",
+            },
+            ## GİP Eşleşme Miktarı
+            "idm-qty": {
+                "prefix": "data",
+                "prev": "idm",
+                "label": "matching-quantity",
+            },
+            ## GİP Min - Maks Alış Teklif Fiyatı
+            "idm-mm-bid": {
+                "prefix": "data",
+                "prev": "idm",
+                "label": "min-max-bid-price",
+            },
+            ## GİP Min - Maks Satış Teklif Fiyatı
+            "idm-mm-offer": {
+                "prefix": "data",
+                "prev": "idm",
+                "label": "min-max-sales-offer-price",
+            },
+            ## GİP Min - Maks Eşleşme Fiyatı
+            "idm-mm-matching": {
+                "prefix": "data",
+                "prev": "idm",
+                "label": "min-max-matching-price",
+            },
+            ## GİP İşlem Hacmi
+            "idm-volume": {
+                "prefix": "data",
+                "prev": "idm",
+                "label": "trade-value",
+            },
+            ## GİP İşlem Akışı
+            "idm-log": {
+                "prefix": "data",
+                "prev": "idm",
+                "label": "transaction-history",
+            },
+            ## GİP Teklif Edilen Alış Satış Miktarları
+            "idm-ob-qty": {
+                "prefix": "data",
+                "prev": "idm",
+                "label": "bid-offer-quantities",
+            },
             ## SMF
             "smp": {"prefix": "data", "prev": "bpm", "label": "system-marginal-price"},
             ## PTF
@@ -115,6 +163,7 @@ def get_path_map(just_call_keys: bool = False):
             },
         },
         ## category
+        "idm": {"prev": "markets"},
         "dam": {"prev": "markets"},
         "bpm": {"prev": "markets"},
         "markets": {"prev": "electricity-service"},
