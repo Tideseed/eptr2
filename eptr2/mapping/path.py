@@ -134,6 +134,34 @@ def get_path_map(just_call_keys: bool = False):
             },
             ## SMF
             "smp": {"prefix": "data", "prev": "bpm", "label": "system-marginal-price"},
+            ## SMF Yön
+            "smp-dir": {"prefix": "data", "prev": "bpm", "label": "system-direction"},
+            ## YAL Talimat Miktarı
+            "bpm-up": {"prefix": "data", "prev": "bpm", "label": "order-summary-up"},
+            ## YAT Talimat Miktarı
+            "bpm-down": {
+                "prefix": "data",
+                "prev": "bpm",
+                "label": "order-summary-down",
+            },
+            ## İkili Anlaşma (İA) Alış Miktarı
+            "bi-long": {
+                "prefix": "data",
+                "prev": "bilateral-contracts",
+                "label": "bilateral-contracts-bid-quantity",
+            },
+            ## İkili Anlaşma (İA) Satış Miktarı
+            "bi-short": {
+                "prefix": "data",
+                "prev": "bilateral-contracts",
+                "label": "bilateral-contracts-offer-quantity",
+            },
+            ### EÜAŞ - GTŞ İkili Anlaşmalar
+            "bi-euas": {
+                "prefix": "data",
+                "prev": "bilateral-contracts",
+                "label": "amount-of-bilateral-contracts",
+            },
             ## PTF
             "mcp": {"prefix": "data", "prev": "dam"},
             ## Kesinleşmemiş PTF
@@ -166,6 +194,7 @@ def get_path_map(just_call_keys: bool = False):
         "idm": {"prev": "markets"},
         "dam": {"prev": "markets"},
         "bpm": {"prev": "markets"},
+        "bilateral-contracts": {"prev": "markets"},
         "markets": {"prev": "electricity-service"},
         #### services
         "electricity-service": {"next": "version"},

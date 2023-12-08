@@ -20,6 +20,9 @@ def get_required_parameters(key):
         "interim-mcp-status": [],
         "date-init": [],
         "smp": ["start_date", "end_date"],
+        "smp-dir": ["start_date", "end_date"],
+        "bpm-up": ["start_date", "end_date"],
+        "bpm-down": ["start_date", "end_date"],
         "dam-volume": ["start_date", "end_date"],
         "pi-offer": ["start_date", "end_date"],
         "pi-bid": ["start_date", "end_date"],
@@ -42,6 +45,9 @@ def get_required_parameters(key):
         "idm-mm-matching": ["start_date", "end_date"],
         "idm-volume": ["start_date", "end_date"],
         "idm-log": ["start_date", "end_date"],
+        "bi-long": ["start_date", "end_date"],
+        "bi-short": ["start_date", "end_date"],
+        "bi-euas": ["start_date", "end_date"],
         "mcp-smp-imb": ["start_date", "end_date"],
         "bpm-orders-w-avg": ["date_time"],
     }
@@ -50,6 +56,6 @@ def get_required_parameters(key):
 
 
 def get_optional_parameters(key):
-    d = {"dam-clearing": ["org_id"]}
+    d = {"dam-clearing": ["org_id"], "bi-long": ["org_id"], "bi-short": ["org_id"]}
 
     return d.get(key, [])

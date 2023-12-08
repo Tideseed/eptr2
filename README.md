@@ -11,6 +11,7 @@ _🇹🇷 Türkçe açıklama için aşağıya bakınız._
 > [!IMPORTANT]  
 > `eptr2` is still in active development. Breaking changes can be expected. Fill an [issue](https://github.com/tideseed/eptr2) if you encounter any problem.
 
+`eptr2` currently covers 35 services with convenience methods. You can also use `transparency_call` function to call any service with any method and body.
 
 ## Installation
 
@@ -47,6 +48,11 @@ print(mcp.json())
 ## from v0.1.1 you can use date strings instead of datetime objects
 mcp = eptr.mcp(start_date="2023-10-10",end_date="2023-10-10")
 print(mcp.json())
+
+## from v0.1.2 you can use date strings in call method instead of datetime objects
+mcp = eptr.call("mcp",start_date="2023-10-10",end_date="2023-10-10")
+print(mcp.json())
+
 ```
 
 You can search for available calls with `eptr.services` attribute. We plan to include all transparency services in the future.
