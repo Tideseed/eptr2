@@ -162,6 +162,30 @@ def get_path_map(just_call_keys: bool = False):
                 "prev": "bilateral-contracts",
                 "label": "amount-of-bilateral-contracts",
             },
+            ## Dengesizlik Miktarı
+            "imb-qty": {
+                "prefix": "data",
+                "prev": "imbalance",
+                "label": "imbalance-quantity",
+            },
+            ## Dengesizlik Tutarı
+            "imb-vol": {
+                "prefix": "data",
+                "prev": "imbalance",
+                "label": "imbalance-amount",
+            },
+            ## Dengeden Sorumlu Grup (DSG) Dengesizlik Miktarı
+            "imb-qty-g": {
+                "prefix": "data",
+                "prev": "imbalance",
+                "label": "dsg-imbalance-quantity",
+            },
+            ## DSG Organizasyon Listesi
+            "imb-org-list": {
+                "prefix": "data",
+                "prev": "imbalance",
+                "label": "dsg-organization-list",
+            },
             ## PTF
             "mcp": {"prefix": "data", "prev": "dam"},
             ## Kesinleşmemiş PTF
@@ -195,6 +219,7 @@ def get_path_map(just_call_keys: bool = False):
         "dam": {"prev": "markets"},
         "bpm": {"prev": "markets"},
         "bilateral-contracts": {"prev": "markets"},
+        "imbalance": {"prev": "markets"},
         "markets": {"prev": "electricity-service"},
         #### services
         "electricity-service": {"next": "version"},

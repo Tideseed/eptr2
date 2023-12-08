@@ -9,6 +9,7 @@ def get_param_label(key):
         "date_time": {"label": "date"},
         "period": {"label": "period"},
         "org_id": {"label": "organizationId"},
+        "imb_org_id": {"label": "organizationId"},
     }
     return d.get(key, key)
 
@@ -48,6 +49,10 @@ def get_required_parameters(key):
         "bi-long": ["start_date", "end_date"],
         "bi-short": ["start_date", "end_date"],
         "bi-euas": ["start_date", "end_date"],
+        "imb-qty": ["start_date", "end_date"],
+        "imb-vol": ["start_date", "end_date"],
+        "imb-qty-g": ["start_date", "end_date"],
+        "imb-org-list": ["start_date", "end_date"],
         "mcp-smp-imb": ["start_date", "end_date"],
         "bpm-orders-w-avg": ["date_time"],
     }
@@ -56,6 +61,11 @@ def get_required_parameters(key):
 
 
 def get_optional_parameters(key):
-    d = {"dam-clearing": ["org_id"], "bi-long": ["org_id"], "bi-short": ["org_id"]}
+    d = {
+        "dam-clearing": ["org_id"],
+        "bi-long": ["org_id"],
+        "bi-short": ["org_id"],
+        "imb-qty-g": ["imb_org_id"],
+    }
 
     return d.get(key, [])
