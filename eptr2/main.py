@@ -12,6 +12,7 @@ from eptr2.mapping import (
     get_required_parameters,
     get_param_label,
     get_path_map,
+    get_optional_parameters,
 )
 
 from eptr2.processing import preprocess_parameter, postprocess_items_to_df
@@ -48,13 +49,15 @@ class EPTR2:
         call_path = get_total_path(key)
         call_method = get_call_method(key)
         required_body_params = get_required_parameters(key)
+        optional_body_params = get_optional_parameters(key)
+        all_params = required_body_params + optional_body_params
 
         call_body = {
             k: preprocess_parameter(k, v)
             for k, v in kwargs.pop(
                 "call_body", kwargs
             ).items()  ## If there is a call_body parameter in kwargsi, use it, else use kwargs
-            if k in required_body_params
+            if k in all_params
         }
 
         for body_key in required_body_params:

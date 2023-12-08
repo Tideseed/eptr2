@@ -8,6 +8,7 @@ def get_param_label(key):
         },
         "date_time": {"label": "date"},
         "period": {"label": "period"},
+        "org_id": {"label": "organizationId"},
     }
     return d.get(key, key)
 
@@ -34,3 +35,9 @@ def get_required_parameters(key):
     }
     ## UPDATE: As a precaution every call should have an input parameter
     return d[key]
+
+
+def get_optional_parameters(key):
+    d = {"dam-clearing": ["org_id"]}
+
+    return d.get(key, [])
