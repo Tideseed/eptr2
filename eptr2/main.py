@@ -12,9 +12,11 @@ from eptr2.mapping import (
     get_required_parameters,
     get_param_label,
     get_path_map,
+    get_optional_parameters,
 )
 
-from eptr2.processing import preprocess_parameter
+from eptr2.processing import preprocess_parameter, postprocess_items_to_df
+from eptr2.mapping import get_postprocess_function
 
 
 class EPTR2:
@@ -24,7 +26,8 @@ class EPTR2:
         ### secure: bool
         ### query_parameters: dict
         ### just_call_phrase: bool
-        self.ssl_verify = False
+        self.ssl_verify = kwargs.get("ssl_verify", False)
+        self.postprocess = kwargs.get("postprocess", True)
 
     ## Ref: https://stackoverflow.com/a/62303969/3608936
     def __getattr__(self, __name: str) -> Any:
@@ -35,24 +38,30 @@ class EPTR2:
                     "This call is not yet defined. Call 'get_available_calls' method to see the available calls."
                 )
             required_body_params = get_required_parameters(key)
-            call_body = {
-                k: preprocess_parameter(k, v)
-                for k, v in kwargs.items()
-                if k in required_body_params
-            }
-            for body_key in required_body_params:
-                kwargs.pop(body_key, None)
-            return getattr(self, "call")(key=key, call_body=call_body, **kwargs)
+            return getattr(self, "call")(key=key, **kwargs)
 
         return method
 
     def get_available_calls(self):
         return get_path_map(just_call_keys=True)
 
-    def call(self, key: str, call_body: dict | None, **kwargs):
+    def call(self, key: str, **kwargs):
         call_path = get_total_path(key)
         call_method = get_call_method(key)
         required_body_params = get_required_parameters(key)
+        optional_body_params = get_optional_parameters(key)
+        all_params = required_body_params + optional_body_params
+
+        call_body = {
+            k: preprocess_parameter(k, v)
+            for k, v in kwargs.pop(
+                "call_body", kwargs
+            ).items()  ## If there is a call_body parameter in kwargsi, use it, else use kwargs
+            if k in all_params
+        }
+
+        for body_key in required_body_params:
+            kwargs.pop(body_key, None)
 
         if call_body is not None:
             if not all([x in call_body.keys() for x in required_body_params]):
@@ -69,9 +78,13 @@ class EPTR2:
             call_path=call_path,
             call_method=call_method,
             call_body=call_body,
-            ssl_verify=self.ssl_verify.name,
+            ssl_verify=self.ssl_verify,
             **kwargs,
         )
+
+        if kwargs.get("postprocess", self.postprocess):
+            df = get_postprocess_function(key)(res)
+            return df
 
         return res
 
