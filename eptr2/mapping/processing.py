@@ -7,7 +7,7 @@ from eptr2.processing.postprocess.items import (
 
 def get_postprocess_function(key):
     if key in [
-        "da-volume",
+        "dam-volume",
         "pi-offer",
         "pi-bid",
         "supply-demand",
@@ -15,8 +15,12 @@ def get_postprocess_function(key):
         "dam-offer",
         "dam-block-bid",
         "dam-block-offer",
+        "dam-flexible-bid",
+        "dam-flexible-offer",
+        "dam-flexible-matching",
         "dam-clearing",
         "dam-clearing-org-list",
+        "dam-diff",
         "smp",
         "mcp",
         "interim-mcp",

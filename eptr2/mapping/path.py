@@ -2,7 +2,7 @@ def get_path_map(just_call_keys: bool = False):
     path_map = {
         "call": {
             ## GÖP İşlem Hacmi
-            "da-volume": {
+            "dam-volume": {
                 "prefix": "data",
                 "prev": "dam",
                 "label": "day-ahead-market-trade-volume",  ## GÖP İşlem Hacmi
@@ -48,6 +48,24 @@ def get_path_map(just_call_keys: bool = False):
                 "prev": "dam",
                 "label": "amount-of-block-selling",
             },
+            ## GÖP Esnek Alış Teklif Miktarı Listeleme Servisi
+            "dam-flexible-bid": {
+                "prefix": "data",
+                "prev": "dam",
+                "label": "flexible-offer-buying-quantity",
+            },
+            ## GÖP Esnek Satış Miktarı
+            "dam-flexible-offer": {
+                "prefix": "data",
+                "prev": "dam",
+                "label": "flexible-offer-selling-quantity",
+            },
+            ## GÖP Esnek Teklif Eşleşme Miktarları
+            "dam-flexible-matching": {
+                "prefix": "data",
+                "prev": "dam",
+                "label": "matched-flexible-offer-quantity",
+            },
             ## GÖP Eşleşme Miktarı
             "dam-clearing": {
                 "prefix": "data",
@@ -59,6 +77,12 @@ def get_path_map(just_call_keys: bool = False):
                 "prefix": "data",
                 "prev": "dam",
                 "label": "clearing-quantity-organization-list",
+            },
+            ## GÖP Fark Tutarı
+            "dam-diff": {
+                "prefix": "data",
+                "prev": "dam",
+                "label": "side-payments",
             },
             ## SMF
             "smp": {"prefix": "data", "prev": "bpm", "label": "system-marginal-price"},
