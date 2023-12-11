@@ -365,6 +365,37 @@ def get_path_map(just_call_keys: bool = False):
                 "prev": "renewables",
                 "label": "renewables-participant",
             },
+            ## Sıfır Bakiye Düzeltme Tutarı
+            "zero-balance": {
+                "prefix": "data",
+                "prev": "transmission",
+                "label": "zero-balance",
+            },
+            ## İSKK
+            "iskk": {
+                "prefix": "data",
+                "prev": "transmission",
+                "label": "iskk-list",
+            },
+            ## Kısıt Maliyeti
+            "congestion-cost": {
+                "prefix": "data",
+                "prev": "transmission",
+                "label": "congestion-cost",
+            },
+            ##ENTSO-E (X) Kodları
+            ## TODO: Fix
+            # "eic-x-list": {
+            #     "prefix": "data",
+            #     "prev": "transmission",
+            #     "label": "organization-list",
+            # },
+            ##ENTSO-E (W) Kodları
+            "eic-w-list": {
+                "prefix": "data",
+                "prev": "transmission",
+                "label": "entso-w-organization",
+            },
             "date-init": {
                 "prefix": "main",
                 "prev": "electricity-service",
@@ -394,6 +425,7 @@ def get_path_map(just_call_keys: bool = False):
         "generation": {"prev": "electricity-service"},
         "consumption": {"prev": "electricity-service"},
         "renewables": {"prev": "electricity-service"},
+        "transmission": {"prev": "electricity-service"},
         #### services
         "electricity-service": {"next": "version"},
         "reporting-service": {"next": "version"},

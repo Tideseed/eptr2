@@ -14,6 +14,8 @@ def get_param_label(key):
         "region": {"label": "region"},
         "pp_id": {"label": "powerPlantId"},
         "year": {"label": "year"},
+        "price_type": {"label": "priceType"},
+        "order_type": {"label": "orderType"},
     }
     return d.get(key, key)
 
@@ -87,6 +89,11 @@ def get_required_parameters(key):
         "ren-capacity": ["period"],
         "wind-forecast": ["start_date", "end_date"],
         "ren-participant-list": ["year"],
+        "zero-balance": ["start_date", "end_date"],
+        "iskk": ["start_date", "end_date"],
+        "congestion-cost": ["start_date", "end_date", "price_type", "order_type"],
+        "eic-x-list": [],
+        "eic-w-list": ["period"],
     }
     ## UPDATE: As a precaution every call should have an input parameter
     return d[key]
@@ -105,6 +112,8 @@ def get_optional_parameters(key):
         "rt-gen": ["pp_id"],
         "ren-rt-gen": ["pp_id"],
         "uevm": ["pp_id"],
+        "eic-x-list": ["org_id"],
+        "eic-w-list": ["org_id"],
     }
 
     return d.get(key, [])

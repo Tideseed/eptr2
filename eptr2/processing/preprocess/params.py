@@ -20,4 +20,16 @@ def preprocess_parameter(key, value):
     elif key in ["region"]:
         value = "TR1" if value is None else value
 
+    elif key in ["price_type"]:
+        value = "SMP" if value is None else value
+        if value not in ["MCP", "SMP"]:
+            raise Exception("Price type must be either MCP or SMP")
+
+    elif key in ["order_type"]:
+        value = "BOTH_REGULATIONS" if value is None else value
+        if value not in ["UP_REGULATION", "DOWN_REGULATION", "BOTH_REGULATIONS"]:
+            raise Exception(
+                "Order type must be either UP_REGULATION, DOWN_REGULATION or BOTH_REGULATIONS"
+            )
+
     return value

@@ -72,6 +72,11 @@ def get_postprocess_function(key):
         "ren-participant-list",
         "ren-uevm",
         "ren-lic-cost",
+        "zero-balance",
+        "iskk",
+        "congestion-cost",
+        "eic-x-list",
+        "eic-w-list",
     ]:
         return postprocess_items_to_df
 
