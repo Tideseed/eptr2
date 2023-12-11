@@ -13,6 +13,7 @@ def get_param_label(key):
         "imb_org_id": {"label": "organizationId"},
         "region": {"label": "region"},
         "pp_id": {"label": "powerPlantId"},
+        "year": {"label": "year"},
     }
     return d.get(key, key)
 
@@ -67,6 +68,7 @@ def get_required_parameters(key):
         "gen-uevcb": ["org_id", "start_date"],
         "rt-gen": ["start_date", "end_date"],
         "uevm": ["start_date", "end_date"],
+        "ren-uevm": ["start_date", "end_date"],
         "uecm": ["start_date", "end_date"],
         "su-uecm": ["start_date", "end_date"],
         "st-uecm": ["period"],
@@ -74,6 +76,17 @@ def get_required_parameters(key):
         "load-plan": ["start_date", "end_date"],
         "rt-cons": ["start_date", "end_date"],
         "pp-list": [],
+        "ren-pp-list": ["period"],
+        "ren-rt-gen": ["start_date", "end_date"],
+        "ren-ul-gen": ["start_date", "end_date"],
+        "ren-ul-cost": ["start_date", "end_date"],
+        "ren-unit-cost": ["start_date", "end_date"],
+        "ren-income": ["start_date", "end_date"],
+        "ren-lic-cost": ["start_date", "end_date"],
+        "ren-total-cost": ["start_date", "end_date"],
+        "ren-capacity": ["period"],
+        "wind-forecast": ["start_date", "end_date"],
+        "ren-participant-list": ["year"],
     }
     ## UPDATE: As a precaution every call should have an input parameter
     return d[key]
@@ -90,6 +103,7 @@ def get_optional_parameters(key):
         "kudup": ["org_id", "uevcb_id"],
         "eak": ["org_id", "uevcb_id"],
         "rt-gen": ["pp_id"],
+        "ren-rt-gen": ["pp_id"],
         "uevm": ["pp_id"],
     }
 

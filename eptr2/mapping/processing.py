@@ -2,6 +2,8 @@ from eptr2.processing.postprocess.items import (
     postprocess_items_to_df,
     postprocess_mcp_status,
     postprocess_direct_dict,
+    postprocess_direct_dict_to_df,
+    postprocess_ren_capacity_dict_to_df,
 )
 
 
@@ -60,6 +62,16 @@ def get_postprocess_function(key):
         "st-uecm",
         "su-uecm",
         "uevm",
+        "wind-forecast",
+        "ren-rt-gen",
+        "ren-ul-gen",
+        "ren-ul-cost",
+        "ren-unit-cost",
+        "ren-income",
+        "ren-total-cost",
+        "ren-participant-list",
+        "ren-uevm",
+        "ren-lic-cost",
     ]:
         return postprocess_items_to_df
 
@@ -69,5 +81,10 @@ def get_postprocess_function(key):
     elif key in ["date-init"]:
         return postprocess_direct_dict
 
+    elif key in ["ren-pp-list"]:
+        return postprocess_direct_dict_to_df
+
+    elif key in ["ren-capacity"]:
+        return postprocess_ren_capacity_dict_to_df
     else:
         raise Exception("Postprocess function is not defined for this call.")

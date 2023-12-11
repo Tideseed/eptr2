@@ -292,6 +292,79 @@ def get_path_map(just_call_keys: bool = False):
                 "prev": "consumption",
                 "label": "withdrawal-quantity-under-supply-liability",
             },
+            ## YEKDEM RES Üretim ve Tahmin Listeleme
+            "wind-forecast": {
+                "prefix": "data",
+                "prev": "renewables",
+                "label": "res-generation-and-forecast",
+            },
+            ## YEKDEM Santral Listesi
+            "ren-pp-list": {
+                "prefix": "data",
+                "prev": "renewables",
+                "label": "licensed-powerplant-list",
+            },
+            ## YEKDEM Gerçek Zamanlı Üretim
+            "ren-rt-gen": {
+                "prefix": "data",
+                "prev": "renewables",
+                "label": "licensed-realtime-generation",
+            },
+            ## YEKDEM UEVM
+            "ren-uevm": {
+                "prefix": "data",
+                "prev": "renewables",
+                "label": "renewable-sm-licensed-injection-quantity",
+            },
+            ## Lisanssız Üretim
+            "ren-ul-gen": {
+                "prefix": "data",
+                "prev": "renewables",
+                "label": "unlicensed-generation-amount",
+            },
+            ## Lisanssız Üretim Bedeli
+            "ren-ul-cost": {
+                "prefix": "data",
+                "prev": "renewables",
+                "label": "unlicensed-generation-cost",
+            },
+            ## YEK Bedeli
+            # "yekbed": {"redirect": "ren-lic-cost"},
+            "ren-lic-cost": {
+                "prefix": "data",
+                "prev": "renewables",
+                "label": "licensed-generation-cost",
+            },
+            ## YEK Geliri
+            "ren-income": {
+                "prefix": "data",
+                "prev": "renewables",
+                "label": "renewables-support-mechanism-income",
+            },
+            ## YEK Toplam Gider (YEKTOB)
+            "ren-total-cost": {
+                "prefix": "data",
+                "prev": "renewables",
+                "label": "total-cost",
+            },
+            ## Lisanssız Üretim Bedeli
+            "ren-capacity": {
+                "prefix": "data",
+                "prev": "renewables",
+                "label": "new-installed-capacity",
+            },
+            ## YEKDEM Birim Maliyeti
+            "ren-unit-cost": {
+                "prefix": "data",
+                "prev": "renewables",
+                "label": "unit-cost",
+            },
+            ## YEKDEM Katılımcı Listesi
+            "ren-participant-list": {
+                "prefix": "data",
+                "prev": "renewables",
+                "label": "renewables-participant",
+            },
             "date-init": {
                 "prefix": "main",
                 "prev": "electricity-service",
@@ -320,6 +393,7 @@ def get_path_map(just_call_keys: bool = False):
         "markets": {"prev": "electricity-service"},
         "generation": {"prev": "electricity-service"},
         "consumption": {"prev": "electricity-service"},
+        "renewables": {"prev": "electricity-service"},
         #### services
         "electricity-service": {"next": "version"},
         "reporting-service": {"next": "version"},
@@ -335,6 +409,10 @@ def get_path_map(just_call_keys: bool = False):
 
 def get_total_path(key: str, join_path: bool = True):
     d = get_path_map().get(key, None)
+    redirect_key = d.get("redirect", None)
+    if redirect_key is not None:
+        d = get_path_map().get(redirect_key, None)
+
     if d is not None:
         total_path = [d.get("label", key)]
         if d.get("prefix", None) is not None:
