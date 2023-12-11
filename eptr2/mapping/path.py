@@ -208,6 +208,60 @@ def get_path_map(just_call_keys: bool = False):
                 "prev": "reporting-service",
                 "label": "dgp-talimat-agr-ort",
             },
+            ## KGÜP
+            "kgup": {
+                "prefix": "data",
+                "prev": "generation",
+                "label": "dpp",
+            },
+            ## KUDUP
+            "kudup": {
+                "prefix": "data",
+                "prev": "generation",
+                "label": "sbfgp",
+            },
+            ## EAK
+            "eak": {
+                "prefix": "data",
+                "prev": "generation",
+                "label": "aic",
+            },
+            ## Gerçek Zamanlı Üretim
+            "rt-gen": {
+                "prefix": "data",
+                "prev": "generation",
+                "label": "realtime-generation",
+            },
+            ## UEVM
+            "uevm": {
+                "prefix": "data",
+                "prev": "generation",
+                "label": "injection-quantity",
+            },
+            ## Santral Listeleme
+            "pp-list": {
+                "prefix": "data",
+                "prev": "generation",
+                "label": "powerplant-list",
+            },
+            ## Üretici Organizasyon Listesi
+            "gen-org": {
+                "prefix": "data",
+                "prev": "generation",
+                "label": "organization-list",
+            },
+            ## Üretici Organizasyon Listesi
+            "gen-uevcb": {
+                "prefix": "data",
+                "prev": "generation",
+                "label": "uevcb-list",
+            },
+            ## Lisanslı Santral Yatırımları
+            "lic-pp-list": {
+                "prefix": "data",
+                "prev": "generation",
+                "label": "licensed-powerplant-investment-list",
+            },
             "date-init": {
                 "prefix": "main",
                 "prev": "electricity-service",
@@ -234,6 +288,7 @@ def get_path_map(just_call_keys: bool = False):
         "general-data": {"prev": "markets"},
         "imbalance": {"prev": "markets"},
         "markets": {"prev": "electricity-service"},
+        "generation": {"prev": "electricity-service"},
         #### services
         "electricity-service": {"next": "version"},
         "reporting-service": {"next": "version"},
@@ -274,6 +329,7 @@ def get_call_method(key):
         "date-init",
         "interim-mcp-status",
         "market-participants-organization-list",
+        "pp-list",
     ]
 
     if key in get_methods:

@@ -9,7 +9,10 @@ def get_param_label(key):
         "date_time": {"label": "date"},
         "period": {"label": "period"},
         "org_id": {"label": "organizationId"},
+        "uevcb_id": {"lqbek": "uevcbId"},
         "imb_org_id": {"label": "organizationId"},
+        "region": {"label": "region"},
+        "pp_id": {"label": "powerPlantId"},
     }
     return d.get(key, key)
 
@@ -57,6 +60,15 @@ def get_required_parameters(key):
         "bpm-orders-w-avg": ["date_time"],
         "market-participants": [],
         "market-participants-organization-list": [],
+        "kgup": ["start_date", "end_date", "region"],
+        "kudup": ["start_date", "end_date", "region"],
+        "eak": ["start_date", "end_date", "region"],
+        "gen-org": ["start_date", "end_date"],
+        "gen-uevcb": ["org_id", "start_date"],
+        "rt-gen": ["start_date", "end_date"],
+        "uevm": ["start_date", "end_date"],
+        "lic-pp-list": ["start_date", "end_date"],
+        "pp-list": [],
     }
     ## UPDATE: As a precaution every call should have an input parameter
     return d[key]
@@ -69,6 +81,11 @@ def get_optional_parameters(key):
         "bi-short": ["org_id"],
         "imb-qty-g": ["imb_org_id"],
         "market-participants": ["org_id"],
+        "kgup": ["org_id", "uevcb_id"],
+        "kudup": ["org_id", "uevcb_id"],
+        "eak": ["org_id", "uevcb_id"],
+        "rt-gen": ["pp_id"],
+        "uevm": ["pp_id"],
     }
 
     return d.get(key, [])

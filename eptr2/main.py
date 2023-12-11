@@ -61,6 +61,8 @@ class EPTR2:
         }
 
         for body_key in required_body_params:
+            if body_key not in call_body.keys():
+                call_body[body_key] = preprocess_parameter(body_key, None)
             kwargs.pop(body_key, None)
 
         if call_body is not None:

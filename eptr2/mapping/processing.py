@@ -46,6 +46,15 @@ def get_postprocess_function(key):
         "bpm-orders-w-avg",
         "market-participants",
         "market-participants-organization-list",
+        "kgup",
+        "kudup",
+        "eak",
+        "gen-org",
+        "gen-uevcb",
+        "rt-gen",
+        "pp-list",
+        "lic-pp-list",
+        "uevm",
     ]:
         return postprocess_items_to_df
 

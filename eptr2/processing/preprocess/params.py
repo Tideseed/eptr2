@@ -17,4 +17,7 @@ def preprocess_parameter(key, value):
     if key in ["start_date", "end_date", "date_time", "period"]:
         value = format_date_epias_hour(value)
 
+    elif key in ["region"]:
+        value = "TR1" if value is None else value
+
     return value
