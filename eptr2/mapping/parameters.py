@@ -67,7 +67,12 @@ def get_required_parameters(key):
         "gen-uevcb": ["org_id", "start_date"],
         "rt-gen": ["start_date", "end_date"],
         "uevm": ["start_date", "end_date"],
+        "uecm": ["start_date", "end_date"],
+        "su-uecm": ["start_date", "end_date"],
+        "st-uecm": ["period"],
         "lic-pp-list": ["start_date", "end_date"],
+        "load-plan": ["start_date", "end_date"],
+        "rt-cons": ["start_date", "end_date"],
         "pp-list": [],
     }
     ## UPDATE: As a precaution every call should have an input parameter

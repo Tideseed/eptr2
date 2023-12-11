@@ -54,6 +54,11 @@ def get_postprocess_function(key):
         "rt-gen",
         "pp-list",
         "lic-pp-list",
+        "load-plan",
+        "rt-cons",
+        "uecm",
+        "st-uecm",
+        "su-uecm",
         "uevm",
     ]:
         return postprocess_items_to_df

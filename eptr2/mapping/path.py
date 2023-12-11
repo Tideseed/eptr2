@@ -262,6 +262,36 @@ def get_path_map(just_call_keys: bool = False):
                 "prev": "generation",
                 "label": "licensed-powerplant-investment-list",
             },
+            ## Lisanslı Santral Yatırımları
+            "load-plan": {
+                "prefix": "data",
+                "prev": "consumption",
+                "label": "load-estimation-plan",
+            },
+            ## Gerçek Zamanlı Tüketim
+            "rt-cons": {
+                "prefix": "data",
+                "prev": "consumption",
+                "label": "realtime-consumption",
+            },
+            ## UEÇM
+            "uecm": {
+                "prefix": "data",
+                "prev": "consumption",
+                "label": "uecm",
+            },
+            ## Serbest Tüketici UEÇM
+            "st-uecm": {
+                "prefix": "data",
+                "prev": "consumption",
+                "label": "st-uecm",
+            },
+            ## Tedarik Yükümlülüğü Kapsamındaki UEÇM
+            "su-uecm": {
+                "prefix": "data",
+                "prev": "consumption",
+                "label": "withdrawal-quantity-under-supply-liability",
+            },
             "date-init": {
                 "prefix": "main",
                 "prev": "electricity-service",
@@ -289,6 +319,7 @@ def get_path_map(just_call_keys: bool = False):
         "imbalance": {"prev": "markets"},
         "markets": {"prev": "electricity-service"},
         "generation": {"prev": "electricity-service"},
+        "consumption": {"prev": "electricity-service"},
         #### services
         "electricity-service": {"next": "version"},
         "reporting-service": {"next": "version"},
