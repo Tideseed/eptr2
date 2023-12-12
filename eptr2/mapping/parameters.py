@@ -18,6 +18,7 @@ def get_param_label(key):
         "price_type": {"label": "priceType"},
         "order_type": {"label": "orderType"},
         "message_type_id": {"label": "mesajTipId"},
+        "intl_direction": {"label": "direction"},
     }
     return d.get(key, key)
 
@@ -101,6 +102,14 @@ def get_required_parameters(key):
         "mms-pp-list": ["start_date"],
         "mms-uevcb-list": ["start_date", "pp_id"],
         "mms-message-type-list": [],
+        "international-line-events": ["start_date", "end_date"],
+        "tcat-pre-year-forecast": ["start_date", "end_date"],
+        "tcat-pre-month-forecast": ["start_date", "end_date"],
+        "line-capacities": ["start_date", "end_date", "intl_direction"],
+        "intl-direction-list": [],
+        "intl-capacity-demand-direction-list": [],
+        "capacity-demand": ["start_date", "end_date", "intl_direction"],
+        "nominal-capacity": ["start_date", "end_date"],
     }
     ## UPDATE: As a precaution every call should have an input parameter
     return d[key]

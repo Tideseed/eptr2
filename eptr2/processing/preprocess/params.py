@@ -28,6 +28,16 @@ def preprocess_parameter(key, value):
         if value not in ["MCP", "SMP"]:
             raise Exception("Price type must be either MCP or SMP")
 
+    elif key in ["intl_direction"]:
+        # value = "TRGR" if value is None else value
+        val_list = ["TRGR", "GRTR", "TRBG", "BGTR"]
+        if value not in val_list:
+            raise Exception(
+                "International direction (intl_direction) type should be one of "
+                + ", ".join(val_list)
+                + "."
+            )
+
     elif key in ["order_type"]:
         value = "BOTH_REGULATIONS" if value is None else value
         if value not in ["UP_REGULATION", "DOWN_REGULATION", "BOTH_REGULATIONS"]:

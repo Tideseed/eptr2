@@ -408,6 +408,54 @@ def get_path_map(just_call_keys: bool = False):
                 "prev": "transmission",
                 "label": "entso-w-organization",
             },
+            ## Enterkonneksiyon Arıza Bakım Bildirimleri
+            "international-line-events": {
+                "prefix": "data",
+                "prev": "transmission",
+                "label": "international-line-events",
+            },
+            ##Enterkonneksiyon Kapasitesine İlişkin Yıl Öncesi Tahminler
+            "tcat-pre-year-forecast": {
+                "prefix": "data",
+                "prev": "transmission",
+                "label": "tcat-pre-year-forecast",
+            },
+            ##Enterkonneksiyon Kapasitesine İlişkin Ay Öncesi Tahminler
+            "tcat-pre-month-forecast": {
+                "prefix": "data",
+                "prev": "transmission",
+                "label": "tcat-pre-month-forecast",
+            },
+            ##Enterkonneksiyon Hat Kapasiteleri
+            "line-capacities": {
+                "prefix": "data",
+                "prev": "transmission",
+                "label": "line-capacities",
+            },
+            ##Enterkonneksiyon Hat Kapasiteleri
+            "capacity-demand": {
+                "prefix": "data",
+                "prev": "transmission",
+                "label": "line-capacities",
+            },
+            ##Nomine Kapasite
+            "nominal-capacity": {
+                "prefix": "data",
+                "prev": "transmission",
+                "label": "nominal-capacity",
+            },
+            ##Enterkonneksiyon Hat Kapasiteleri Yön Listesi
+            "intl-direction-list": {
+                "prefix": "data",
+                "prev": "transmission",
+                "label": "line-capacities-direction",
+            },
+            ##Enterkonneksiyon Hat Kapasite Talepleri Yön Listesi
+            "intl-capacity-demand-direction-list": {
+                "prefix": "data",
+                "prev": "transmission",
+                "label": "line-capacities-direction",
+            },
             ## Piyasa Mesaj Sistemi
             "mms": {
                 "prefix": "data",
@@ -504,6 +552,8 @@ def get_call_method(key):
         "pp-list",
         "region-list",
         "mms-message-type-list",
+        "intl-direction-list",
+        "intl-capacity-demand-direction-list",
     ]
 
     if key in get_methods:

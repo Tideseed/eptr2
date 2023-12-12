@@ -82,13 +82,23 @@ def get_postprocess_function(key):
         "region-list",
         "mms-message-type-list",
         "mms-uevcb-list",
+        "tcat-pre-year-forecast",
+        "tcat-pre-month-forecast",
+        "international-line-events",
+        "line-capacities",
+        "capacity-demand",
+        "nominal-capacity",
     ]:
         return postprocess_items_to_df
 
     elif key in ["interim-mcp-status"]:
         return postprocess_mcp_status
 
-    elif key in ["date-init"]:
+    elif key in [
+        "date-init",
+        "intl-direction-list",
+        "intl-capacity-demand-direction-list",
+    ]:
         return postprocess_direct_dict
 
     elif key in ["ren-pp-list"]:
