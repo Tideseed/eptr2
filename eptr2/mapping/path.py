@@ -250,7 +250,19 @@ def get_path_map(just_call_keys: bool = False):
                 "prev": "generation",
                 "label": "organization-list",
             },
-            ## Üretici Organizasyon Listesi
+            ## Bölge Listesi
+            "region-list": {
+                "prefix": "data",
+                "prev": "generation",
+                "label": "region-list",
+            },
+            ## PMS Mesaj Tipi Listesi
+            "mms-message-type-list": {
+                "prefix": "data",
+                "prev": "markets",
+                "label": "umm-message-type-list",
+            },
+            ## Üretici UEVÇB Listesi
             "gen-uevcb": {
                 "prefix": "data",
                 "prev": "generation",
@@ -396,6 +408,25 @@ def get_path_map(just_call_keys: bool = False):
                 "prev": "transmission",
                 "label": "entso-w-organization",
             },
+            ## Piyasa Mesaj Sistemi
+            "mms": {
+                "prefix": "data",
+                "prev": "markets",
+                "label": "market-message-system",
+            },
+            ## Organizasyona Göre Santral Listeleme (Piyasa Mesaj Sistemi)
+            "mms-pp-list": {
+                "prefix": "data",
+                "prev": "markets",
+                "label": "power-plant-list-by-organization-id",
+            },
+            ## UEVÇB'ye Göre Santral Listeleme (Piyasa Mesaj Sistemi)
+            "mms-uevcb-list": {
+                "prefix": "data",
+                "prev": "markets",
+                "label": "uevcb-list-by-power-plant-id",
+            },
+            ## Gün bilgileri
             "date-init": {
                 "prefix": "main",
                 "prev": "electricity-service",
@@ -471,6 +502,8 @@ def get_call_method(key):
         "interim-mcp-status",
         "market-participants-organization-list",
         "pp-list",
+        "region-list",
+        "mms-message-type-list",
     ]
 
     if key in get_methods:

@@ -20,6 +20,9 @@ def preprocess_parameter(key, value):
     elif key in ["region"]:
         value = "TR1" if value is None else value
 
+    elif key in ["region_id"]:
+        value = "1" if value is None else value
+
     elif key in ["price_type"]:
         value = "SMP" if value is None else value
         if value not in ["MCP", "SMP"]:

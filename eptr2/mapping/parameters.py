@@ -12,10 +12,12 @@ def get_param_label(key):
         "uevcb_id": {"lqbek": "uevcbId"},
         "imb_org_id": {"label": "organizationId"},
         "region": {"label": "region"},
+        "region_id": {"label": "regionId"},
         "pp_id": {"label": "powerPlantId"},
         "year": {"label": "year"},
         "price_type": {"label": "priceType"},
         "order_type": {"label": "orderType"},
+        "message_type_id": {"label": "mesajTipId"},
     }
     return d.get(key, key)
 
@@ -94,6 +96,11 @@ def get_required_parameters(key):
         "congestion-cost": ["start_date", "end_date", "price_type", "order_type"],
         "eic-x-list": [],
         "eic-w-list": ["period"],
+        "mms": ["start_date", "end_date", "region_id"],
+        "region-list": [],
+        "mms-pp-list": ["start_date"],
+        "mms-uevcb-list": ["start_date", "pp_id"],
+        "mms-message-type-list": [],
     }
     ## UPDATE: As a precaution every call should have an input parameter
     return d[key]
@@ -114,6 +121,8 @@ def get_optional_parameters(key):
         "uevm": ["pp_id"],
         "eic-x-list": ["org_id"],
         "eic-w-list": ["org_id"],
+        "mms": ["org_id", "uevcb_id", "pp_id", "message_type_id"],
+        "mms-pp-list": ["org_id"],
     }
 
     return d.get(key, [])

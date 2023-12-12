@@ -77,6 +77,11 @@ def get_postprocess_function(key):
         "congestion-cost",
         "eic-x-list",
         "eic-w-list",
+        "mms",
+        "mms-pp-list",
+        "region-list",
+        "mms-message-type-list",
+        "mms-uevcb-list",
     ]:
         return postprocess_items_to_df
 
