@@ -103,7 +103,7 @@ def transparency_call(
     ### query_parameters: dict
     ### just_call_phrase: bool
 
-    call_phrase = os.path.join(root_phrase, call_path)
+    call_phrase = urljoin(root_phrase, call_path)
 
     ## If there are query parameters (not body parameters), append
     q_params = kwargs.get("query_parameters", {})
