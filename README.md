@@ -1,5 +1,8 @@
 # EPIAS Transparency Platform v2.0 Python client by Robokami Data
 
+> [!IMPORTANT]
+> Try eptr2 online now! Use [eptr2demo](https://eptr2demo.streamlit.app/) app for a limited set of calls (for now). Valid for eptr2 version 0.1.7 and later.
+
 _🇹🇷 Türkçe açıklama için aşağıya bakınız._
 
 `eptr2` (**EP**IAS **Tr**ansparency **2**.0) package is a thin wrapper around [EPIAS Transparency Platform v2.0](https://seffaflik-prp.epias.com.tr/home) API brought to you by [Robokami](https://robokami.com). It is an unofficial package with Apache License 2.0 (free and permissable use for commercial applications, [see details](https://www.tldrlegal.com/license/apache-license-2-0-apache-2-0)).
