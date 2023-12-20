@@ -1,3 +1,5 @@
+![PyPI - Version](https://img.shields.io/pypi/v/eptr2) ![PyPI - Downloads](https://img.shields.io/pypi/dm/eptr2) 
+
 # EPIAS Transparency Platform v2.0 Python client by Robokami Data
 
 > [!IMPORTANT]
@@ -5,16 +7,15 @@
 
 _🇹🇷 Türkçe açıklama için aşağıya bakınız._
 
-`eptr2` (**EP**IAS **Tr**ansparency **2**.0) package is a thin wrapper around [EPIAS Transparency Platform v2.0](https://seffaflik-prp.epias.com.tr/home) API brought to you by [Robokami](https://robokami.com). It is an unofficial package with Apache License 2.0 (free and permissable use for commercial applications, [see details](https://www.tldrlegal.com/license/apache-license-2-0-apache-2-0)).
+`eptr2` (**EP**IAS **Tr**ansparency **2**.0) package is a thin wrapper around [EPIAS Transparency Platform v2.0](https://seffaflik.epias.com.tr/home) API brought to you by [Robokami](https://robokami.com). It is an unofficial package with Apache License 2.0 (free and permissable use for commercial applications, [see details](https://www.tldrlegal.com/license/apache-license-2-0-apache-2-0)).
 
 > [!IMPORTANT]  
-> EPIAS Transparency Platform v2.0 is still in "simulation" mode and expected to go live on Dec. 4, 2023. Breaking changes can be expected.
-> A url change is expected at the minimum (<https://seffaflik-prp.epias.com.tr> to <https://seffaflik.epias.com.tr>)
+> EPIAS Transparency Platform v2.0 went live on Dec. 4, 2023. 
 
 > [!IMPORTANT]  
-> `eptr2` is still in active development. Breaking changes can be expected. Fill an [issue](https://github.com/tideseed/eptr2) if you encounter any problem.
+> `eptr2` is still in active development. Breaking changes can be expected. Fill an [issue](https://github.com/tideseed/eptr2/issues) if you encounter any problem.
 
-`eptr2` currently covers 84 services with convenience methods. You can also use `transparency_call` function to call any service with any method and body.
+`eptr2` currently covers 86 services with convenience methods. You can also use `transparency_call` function to call any service with any method and body.
 
 ## Installation
 
@@ -84,12 +85,12 @@ print(mcp.json())
 
 ## EPİAŞ Şeffaflık Platformu 2.0 Python kütüphanesi (Robokami Data)
 
-`eptr2` (**EP**İAŞ **Tr**ansparency **2**.0) paketi [Robokami](https://robokami.com) tarafından [EPİAŞ Şeffaflık Platformu 2.0](https://seffaflik-prp.epias.com.tr/home) API'si üzerine geliştirilmiş bir Python paketidir. Apache License 2.0 ile lisanslanmıştır ([ücretsiz ve büyük ölçüde serbest kullanım](https://www.tldrlegal.com/license/apache-license-2-0-apache-2-0)).
+`eptr2` (**EP**İAŞ **Tr**ansparency **2**.0) paketi [Robokami](https://robokami.com) tarafından [EPİAŞ Şeffaflık Platformu 2.0](https://seffaflik.epias.com.tr/home) API'si üzerine geliştirilmiş bir Python paketidir. Apache License 2.0 ile lisanslanmıştır ([ücretsiz ve büyük ölçüde serbest kullanım](https://www.tldrlegal.com/license/apache-license-2-0-apache-2-0)).
 
 Yukarıdaki yükleme ve kullanım talimatları ile hızlıca başlayabilirsiniz.
 
 > [!IMPORTANT]  
-> EPİAŞ Şeffaflık Platformu v2.0 hala simülasyon modunda çalışmaktadır ve 4 Aralık 2023 tarihinde canlıya alınacaktır. Çeşitli değişiklikler beklenebilir. En azından kök adreste değişiklik beklenmektedir (<https://seffaflik-prp.epias.com.tr> -> <https://seffaflik.epias.com.tr>).
+> EPİAŞ Şeffaflık Platformu v2.0 hala simülasyon modunda çalışmaktadır ve 4 Aralık 2023 tarihinde canlıya alınacaktır. Çeşitli değişiklikler beklenebilir. En azından kök adreste değişiklik beklenmektedir (<https://seffaflik.epias.com.tr> -> <https://seffaflik.epias.com.tr>).
 
 > [!IMPORTANT]  
 > `eptr2` hala aktif olarak geliştirilmektedir. Büyük değişiklikler beklenebilir. Herhangi bir sorunda, [issue](https://github.com/tideseed/eptr2) kısmından istek açabilirsiniz.

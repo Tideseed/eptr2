@@ -19,6 +19,8 @@ def get_param_label(key):
         "order_type": {"label": "orderType"},
         "message_type_id": {"label": "mesajTipId"},
         "intl_direction": {"label": "direction"},
+        "province_id": {"label": "provinceId"},
+        "uevcb_name": {"label": "uevcbName"},
     }
     return d.get(key, key)
 
@@ -81,6 +83,7 @@ def get_required_parameters(key):
         "load-plan": ["start_date", "end_date"],
         "rt-cons": ["start_date", "end_date"],
         "pp-list": [],
+        "uevm-pp-list": [],
         "ren-pp-list": ["period"],
         "ren-rt-gen": ["start_date", "end_date"],
         "ren-ul-gen": ["start_date", "end_date"],
@@ -95,8 +98,9 @@ def get_required_parameters(key):
         "zero-balance": ["start_date", "end_date"],
         "iskk": ["start_date", "end_date"],
         "congestion-cost": ["start_date", "end_date", "price_type", "order_type"],
-        "eic-x-list": [],
-        "eic-w-list": ["period"],
+        "eic-x-org-list": ["period"],
+        "eic-w-org-list": ["period"],
+        "eic-w-uevcb-list": ["uevcb_name", "period"],
         "mms": ["start_date", "end_date", "region_id"],
         "region-list": [],
         "mms-pp-list": ["start_date"],
@@ -128,8 +132,9 @@ def get_optional_parameters(key):
         "rt-gen": ["pp_id"],
         "ren-rt-gen": ["pp_id"],
         "uevm": ["pp_id"],
-        "eic-x-list": ["org_id"],
-        "eic-w-list": ["org_id"],
+        "eic-x-org-list": ["org_id"],
+        "eic-w-org-list": ["org_id"],
+        "eic-w-uevcb-list": ["province_id"],
         "mms": ["org_id", "uevcb_id", "pp_id", "message_type_id"],
         "mms-pp-list": ["org_id"],
     }

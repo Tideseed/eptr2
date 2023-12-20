@@ -244,6 +244,12 @@ def get_path_map(just_call_keys: bool = False):
                 "prev": "generation",
                 "label": "powerplant-list",
             },
+            ## Santral Listeleme
+            "uevm-pp-list": {
+                "prefix": "data",
+                "prev": "generation",
+                "label": "injection-quantity-powerplant-list",
+            },
             ## Üretici Organizasyon Listesi
             "gen-org": {
                 "prefix": "data",
@@ -397,16 +403,22 @@ def get_path_map(just_call_keys: bool = False):
             },
             ##ENTSO-E (X) Kodları
             ## TODO: Fix
-            # "eic-x-list": {
-            #     "prefix": "data",
-            #     "prev": "transmission",
-            #     "label": "organization-list",
-            # },
+            "eic-x-org-list": {
+                "prefix": "data",
+                "prev": "transmission",
+                "label": "organization-list",
+            },
             ##ENTSO-E (W) Kodları
-            "eic-w-list": {
+            "eic-w-org-list": {
                 "prefix": "data",
                 "prev": "transmission",
                 "label": "entso-w-organization",
+            },
+            ##ENTSO-E (W) Kodları UEVCB
+            "eic-w-uevcb-list": {
+                "prefix": "data",
+                "prev": "transmission",
+                "label": "entso-w-uevcb",
             },
             ## Enterkonneksiyon Arıza Bakım Bildirimleri
             "international-line-events": {
@@ -550,6 +562,7 @@ def get_call_method(key):
         "interim-mcp-status",
         "market-participants-organization-list",
         "pp-list",
+        "uevm-pp-list",
         "region-list",
         "mms-message-type-list",
         "intl-direction-list",
