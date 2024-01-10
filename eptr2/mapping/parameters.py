@@ -9,11 +9,14 @@ def get_param_label(key):
         "date_time": {"label": "date"},
         "period": {"label": "period"},
         "org_id": {"label": "organizationId"},
-        "uevcb_id": {"lqbek": "uevcbId"},
+        "uevcb_id": {"label": "uevcbId"},
         "imb_org_id": {"label": "organizationId"},
         "region": {"label": "region"},
         "region_id": {"label": "regionId"},
         "pp_id": {"label": "powerPlantId"},
+        "pp_id2": {
+            "label": "powerplantId"
+        },  ## Because all the other calls use powerPlantId and uevm uses powerplantId (lowercase p)
         "year": {"label": "year"},
         "price_type": {"label": "priceType"},
         "order_type": {"label": "orderType"},
@@ -131,7 +134,9 @@ def get_optional_parameters(key):
         "eak": ["org_id", "uevcb_id"],
         "rt-gen": ["pp_id"],
         "ren-rt-gen": ["pp_id"],
-        "uevm": ["pp_id"],
+        "uevm": [
+            "pp_id2"
+        ],  ## Because all the other calls use powerPlantId and uevm uses powerplantId (lowercase p)
         "eic-x-org-list": ["org_id"],
         "eic-w-org-list": ["org_id"],
         "eic-w-uevcb-list": ["province_id"],

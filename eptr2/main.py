@@ -32,7 +32,8 @@ class EPTR2:
     ## Ref: https://stackoverflow.com/a/62303969/3608936
     def __getattr__(self, __name: str) -> Any:
         def method(*args, **kwargs):
-            key = re.sub("_", "-", __name)
+            key_raw = __name
+            key = re.sub("_", "-", the_name)
             if key not in get_path_map(just_call_keys=True):
                 raise Exception(
                     "This call is not yet defined. Call 'get_available_calls' method to see the available calls."
