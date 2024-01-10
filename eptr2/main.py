@@ -77,6 +77,10 @@ class EPTR2:
         elif len(required_body_params) > 0:
             raise Exception("Required parameters are missing in call body.")
 
+        ## If the call is uevm, change powerPlantId to powerplantId due to only non-standard naming in powerPlantId
+        if key == "uevm" and "powerPlantId" in call_body.keys():
+            call_body["powerplantId"] = call_body.pop("powerPlantId")
+
         res = transparency_call(
             call_path=call_path,
             call_method=call_method,
