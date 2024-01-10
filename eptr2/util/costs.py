@@ -40,7 +40,7 @@ def calculate_kupst_cost(
     tol: float = 0.21,
     kupst_multiplier: float = 0.03,
 ):
-    tol_val = actual * tol
+    tol_val = forecast * tol
     kupst_cost = (
         max(0, abs(actual - forecast) - tol_val) * max(mcp, smp) * kupst_multiplier
     )
@@ -118,11 +118,7 @@ def calculate_kupst_cost_list(
     kupst_cost_list = []
 
     for x, y, m, s in zip(forecast_values, actual_values, mcp, smp):
-        error = abs(x - y)
-        if error > tol * y:
-            cost = round(error - tol * y, 1) * max(m, s) * kupst_multiplier
-        else:
-            cost = 0
+        cost = max(abs(x - y) - tol * x, 0) * max(m, s) * kupst_multiplier
 
         kupst_cost_list.append(cost)
 
