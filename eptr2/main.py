@@ -90,7 +90,7 @@ class EPTR2:
         )
 
         if kwargs.get("postprocess", self.postprocess):
-            df = get_postprocess_function(key)(res)
+            df = get_postprocess_function(key)(res, key=key)
             return df
 
         return res

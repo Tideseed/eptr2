@@ -15,7 +15,7 @@ _🇹🇷 Türkçe açıklama için aşağıya bakınız._
 > [!IMPORTANT]  
 > `eptr2` is still in active development. Breaking changes can be expected. Fill an [issue](https://github.com/tideseed/eptr2/issues) if you encounter any problem.
 
-`eptr2` currently covers 87 services with convenience methods. You can also use `transparency_call` function to call any service with any method and body.
+`eptr2` currently covers 95 services with convenience methods. You can also use `transparency_call` function to call any service with any method and body.
 
 ## Installation
 

@@ -90,6 +90,14 @@ def get_postprocess_function(key):
         "line-capacities",
         "capacity-demand",
         "nominal-capacity",
+        "dams-active-fullness",
+        "dams-daily-level",
+        "dams-active-volume",
+        "dams-daily-volume",
+        "dams-level-minmax",
+        "dams-volume-minmax",
+        "dams-info",
+        "dams-water-energy-provision",
     ]:
         return postprocess_items_to_df
 
@@ -100,6 +108,8 @@ def get_postprocess_function(key):
         "date-init",
         "intl-direction-list",
         "intl-capacity-demand-direction-list",
+        "basin-list",
+        "dam-list",
     ]:
         return postprocess_direct_dict
 

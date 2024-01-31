@@ -280,7 +280,7 @@ def get_path_map(just_call_keys: bool = False):
                 "prev": "generation",
                 "label": "licensed-powerplant-investment-list",
             },
-            ## Lisanslı Santral Yatırımları
+            ## Yük Tahmin Planı
             "load-plan": {
                 "prefix": "data",
                 "prev": "consumption",
@@ -504,6 +504,66 @@ def get_path_map(just_call_keys: bool = False):
                 "prev": "general-data",
                 "label": "market-participants-organization-filter-list",
             },
+            ## Aktif Doluluk
+            "dams-active-fullness": {
+                "prefix": "data",
+                "prev": "dams",
+                "label": "active-fullness",
+            },
+            ## Günlük Kot
+            "dams-daily-level": {
+                "prefix": "data",
+                "prev": "dams",
+                "label": "daily-kot",
+            },
+            ## Aktif Hacim
+            "dams-active-volume": {
+                "prefix": "data",
+                "prev": "dams",
+                "label": "active-volume",
+            },
+            ## Günlük Hacim
+            "dams-daily-volume": {
+                "prefix": "data",
+                "prev": "dams",
+                "label": "daily-volume",
+            },
+            ## Havza Listesi
+            "basin-list": {
+                "prefix": "data",
+                "prev": "dams",
+                "label": "basin-list",
+            },
+            ## Baraj Listesi
+            "dam-list": {
+                "prefix": "data",
+                "prev": "dams",
+                "label": "dam-list",
+            },
+            ## Baraj Kot Min-Max
+            "dams-level-minmax": {
+                "prefix": "data",
+                "prev": "dams",
+                "label": "dam-kot",
+            },
+            ## Baraj Hacim Min-Max
+            "dams-volume-minmax": {
+                "prefix": "data",
+                "prev": "dams",
+                "label": "dam-volume",
+            },
+            ## Baraj Debi ve Kurulu Güç
+            "dams-info": {
+                "prefix": "data",
+                "prev": "dams",
+                "label": "flow-rate-and-installed-power",
+            },
+            ## Suyun Enerji Karşılığı
+            "dams-water-energy-provision": {
+                "prefix": "data",
+                "prev": "dams",
+                "label": "water-energy-provision",
+            },
         },
         ## category
         "idm": {"prev": "markets"},
@@ -512,6 +572,7 @@ def get_path_map(just_call_keys: bool = False):
         "bilateral-contracts": {"prev": "markets"},
         "general-data": {"prev": "markets"},
         "imbalance": {"prev": "markets"},
+        "dams": {"prev": "electricity-service"},
         "markets": {"prev": "electricity-service"},
         "generation": {"prev": "electricity-service"},
         "consumption": {"prev": "electricity-service"},
@@ -567,6 +628,7 @@ def get_call_method(key):
         "mms-message-type-list",
         "intl-direction-list",
         "intl-capacity-demand-direction-list",
+        "basin-list",
     ]
 
     if key in get_methods:

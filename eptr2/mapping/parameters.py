@@ -25,6 +25,8 @@ def get_param_label(key):
         "intl_direction": {"label": "direction"},
         "province_id": {"label": "provinceId"},
         "uevcb_name": {"label": "uevcbName"},
+        "basin_name": {"label": "basinName"},
+        "dam_name": {"label": "damName"},
     }
     return d.get(key, key)
 
@@ -118,6 +120,16 @@ def get_required_parameters(key):
         "intl-capacity-demand-direction-list": [],
         "capacity-demand": ["start_date", "end_date", "intl_direction"],
         "nominal-capacity": ["start_date", "end_date"],
+        "dams-active-fullness": [],
+        "dams-daily-level": [],
+        "dams-active-volume": [],
+        "dams-daily-volume": [],
+        "basin-list": [],
+        "dam-list": [],
+        "dams-level-minmax": [],
+        "dams-volume-minmax": [],
+        "dams-info": [],
+        "dams-water-energy-provision": [],
     }
     ## UPDATE: As a precaution every call should have an input parameter
     return d[key]
@@ -141,6 +153,15 @@ def get_optional_parameters(key):
         "eic-w-uevcb-list": ["province_id"],
         "mms": ["org_id", "uevcb_id", "pp_id", "message_type_id"],
         "mms-pp-list": ["org_id"],
+        "dams-active-fullness": ["basin_name", "dam_name"],
+        "dams-daily-level": ["basin_name", "dam_name"],
+        "dams-active-volume": ["basin_name", "dam_name"],
+        "dams-daily-volume": ["basin_name", "dam_name"],
+        "dam-list": ["basin_name"],
+        "dams-level-minmax": ["basin_name", "dam_name"],
+        "dams-volume-minmax": ["basin_name", "dam_name"],
+        "dams-info": ["basin_name", "dam_name"],
+        "dams-water-energy-provision": ["basin_name", "dam_name"],
     }
 
     return d.get(key, [])

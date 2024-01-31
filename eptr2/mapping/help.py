@@ -1061,6 +1061,18 @@ def get_help_d(key=None):
             },
             "url": "https://seffaflik.epias.com.tr/electricity/electricity-markets/general-data/market-participants",
         },
+        "dams-active-fullness": {
+            "category": "Barajlar",
+            "title": {
+                "tr": "Aktif Doluluk",
+                "en": "Active Fullness",
+            },
+            "desc": {
+                "tr": "Bir barajın maksimum ve minimum işletme seviyeleri arasındaki hacimin yüzdesidir. Formül: Aktif Doluluk= [( İlgili Tarihteki Seviyeye Karşılık Gelen Hacim – Minimum Hacim ) / ( Maksimum Hacim – Minimum Hacim )] * 100. Veriler saat 17:00 itibariyle nihai halini almaktadır.",
+                "en": "The percentage of volume between the maximum and minimum operating levels of a dam. Formula: Active Occupancy= [( Volume Corresponding to the Level on the Relevant Date - Minimum Volume ) / ( Maximum Volume - Minimum Volume )] *100. Data is finalized as of 17:00.",
+            },
+            "url": "https://seffaflik.epias.com.tr/electricity/electricity-markets/general-data/market-participants",
+        },
     }
 
     if key is None:
