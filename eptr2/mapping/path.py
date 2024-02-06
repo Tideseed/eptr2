@@ -593,7 +593,7 @@ def get_path_map(just_call_keys: bool = False):
 
 def get_total_path(key: str, join_path: bool = True):
     d = get_path_map().get(key, None)
-    redirect_key = d.get("redirect", None)
+    redirect_key = None if d is None else d.get("redirect", None)
     if redirect_key is not None:
         d = get_path_map().get(redirect_key, None)
 

@@ -163,3 +163,4 @@ cython_debug/
 data/
 runs/
 .vscode/
+helpdocs/

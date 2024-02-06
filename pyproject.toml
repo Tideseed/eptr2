@@ -5,7 +5,7 @@ description = "EPIAS Transparency Platform v2.0 Python client by Robokami Data"
 authors = ["Tideseed <info@tideseed.com>"]
 license = "Apache License 2.0"
 readme = "README.md"
-exclude = ["runs", "data"]
+exclude = ["runs", "data", "helpdocs"]
 
 
 [tool.poetry.dependencies]
