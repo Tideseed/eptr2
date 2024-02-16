@@ -208,6 +208,12 @@ def get_path_map(just_call_keys: bool = False):
                 "prev": "reporting-service",
                 "label": "dgp-talimat-agr-ort",
             },
+            ## DGP Talimat Ağırlıklı Ortalama
+            "bpm-orders": {
+                "prefix": "data",
+                "prev": "reporting-service",
+                "label": "dgp-talimat",
+            },
             ## KGÜP
             "kgup": {
                 "prefix": "data",
@@ -563,6 +569,30 @@ def get_path_map(just_call_keys: bool = False):
                 "prefix": "data",
                 "prev": "dams",
                 "label": "water-energy-provision",
+            },
+            # GİP Kontrat Özeti
+            "idm-summary": {
+                "prefix": "data",
+                "prev": "reporting-service",
+                "label": "idm-contract-summary",
+            },
+            # Elektrik Piyasa Hacimleri Fiziksel
+            "electricity-market-quantity": {
+                "prefix": "data",
+                "prev": "reporting-service",
+                "label": "electricity-market-volume-physically",
+            },
+            ## GİP Kontrat Listeleme Servisi
+            "idm-contract-list": {
+                "prefix": "data",
+                "prev": "reporting-service",
+                "label": "gip-kontrat",
+            },
+            ## GİP Teklif Listesi
+            "idm-order-history": {
+                "prefix": "data",
+                "prev": "reporting-service",
+                "label": "idm-order-list",
             },
         },
         ## category

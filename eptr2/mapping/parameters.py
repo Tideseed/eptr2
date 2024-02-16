@@ -27,6 +27,8 @@ def get_param_label(key):
         "uevcb_name": {"label": "uevcbName"},
         "basin_name": {"label": "basinName"},
         "dam_name": {"label": "damName"},
+        "idm_contract_id": {"label": "contractId"},
+        "se_date": {"label": ["startDate", "endDate"]},  ## Start-end date
     }
     return d.get(key, key)
 
@@ -72,6 +74,7 @@ def get_required_parameters(key):
         "imb-org-list": ["start_date", "end_date"],
         "mcp-smp-imb": ["start_date", "end_date"],
         "bpm-orders-w-avg": ["date_time"],
+        "bpm-orders": ["date_time"],
         "market-participants": [],
         "market-participants-organization-list": [],
         "kgup": ["start_date", "end_date", "region"],
@@ -130,6 +133,10 @@ def get_required_parameters(key):
         "dams-volume-minmax": [],
         "dams-info": [],
         "dams-water-energy-provision": [],
+        "idm-summary": ["start_date", "end_date"],
+        "electricity-market-quantity": ["start_date", "end_date"],
+        "idm-contract-list": ["se_date"],
+        "idm-order-history": ["se_date", "idm_contract_id"],
     }
     ## UPDATE: As a precaution every call should have an input parameter
     return d[key]

@@ -5,7 +5,7 @@ import json
 import requests
 import re
 from urllib.parse import urljoin
-
+import copy
 from eptr2.mapping import (
     get_total_path,
     get_call_method,
@@ -26,7 +26,7 @@ class EPTR2:
         ### secure: bool
         ### query_parameters: dict
         ### just_call_phrase: bool
-        self.ssl_verify = kwargs.get("ssl_verify", False)
+        self.ssl_verify = kwargs.get("ssl_verify", True)
         self.postprocess = kwargs.get("postprocess", True)
 
     ## Ref: https://stackoverflow.com/a/62303969/3608936
@@ -71,9 +71,18 @@ class EPTR2:
                 raise Exception("Some required parameters are missing in call body.")
 
             if kwargs.get("map_param_labels", True):
-                call_body = {
-                    get_param_label(k)["label"]: v for k, v in call_body.items()
-                }
+                cb2 = {}
+                for k, v in call_body.items():
+                    ## Updated this part to handle multiple labels originating from a single label
+                    label = get_param_label(k)["label"]
+                    value = v
+                    if isinstance(label, list):
+                        for l in label:
+                            cb2[l] = value
+                    else:
+                        cb2[label] = value
+                call_body = copy.deepcopy(cb2)
+
         elif len(required_body_params) > 0:
             raise Exception("Required parameters are missing in call body.")
 
@@ -124,7 +133,7 @@ def transparency_call(
     if call_body is not None and call_body != {} and call_method == "GET":
         raise Exception("GET method does not allow body parameters.")
 
-    ssl_verify = kwargs.pop("ssl_verify", False)
+    ssl_verify = kwargs.pop("ssl_verify", True)
 
     res = requests.request(
         method=call_method,

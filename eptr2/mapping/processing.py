@@ -46,6 +46,7 @@ def get_postprocess_function(key):
         "interim-mcp",
         "mcp-smp-imb",
         "bpm-orders-w-avg",
+        "bpm-orders",
         "market-participants",
         "market-participants-organization-list",
         "kgup",
@@ -98,6 +99,10 @@ def get_postprocess_function(key):
         "dams-volume-minmax",
         "dams-info",
         "dams-water-energy-provision",
+        "idm-summary",
+        "electricity-market-quantity",
+        "idm-contract-list",
+        "idm-order-history",
     ]:
         return postprocess_items_to_df
 
