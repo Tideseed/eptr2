@@ -14,7 +14,7 @@ from eptr2.mapping import (
     get_path_map,
     get_optional_parameters,
 )
-
+from warnings import warn
 from eptr2.processing import preprocess_parameter, postprocess_items_to_df
 from eptr2.mapping import get_postprocess_function
 
@@ -33,12 +33,12 @@ class EPTR2:
     def __getattr__(self, __name: str) -> Any:
         def method(*args, **kwargs):
             key_raw = __name
-            key = re.sub("_", "-", the_name)
+            key = re.sub("_", "-", key_raw)
             if key not in get_path_map(just_call_keys=True):
                 raise Exception(
                     "This call is not yet defined. Call 'get_available_calls' method to see the available calls."
                 )
-            required_body_params = get_required_parameters(key)
+            # required_body_params = get_required_parameters(key)
             return getattr(self, "call")(key=key, **kwargs)
 
         return method
@@ -50,14 +50,25 @@ class EPTR2:
         call_path = get_total_path(key)
         call_method = get_call_method(key)
         required_body_params = get_required_parameters(key)
+        call_body_raw = kwargs.pop("call_body", kwargs)
+
+        ## Parameter change
+        if key in ["bpm-orders", "bpm-orders-w-avg"]:
+            if "date_time" in call_body_raw.keys():
+                warn(
+                    f"date_time parameter name is deprecated for {key}. Use 'date' instead. Support will be removed starting from version 0.3.0.",
+                    DeprecationWarning,
+                    stacklevel=2,
+                )
+
+                call_body_raw["date"] = call_body_raw.pop("date_time")
+
         optional_body_params = get_optional_parameters(key)
         all_params = required_body_params + optional_body_params
 
         call_body = {
             k: preprocess_parameter(k, v)
-            for k, v in kwargs.pop(
-                "call_body", kwargs
-            ).items()  ## If there is a call_body parameter in kwargsi, use it, else use kwargs
+            for k, v in call_body_raw.items()  ## If there is a call_body parameter in kwargsi, use it, else use kwargs
             if k in all_params
         }
 
