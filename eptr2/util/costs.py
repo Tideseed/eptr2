@@ -1,11 +1,29 @@
-def calculate_unit_imbalance_price(mcp: float, smp: float):
-    d = {"pos": 0.97 * min(mcp, smp), "neg": 1.03 * max(mcp, smp)}
+def get_kupst_tolerance(source: str):
+    tol_source_map = {"wind": 0.21, "solar": 0.12}
+    return tol_source_map.get(source, 0.05)
+
+
+def calculate_unit_imbalance_price(
+    mcp: float, smp: float, penalty_margin: float = 0.03
+):
+    d = {
+        "pos": (1 - penalty_margin) * min(mcp, smp),
+        "neg": (1 + penalty_margin) * max(mcp, smp),
+    }
     return d
 
 
-def calculate_unit_imbalance_cost(mcp: float, smp: float):
-    d = {"pos": mcp - 0.97 * min(mcp, smp), "neg": 1.03 * max(mcp, smp) - mcp}
+def calculate_unit_imbalance_cost(mcp: float, smp: float, penalty_margin: float = 0.03):
+    d = calculate_unit_imbalance_price(mcp=mcp, smp=smp, penalty_margin=penalty_margin)
+
+    d["pos"] = mcp - d["pos"]
+    d["neg"] = d["neg"] - mcp
+
     return d
+
+
+def calculate_unit_kupst_cost(mcp: float, smp: float, kupst_multiplier: float = 0.03):
+    return max(mcp, smp) * kupst_multiplier
 
 
 def calculate_imbalance_cost(
@@ -13,7 +31,7 @@ def calculate_imbalance_cost(
     forecast: float,
     mcp: float,
     smp: float,
-    producer: bool,
+    is_producer: bool,
     imbalance_discount: float = 0.0,
 ):
     if imbalance_discount > 1 or imbalance_discount < 0:
@@ -24,7 +42,7 @@ def calculate_imbalance_cost(
     d = {}
 
     diff = forecast - actual
-    if producer:
+    if is_producer:
         cost = abs(diff) * unit_cost_d["neg" if diff > 0 else "pos"]
     else:
         cost = abs(diff) * unit_cost_d["pos" if diff > 0 else "neg"]
@@ -37,12 +55,18 @@ def calculate_kupst_cost(
     forecast: float,
     mcp: float,
     smp: float,
-    tol: float = 0.21,
+    tol: float | None = None,
+    source: str | None = None,
     kupst_multiplier: float = 0.03,
 ):
+    if tol is None:
+        if source is None:
+            raise Exception("Either tol(erance) or source parameter must be provided")
+        tol = get_kupst_tolerance(source)
+
     tol_val = forecast * tol
-    kupst_cost = (
-        max(0, abs(actual - forecast) - tol_val) * max(mcp, smp) * kupst_multiplier
+    kupst_cost = max(0, abs(actual - forecast) - tol_val) * calculate_unit_kupst_cost(
+        mcp, smp, kupst_multiplier
     )
     return kupst_cost
 
@@ -52,9 +76,10 @@ def calculate_diff_cost(
     forecast: float,
     mcp: float,
     smp: float,
-    tol: float = 0.21,
+    tol: float | None = None,
     kupst_multiplier: float = 0.03,
-    producer: bool = True,
+    is_producer: bool = True,
+    source: str | None = None,
     imbalance_discount: float = 0.0,
 ):
     imbalance = calculate_imbalance_cost(
@@ -62,7 +87,7 @@ def calculate_diff_cost(
         forecast=forecast,
         mcp=mcp,
         smp=smp,
-        producer=producer,
+        is_producer=is_producer,
         imbalance_discount=imbalance_discount,
     )
 
@@ -72,6 +97,7 @@ def calculate_diff_cost(
         mcp=mcp,
         smp=smp,
         tol=tol,
+        source=source,
         kupst_multiplier=kupst_multiplier,
     )
 
@@ -108,12 +134,18 @@ def calculate_kupst_cost_list(
     forecast_values: list,
     mcp: list,
     smp: list,
-    tol: float = 0.21,
+    tol: float | None = None,
+    source: str | None = None,
     kupst_multiplier: float = 0.03,
 ):
     """
     Calculates production plan difference (KUPST) costs.
     """
+
+    if tol is None:
+        if source is None:
+            raise Exception("Either tol(erance) or source parameter must be provided")
+        tol = get_kupst_tolerance(source)
 
     kupst_cost_list = []
 
@@ -129,7 +161,7 @@ def calculate_imbalance_cost_list(
     actual_values: list,
     forecast_values: list,
     cost_d: dict,
-    producer: bool,
+    is_producer: bool,
     imbalance_discount: float = 0.0,
 ):
     """
@@ -147,9 +179,9 @@ def calculate_imbalance_cost_list(
 
     for x, y, n, p in zip(forecast_values, actual_values, cost_d["neg"], cost_d["pos"]):
         if x < y:
-            cost = (y - x) * p if producer else n
+            cost = (y - x) * p if is_producer else n
         else:
-            cost = (x - y) * n if producer else p
+            cost = (x - y) * n if is_producer else p
 
         imbalance_cost_list.append(cost * (1 - imbalance_discount))
 
@@ -161,9 +193,10 @@ def calculate_diff_costs_list(
     forecast_values: list,
     mcp: list,
     smp: list,
-    tol: float,
-    kupst_multiplier: float,
-    producer: bool,
+    is_producer: bool,
+    tol: float | None = None,
+    source: str | None = None,
+    kupst_multiplier: float = 0.03,
     imbalance_discount: float = 0,
 ):
     """
@@ -172,22 +205,34 @@ def calculate_diff_costs_list(
     res_d = {"actual": actual_values, "forecast": forecast_values}
 
     cost_d = calculate_imbalance_cost_values_list(mcp, smp)
-    if producer:
-        res_d["kupst_cost"] = calculate_kupst_cost_list(
-            actual_values, forecast_values, mcp, smp, tol, kupst_multiplier
-        )
+    res_d["diff"] = [x - y for x, y in zip(forecast_values, actual_values)]
 
-    if producer:
+    if is_producer:
         res_d["imbalance_direction"] = [
-            "pos" if x < y else "neg" for x, y in zip(forecast_values, actual_values)
+            "pos" if x < 0 else "neg" for x in res_d["diff"]
         ]
     else:
         res_d["imbalance_direction"] = [
-            "neg" if x < y else "pos" for x, y in zip(forecast_values, actual_values)
+            "pos" if x > 0 else "neg" for x in res_d["diff"]
         ]
 
     res_d["imbalance_cost"] = calculate_imbalance_cost_list(
-        actual_values, forecast_values, cost_d, producer, imbalance_discount
+        actual_values=actual_values,
+        forecast_values=forecast_values,
+        cost_d=cost_d,
+        is_producer=is_producer,
+        imbalance_discount=imbalance_discount,
     )
+
+    if is_producer:
+        res_d["kupst_cost"] = calculate_kupst_cost_list(
+            actual_values=actual_values,
+            forecast_values=forecast_values,
+            mcp=mcp,
+            smp=smp,
+            tol=tol,
+            source=source,
+            kupst_multiplier=kupst_multiplier,
+        )
 
     return res_d
