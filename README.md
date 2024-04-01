@@ -20,7 +20,7 @@ You can simply use PyPI to install `eptr2` package or directly through GitHub. S
 pip install eptr2
 ```
 
-From 0.3.0 version, data frame returns are optional. If pandas is not installed, data frames will not be returned. You can install "dataframe" version with the following command.
+NOTE: In future versions, data frame returns will be optional. If pandas is not installed, data frames will not be returned. You can install "dataframe" version with the following command. _(Not implemented yet)_
 
 ```bash
 pip install "eptr2[dataframe]"
