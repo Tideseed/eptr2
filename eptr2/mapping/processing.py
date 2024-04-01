@@ -49,6 +49,7 @@ def get_postprocess_function(key):
         "bpm-orders",
         "market-participants",
         "market-participants-organization-list",
+        "participant-count-based-upon-license-type",
         "kgup",
         "kudup",
         "eak",
@@ -103,6 +104,10 @@ def get_postprocess_function(key):
         "electricity-market-quantity",
         "idm-contract-list",
         "idm-order-history",
+        "anc-pf-qty",
+        "anc-sf-qty",
+        "anc-pfk",
+        "anc-sfk",
     ]:
         return postprocess_items_to_df
 

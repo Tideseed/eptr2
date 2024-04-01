@@ -635,6 +635,7 @@ def get_path_map(just_call_keys: bool = False):
         "markets": {"prev": "electricity-service"},
         "generation": {"prev": "electricity-service"},
         "consumption": {"prev": "electricity-service"},
+        "ancillary-services": {"prev": "markets"},
         "renewables": {"prev": "electricity-service"},
         "transmission": {"prev": "electricity-service"},
         #### services

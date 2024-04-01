@@ -138,6 +138,11 @@ def get_required_parameters(key):
         "electricity-market-quantity": ["start_date", "end_date"],
         "idm-contract-list": ["se_date"],
         "idm-order-history": ["se_date", "idm_contract_id"],
+        "participant-count-based-upon-license-type": ["start_date"],
+        "anc-pf-qty": ["start_date", "end_date"],
+        "anc-pfk": ["start_date", "end_date"],
+        "anc-sf-qty": ["start_date", "end_date"],
+        "anc-sfk": ["start_date", "end_date"],
     }
     ## UPDATE: As a precaution every call should have an input parameter
     return d[key]

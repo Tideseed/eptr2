@@ -26,15 +26,18 @@ class EPTR2:
         self.ssl_verify = kwargs.get("ssl_verify", True)
         self.postprocess = kwargs.get("postprocess", True)
 
-        try:
-            import pandas as pd
-        except ImportError:
-            warn(
-                "pandas is not installed. Some functionalities may not work properly. Postprocessing is disabled.",
-                ImportWarning,
-                stacklevel=2,
-            )
-            self.postprocess = False
+        # try:
+        #     import pandas as pd
+        # except ImportError:
+        #     warn(
+        #         "pandas is not installed. Some functionalities may not work properly. Postprocessing is disabled.",
+        #         ImportWarning,
+        #         stacklevel=2,
+        #     )
+        #     self.postprocess = False
+
+        # if self.postprocess:
+        #     from eptr2.mapping import get_postprocess_function
 
     ## Ref: https://stackoverflow.com/a/62303969/3608936
     def __getattr__(self, __name: str) -> Any:

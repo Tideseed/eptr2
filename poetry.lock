@@ -325,9 +325,9 @@ socks = ["pysocks (>=1.5.6,!=1.5.7,<2.0)"]
 zstd = ["zstandard (>=0.18.0)"]
 
 [extras]
-pandas = ["pandas"]
+dataframe = ["pandas"]
 
 [metadata]
 lock-version = "2.0"
 python-versions = ">= 3.9.6"
-content-hash = "e9892d9a1230e9d18d9aaaee6d994568ece2a3916fba147f4c24549690e88d69"
+content-hash = "ba1e449bda6f6e9cf992b8807d8b8999ace71f8e66db947e1df8f1bc913b0e8f"
