@@ -455,6 +455,54 @@ def get_help_d(key=None):
             },
             "url": "https://seffaflik.epias.com.tr/electricity/electricity-market-reports/mcp-smp-and-imbalance-price-listing",
         },
+        "idm-summary": {
+            "category": "Elektrik Piyasası Raporları",
+            "title": {
+                "tr": "GİP Kontrat Özeti",
+                "en": "IDM Contract Summary",
+            },
+            "desc": {
+                "tr": "(Açıklama Yok)",
+                "en": "(No description)",
+            },
+            "url": "https://seffaflik.epias.com.tr/electricity/electricity-market-reports/idm-contract-summary",
+        },
+        "idm-contract-list": {
+            "category": "Elektrik Piyasası Raporları",
+            "title": {
+                "tr": "GİP Kontrat Listesi",
+                "en": "IDM Contract List",
+            },
+            "desc": {
+                "tr": "(Açıklama Yok)",
+                "en": "(No description)",
+            },
+            "url": "https://seffaflik.epias.com.tr/electricity/electricity-market-reports/idm-order-list",
+        },
+        "idm-contract-list": {
+            "category": "Elektrik Piyasası Raporları",
+            "title": {
+                "tr": "GİP Teklif Listesi",
+                "en": "IDM Order List",
+            },
+            "desc": {
+                "tr": "(Açıklama Yok)",
+                "en": "(No description)",
+            },
+            "url": "https://seffaflik.epias.com.tr/electricity/electricity-market-reports/idm-order-list",
+        },
+        "electricity-market-quantity": {
+            "category": "Elektrik Piyasası Raporları",
+            "title": {
+                "tr": "Elektrik Piyasa Hacimleri Fiziksel",
+                "en": "Electricity Market Volume Physically",
+            },
+            "desc": {
+                "tr": "(Açıklama Yok)",
+                "en": "(No description)",
+            },
+            "url": "https://seffaflik.epias.com.tr/electricity/electricity-market-reports/electricity-market-volume-physically",
+        },
         "bpm-orders-w-avg": {
             "category": "Elektrik Piyasası Raporları",
             "title": {
@@ -466,6 +514,138 @@ def get_help_d(key=None):
                 "en": "(No description)",
             },
             "url": "https://seffaflik.epias.com.tr/electricity/electricity-market-reports/bpm-instructions-weighted-average",
+        },
+        "dams-daily-level": {
+            "category": "Barajlar",
+            "title": {
+                "tr": "Günlük Kot",
+                "en": "Daily Kot",
+            },
+            "desc": {
+                "tr": "Barajın ilgili gündeki su yüksekliğini belirtir. Veriler saat 17:00 itibariyle nihai halini almaktadır.",
+                "en": "Indicates the water height of the dam on the relevant day. The data is finalized as of 5 pm.",
+            },
+            "url": "https://seffaflik.epias.com.tr/electricity/dams/daily-kot",
+        },
+        "dams-daily-volume": {
+            "category": "Barajlar",
+            "title": {
+                "tr": "Günlük Hacim",
+                "en": "Daily Volume",
+            },
+            "desc": {
+                "tr": "Bir barajın ilgili tarihteki seviyesine karşılık gelen hacimdir. Veriler saat 17:00 itibariyle nihai halini almaktadır.",
+                "en": "The volume corresponding to the level of a dam at the relevant date. Data is finalized at 17:00.",
+            },
+            "url": "https://seffaflik.epias.com.tr/electricity/dams/daily-volume",
+        },
+        "dams-active-fullness": {
+            "category": "Barajlar",
+            "title": {
+                "tr": "Aktif Doluluk",
+                "en": "Active Fullness",
+            },
+            "desc": {
+                "tr": "Bir barajın maksimum ve minimum işletme seviyeleri arasındaki hacimin yüzdesidir. Formül: Aktif Doluluk= [( İlgili Tarihteki Seviyeye Karşılık Gelen Hacim – Minimum Hacim ) / ( Maksimum Hacim – Minimum Hacim )] * 100. Veriler saat 17:00 itibariyle nihai halini almaktadır.",
+                "en": "The percentage of volume between the maximum and minimum operating levels of a dam. Formula: Active Occupancy= [( Volume Corresponding to the Level on the Relevant Date - Minimum Volume ) / ( Maximum Volume - Minimum Volume )] *100. Data is finalized as of 17:00.",
+            },
+            "url": "https://seffaflik.epias.com.tr/electricity/dams/active-fullness",
+        },
+        "dams-active-volume": {
+            "category": "Barajlar",
+            "title": {
+                "tr": "Aktif Hacim",
+                "en": "Active Volume",
+            },
+            "desc": {
+                "tr": "Bir barajın ilgili tarihteki seviyeye karşılık gelen hacmi ve minimum işletme seviyeleri arasındaki hacimdir. Veriler saat 17:00 itibariyle nihai halini almaktadır.",
+                "en": "The volume between the minimum volume and minimum operating levels of a dam at the relevant date. Data is finalized at 17:00.",
+            },
+            "url": "https://seffaflik.epias.com.tr/electricity/dams/active-volume",
+        },
+        "dams-water-energy-provision": {
+            "category": "Barajlar",
+            "title": {
+                "tr": "Suyun Enerji Karşılığı",
+                "en": "Water Energy Provision",
+            },
+            "desc": {
+                "tr": "Barajda yer alan suyun hesaplanan MWh cinsinden enerji karşılığıdır. Veriler saat 17:00 itibariyle nihai halini almaktadır.",
+                "en": "The energy equivalent of Mwh in the dam. Data is finalized at 17:00.",
+            },
+            "url": "https://seffaflik.epias.com.tr/electricity/dams/water-energy-provision",
+        },
+        "dams-level-minmax": {
+            "category": "Barajlar",
+            "title": {
+                "tr": "Kot",
+                "en": "Kot",
+            },
+            "desc": {
+                "tr": "İlgili barajın maximum ve minumum seviyesini gösterir.",
+                "en": "Indicates the minimum and maximum water level of the dam.",
+            },
+            "url": "https://seffaflik.epias.com.tr/electricity/dams/dam-info/kot",
+        },
+        "dams-volume-minmax": {
+            "category": "Barajlar",
+            "title": {
+                "tr": "Hacim",
+                "en": "Volume",
+            },
+            "desc": {
+                "tr": "İlgili barajın maksimum ve minumum hacim seviyesini gösterir.",
+                "en": "It shows the maximum and minimum volume level of the relevant dam.",
+            },
+            "url": "https://seffaflik.epias.com.tr/electricity/dams/dam-info/volume",
+        },
+        "dams-info": {
+            "category": "Barajlar",
+            "title": {
+                "tr": "Debi ve Kurulu Güç",
+                "en": "Flow Rate and Installed Power",
+            },
+            "desc": {
+                "tr": "İlgili barajda üniteden geçen suyun miktarını ve barajın kurulu gücünü gösterir.",
+                "en": "It shows the amount of water passing through the unit in the relevant dam and the installed power of the dam.",
+            },
+            "url": "https://seffaflik.epias.com.tr/electricity/dams/dam-info/volume",
+        },
+        "dam-list": {
+            "category": "Barajlar",
+            "title": {
+                "tr": "Baraj Listesi",
+                "en": "Dam List",
+            },
+            "desc": {
+                "tr": "Barajların listesini döner.",
+                "en": "Returns the list of dams.",
+            },
+            "url": "https://seffaflik.epias.com.tr/electricity/dams/daily-kot",
+        },
+        "basin-list": {
+            "category": "Barajlar",
+            "title": {
+                "tr": "Havza Listesi",
+                "en": "Basin List",
+            },
+            "desc": {
+                "tr": "Havzaların listesini döner.",
+                "en": "Returns the list of basins.",
+            },
+            "url": "https://seffaflik.epias.com.tr/electricity/dams/daily-kot",
+        },
+        "bpm-orders": {
+            "category": "Elektrik Piyasası Raporları",
+            "title": {
+                "tr": "DGP Talimatları",
+                "en": "BPM Instructions",
+            },
+            "desc": {
+                "tr": "(Açıklama Yok)",
+                "en": "(No description)",
+            },
+            "url": "https://seffaflik.epias.com.tr/electricity/electricity-market-reports/bpm-instructions",
         },
         "kgup": {
             "category": "Üretim Planlama",
