@@ -851,6 +851,54 @@ def get_help_d(key=None):
             },
             "url": "https://seffaflik.epias.com.tr/electricity/electricity-consumption/ex-post-consumption/withdrawal-quantity-under-supply-liability",
         },
+        "anc-pf-qty": {
+            "category": "Yan Hizmetler",
+            "title": {
+                "tr": "Primer Frekans Rezerv Miktarı",
+                "en": "Primary Frequency Capacity Amount",
+            },
+            "desc": {
+                "tr": "Katılımcıların gerçek zamanlı frekans dengeleme için ayırması gereken saatlik toplam birincil frekans kapasite hacimleridir.",
+                "en": "It displays hourly total primary frequency capacity volume that the participants need to reserve for the real time frequency balancing.",
+            },
+            "url": "https://seffaflik.epias.com.tr/electricity/electricity-markets/ancillary-services/primary-frequency-capacity-amount",
+        },
+        "anc-pfk": {
+            "category": "Yan Hizmetler",
+            "title": {
+                "tr": "Primer Frekans Kontrolü (PFK) Fiyat",
+                "en": "Primary Frequency Capacity Price (PFCP)",
+            },
+            "desc": {
+                "tr": "Saatlik bazda ihale ile belirlenen PFK kapasite bedelidir.",
+                "en": "It displays Primary Frequency Capacity Price determined by the tender on an hourly basis. Tenders are held by Transmission System Operator.",
+            },
+            "url": "https://seffaflik.epias.com.tr/electricity/electricity-markets/ancillary-services/primary-frequency-capacity-price-pfcp",
+        },
+        "anc-sf-qty": {
+            "category": "Yan Hizmetler",
+            "title": {
+                "tr": "Sekonder Frekans Rezerv Miktarı",
+                "en": "Secondary Frequency Capacity Amount",
+            },
+            "desc": {
+                "tr": "Saatlik toplam belirlenen rezerv miktarlarıdır.",
+                "en": "It displays hourly total secondary frequency capacity volume that the participants need to reserve for the real time frequency balancing.",
+            },
+            "url": "https://seffaflik.epias.com.tr/electricity/electricity-markets/ancillary-services/secondary-frequency-capacity-amount",
+        },
+        "anc-sfk": {
+            "category": "Yan Hizmetler",
+            "title": {
+                "tr": "Sekonder Frekans Kontrolü (SFK) Fiyat",
+                "en": "Secondary Frequency Capacity Price (SFCP)",
+            },
+            "desc": {
+                "tr": "Saatlik bazda ihale ile belirlenen SFK kapasite bedelidir.",
+                "en": "It displays Secondary Frequency Capacity Price determined by the tender on an hourly basis. Tenders are held by Transmission System Operator.",
+            },
+            "url": "https://seffaflik.epias.com.tr/electricity/electricity-markets/ancillary-services/secondary-frequency-capacity-price-sfcp",
+        },
         "wind-forecast": {
             "category": "Üretim",
             "title": {

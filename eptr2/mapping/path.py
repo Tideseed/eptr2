@@ -316,6 +316,30 @@ def get_path_map(just_call_keys: bool = False):
                 "prev": "consumption",
                 "label": "withdrawal-quantity-under-supply-liability",
             },
+            ## Yan Hizmetler - Primer Frekans Rezerv Miktarı
+            "anc-pf-qty": {
+                "prefix": "data",
+                "prev": "ancillary-services",
+                "label": "primary-frequency-capacity-amount",
+            },
+            ## Yan Hizmetler - Primer Frekans Kapasite fiyatı (PFK)
+            "anc-pfk": {
+                "prefix": "data",
+                "prev": "ancillary-services",
+                "label": "primary-frequency-capacity-price",
+            },
+            ## Yan Hizmetler - Sekonder Frekans Rezerv Miktarı
+            "anc-sf-qty": {
+                "prefix": "data",
+                "prev": "ancillary-services",
+                "label": "secondary-frequency-capacity-amount",
+            },
+            ## Yan Hizmetler - Sekonder Frekans Kapasite fiyatı (SFK)
+            "anc-sfk": {
+                "prefix": "data",
+                "prev": "ancillary-services",
+                "label": "secondary-frequency-capacity-price",
+            },
             ## YEKDEM RES Üretim ve Tahmin Listeleme
             "wind-forecast": {
                 "prefix": "data",
@@ -408,7 +432,6 @@ def get_path_map(just_call_keys: bool = False):
                 "label": "congestion-cost",
             },
             ##ENTSO-E (X) Kodları
-            ## TODO: Fix
             "eic-x-org-list": {
                 "prefix": "data",
                 "prev": "transmission",
