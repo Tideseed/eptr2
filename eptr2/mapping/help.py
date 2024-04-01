@@ -1289,6 +1289,18 @@ def get_help_d(key=None):
             },
             "url": "https://seffaflik.epias.com.tr/electricity/electricity-markets/general-data/market-participants",
         },
+        "participant-count-based-upon-license-type": {
+            "category": "Listeleme",
+            "title": {
+                "tr": "Lisans Türüne Göre Katılımcı Sayısı",
+                "en": "Participant Count Based Upon License Type",
+            },
+            "desc": {
+                "tr": "Kamu ve Özel Sektör piyasa katılımcılarının Üretim, Tedarik, Dağıtım, OSB Üretim, İletim ve Görevli Tedaril lisansları türlerine göre toplam sayılarını gösterir. Görevli tedarik şirketleri tüketici grupları için K1 (21), K2 (21) ve K3 (21) olacak şekilde kategorize edilmiştir.",
+                "en": "It indicates the number of market participants by the licence types.",
+            },
+            "url": "https://seffaflik.epias.com.tr/electricity/electricity-markets/general-data/participant-count-based-upon-license-type",
+        },
         "dams-active-fullness": {
             "category": "Barajlar",
             "title": {

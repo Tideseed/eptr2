@@ -1,7 +1,4 @@
-import os
 from typing import Any
-import pandas as pd
-import json
 import requests
 import re
 from urllib.parse import urljoin
@@ -15,7 +12,7 @@ from eptr2.mapping import (
     get_optional_parameters,
 )
 from warnings import warn
-from eptr2.processing import preprocess_parameter, postprocess_items_to_df
+from eptr2.processing import preprocess_parameter
 from eptr2.mapping import get_postprocess_function
 
 
@@ -28,6 +25,16 @@ class EPTR2:
         ### just_call_phrase: bool
         self.ssl_verify = kwargs.get("ssl_verify", True)
         self.postprocess = kwargs.get("postprocess", True)
+
+        try:
+            import pandas as pd
+        except ImportError:
+            warn(
+                "pandas is not installed. Some functionalities may not work properly. Postprocessing is disabled.",
+                ImportWarning,
+                stacklevel=2,
+            )
+            self.postprocess = False
 
     ## Ref: https://stackoverflow.com/a/62303969/3608936
     def __getattr__(self, __name: str) -> Any:

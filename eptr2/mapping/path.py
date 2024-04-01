@@ -533,6 +533,12 @@ def get_path_map(just_call_keys: bool = False):
                 "prev": "general-data",
                 "label": "market-participants-organization-filter-list",
             },
+            ##Lisans Türüne Göre Katılımcı Sayısı
+            "participant-count-based-upon-license-type": {
+                "prefix": "data",
+                "prev": "general-data",
+                "label": "participant-count-based-upon-license-type",
+            },
             ## Aktif Doluluk
             "dams-active-fullness": {
                 "prefix": "data",
