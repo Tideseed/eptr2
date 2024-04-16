@@ -1,6 +1,7 @@
 from typing import Any
-import requests
+import urllib3
 import re
+import json
 from urllib.parse import urljoin
 import copy
 from eptr2.mapping import (
@@ -12,8 +13,7 @@ from eptr2.mapping import (
     get_optional_parameters,
 )
 from warnings import warn
-from eptr2.processing import preprocess_parameter
-from eptr2.mapping import get_postprocess_function
+from eptr2.processing.preprocess.params import preprocess_parameter
 
 
 class EPTR2:
@@ -24,20 +24,8 @@ class EPTR2:
         ### query_parameters: dict
         ### just_call_phrase: bool
         self.ssl_verify = kwargs.get("ssl_verify", True)
-        self.postprocess = kwargs.get("postprocess", True)
-
-        # try:
-        #     import pandas as pd
-        # except ImportError:
-        #     warn(
-        #         "pandas is not installed. Some functionalities may not work properly. Postprocessing is disabled.",
-        #         ImportWarning,
-        #         stacklevel=2,
-        #     )
-        #     self.postprocess = False
-
-        # if self.postprocess:
-        #     from eptr2.mapping import get_postprocess_function
+        self.check_postprocess(postprocess=kwargs.get("postprocess", True))
+        self.get_raw_response = kwargs.get("get_raw_response", False)
 
     ## Ref: https://stackoverflow.com/a/62303969/3608936
     def __getattr__(self, __name: str) -> Any:
@@ -52,6 +40,17 @@ class EPTR2:
             return getattr(self, "call")(key=key, **kwargs)
 
         return method
+
+    def check_postprocess(self, postprocess: bool = True):
+        self.postprocess = postprocess
+        if self.postprocess:
+            try:
+                from eptr2.mapping.processing import get_postprocess_function
+            except ImportError:
+                print(
+                    "pandas is not installed. Some functionalities may not work properly. Postprocessing is disabled. To disable postprocessing just set 'postprocess' parameter to False when calling EPTR2 class.",
+                )
+                self.postprocess = False
 
     def get_available_calls(self):
         return get_path_map(just_call_keys=True)
@@ -119,6 +118,10 @@ class EPTR2:
             **kwargs,
         )
 
+        if kwargs.get("get_raw_response", self.get_raw_response):
+            return res
+
+        res = json.loads(res.data.decode("utf-8"))
         if kwargs.get("postprocess", self.postprocess):
             df = get_postprocess_function(key)(res, key=key)
             return df
@@ -156,17 +159,34 @@ def transparency_call(
 
     ssl_verify = kwargs.pop("ssl_verify", True)
 
-    res = requests.request(
+    http = urllib3.PoolManager(cert_reqs="CERT_REQUIRED" if ssl_verify else "CERT_NONE")
+    res = http.request(
         method=call_method,
         url=urljoin(call_phrase, ""),
-        json=call_body,
-        verify=ssl_verify,
+        body=json.dumps(call_body),
+        headers={"Content-Type": "application/json"},
         **kwargs.get("request_kwargs", {}),
     )
-
-    if res.status_code not in [200, 201]:
+    if res.status not in [200, 201]:
         raise Exception(
-            "Request failed with status code: " + str(res.status_code) + "\n" + res.text
+            "Request failed with status code: "
+            + str(res.status)
+            + "\n"
+            + res.data.decode("utf-8")
         )
-
     return res
+
+    # res = requests.request(
+    #     method=call_method,
+    #     url=urljoin(call_phrase, ""),
+    #     json=call_body,
+    #     verify=ssl_verify,
+    #     **kwargs.get("request_kwargs", {}),
+    # )
+
+    # if res.status_code not in [200, 201]:
+    #     raise Exception(
+    #         "Request failed with status code: " + str(res.status_code) + "\n" + res.text
+    #     )
+
+    # return res

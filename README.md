@@ -14,13 +14,13 @@ _🇹🇷 Türkçe açıklama için aşağıya bakınız._
 
 ## Installation
 
-You can simply use PyPI to install `eptr2` package or directly through GitHub. See [eptr2demo](https://eptr2demo.streamlit.io) page for available calls and examples.
+You can simply use PyPI to install `eptr2` package or directly through GitHub. See [eptr2demo](https://eptr2demo.streamlit.app) page for available calls and examples.
 
 ```bash
 pip install eptr2
 ```
 
-NOTE: In future versions, data frame returns will be optional. If pandas is not installed, data frames will not be returned. You can install "dataframe" version with the following command. _(Not implemented yet)_
+NOTE: Starting from v0.4.0, data frame returns will be optional. If pandas is not installed, data frames will not be returned. You can install "dataframe" version with the following command. _(Not implemented yet)_
 
 ```bash
 pip install "eptr2[dataframe]"
@@ -32,12 +32,16 @@ pip install git+https://github.com/Tideseed/eptr2.git
 
 ## Usage
 
-You can simply use `EPTR2` class to call services with convenience methods. 
+You can simply use `EPTR2` class to call services with convenience methods. Main object call has some parameters to control the behavior of the package. You can set `ssl_verify` to `False` if you have SSL verification problems. You can set `postprocess` to `False` if you don't want to get data frames as response. You can set `get_raw_response` to `True` if you want to get raw urllib3 response object.
 
 ```python
 from eptr2 import EPTR2
 
-eptr = EPTR2()
+eptr = EPTR2(
+        ssl_verify=True,  ## SSL verification (default: True)
+        postprocess=True, ## If you want to get data frames as response (default: True) install pandas
+        get_raw_response=False ## If you want to get raw urllib3 response object (default: False)
+        )
 
 mcp_call = eptr.call("mcp",start_date="2023-10-10",end_date="2023-10-10")
 print(mcp.json())

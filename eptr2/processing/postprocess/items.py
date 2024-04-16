@@ -1,4 +1,5 @@
 import pandas as pd
+import json
 
 
 def postprocess_direct_dict(res, key: str | None = None):
@@ -8,7 +9,7 @@ def postprocess_direct_dict(res, key: str | None = None):
     }
 
     subkey = subkey_map.get(key, None)
-    d = res.json()
+    d = res
     try:
         if subkey is not None:
             return d[subkey]
@@ -20,19 +21,19 @@ def postprocess_direct_dict(res, key: str | None = None):
 
 def postprocess_direct_dict_to_df(res, **kwargs):
     ## for date-init
-    return pd.DataFrame(res.json())
+    return pd.DataFrame(res)
 
 
 def postprocess_mcp_status(res, **kwargs):
-    return res.json()["body"]["content"]["completed"]
+    return res["body"]["content"]["completed"]
 
 
 def postprocess_items_to_df(res, **kwargs):
-    df = pd.DataFrame(res.json()["items"])
+    df = pd.DataFrame(res["items"])
     return df
 
 
 ## Adhoc non-standard response postprocess
 def postprocess_ren_capacity_dict_to_df(res, **kwargs):
-    df = pd.DataFrame(res.json()["installedCapacities"])
+    df = pd.DataFrame(res["installedCapacities"])
     return df

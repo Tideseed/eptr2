@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "eptr2"
-version = "0.3.0"
+version = "0.4.0"
 description = "EPIAS Transparency Platform v2.0 Python client by Robokami Data"
 authors = ["Tideseed <info@tideseed.com>"]
 license = "Apache License 2.0"
@@ -9,9 +9,8 @@ exclude = ["runs", "data", "helpdocs"]
 
 
 [tool.poetry.dependencies]
-python = ">= 3.9.6"
-pandas = { version = ">=2.1.3", optional = false }
-requests = ">=2.31.0"
+python = ">=3.9.6"
+pandas = { version = ">=2.1.3", optional = true }
 
 [tool.poetry.extras]
 dataframe = ["pandas"]
