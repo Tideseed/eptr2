@@ -1,5 +1,4 @@
 from datetime import datetime, timedelta, timezone
-import pandas as pd
 
 
 def check_iso_format(
@@ -82,12 +81,29 @@ def contract_to_datetime(contract, timestamp=False):
     return dt_obj
 
 
+def get_hourly_date_range(start_date, end_date, return_str=False):
+    l = []
+    start_date = datetime.strptime(start_date, "%Y-%m-%d")
+    end_date = (
+        datetime.strptime(end_date, "%Y-%m-%d") + timedelta(days=1) - timedelta(hours=1)
+    )
+    t = 0
+    while True:
+        l.append(start_date + timedelta(hours=t))
+        if l[-1] >= end_date:
+            break
+        t += 1
+
+    if return_str:
+        l = [str(x) for x in l]
+
+    return l
+
+
 def get_hourly_contract_range_list(start_date, end_date):
     l = [
         datetime_to_contract(x)
-        for x in list(
-            pd.date_range(start=start_date, end=end_date, freq="H", inclusive="left")
-        )
+        for x in get_hourly_date_range(start_date, end_date, return_str=False)
     ]
 
     return l

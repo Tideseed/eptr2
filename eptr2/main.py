@@ -26,6 +26,7 @@ class EPTR2:
         self.ssl_verify = kwargs.get("ssl_verify", True)
         self.check_postprocess(postprocess=kwargs.get("postprocess", True))
         self.get_raw_response = kwargs.get("get_raw_response", False)
+        self.root_phrase = kwargs.get("root_phrase", "https://seffaflik.epias.com.tr")
 
     ## Ref: https://stackoverflow.com/a/62303969/3608936
     def __getattr__(self, __name: str) -> Any:
@@ -114,6 +115,7 @@ class EPTR2:
             call_path=call_path,
             call_method=call_method,
             call_body=call_body,
+            root_phrase=self.root_phrase,
             ssl_verify=self.ssl_verify,
             **kwargs,
         )
@@ -175,18 +177,3 @@ def transparency_call(
             + res.data.decode("utf-8")
         )
     return res
-
-    # res = requests.request(
-    #     method=call_method,
-    #     url=urljoin(call_phrase, ""),
-    #     json=call_body,
-    #     verify=ssl_verify,
-    #     **kwargs.get("request_kwargs", {}),
-    # )
-
-    # if res.status_code not in [200, 201]:
-    #     raise Exception(
-    #         "Request failed with status code: " + str(res.status_code) + "\n" + res.text
-    #     )
-
-    # return res
