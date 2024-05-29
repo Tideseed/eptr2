@@ -30,6 +30,9 @@ def get_param_label(key):
         "dam_name": {"label": "damName"},
         "idm_contract_id": {"label": "contractId"},
         "se_date": {"label": ["startDate", "endDate"]},  ## Start-end date
+        "dist_org_id": {"label": "distributionOrganization"},
+        "province_id": {"label": "provinceId"},
+        "profile_group_id": {"label": "profileGroupId"},
     }
     return d.get(key, key)
 
@@ -92,7 +95,7 @@ def get_required_parameters(key):
         "lic-pp-list": ["start_date", "end_date"],
         "load-plan": ["start_date", "end_date"],
         "rt-cons": ["start_date", "end_date"],
-        "pp-list": [],
+        "pp-list": ["dist_org"],
         "uevm-pp-list": [],
         "ren-pp-list": ["period"],
         "ren-rt-gen": ["start_date", "end_date"],
@@ -143,7 +146,17 @@ def get_required_parameters(key):
         "anc-pfk": ["start_date", "end_date"],
         "anc-sf-qty": ["start_date", "end_date"],
         "anc-sfk": ["start_date", "end_date"],
+        "distribution-region-list": [],
+        "long-term-demand-forecast": [],
+        "consumption-breakdown": [
+            "period"
+        ],  ## This is actually end of month period in the api but it is ok
+        "province-list": [],
+        "district-list": ["province_id"],
+        "profile-group-list": [],
+        "consumer-breakdown": ["period"],
     }
+
     ## UPDATE: As a precaution every call should have an input parameter
     return d[key]
 
@@ -175,6 +188,9 @@ def get_optional_parameters(key):
         "dams-volume-minmax": ["basin_name", "dam_name"],
         "dams-info": ["basin_name", "dam_name"],
         "dams-water-energy-provision": ["basin_name", "dam_name"],
+        "long-term-demand-forecast": ["dist_org_id"],
+        "consumption-breakdown": ["province_id", "profile_group_id"],
+        "consumer-breakdown": ["province_id", "profile_group_id"],
     }
 
     return d.get(key, [])

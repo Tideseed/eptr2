@@ -108,6 +108,10 @@ def get_postprocess_function(key):
         "anc-sf-qty",
         "anc-pfk",
         "anc-sfk",
+        "long-term-demand-forecast",
+        "consumption-breakdown",
+        "consumer-breakdown",
+        "distribution-region-list",
     ]:
         return postprocess_items_to_df
 
@@ -123,7 +127,7 @@ def get_postprocess_function(key):
     ]:
         return postprocess_direct_dict
 
-    elif key in ["ren-pp-list"]:
+    elif key in ["profile-group-list", "province-list", "district-list", "ren-pp-list"]:
         return postprocess_direct_dict_to_df
 
     elif key in ["ren-capacity"]:

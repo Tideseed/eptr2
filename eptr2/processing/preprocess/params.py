@@ -1,7 +1,7 @@
 from datetime import datetime, timedelta
 
 
-def format_date_epias_hour(date: str | datetime):
+def format_date_epias_hour(date: str | datetime, transform: str | None = None):
     """
     Desired format "2023-01-01T00:00:00+03:00"
     """

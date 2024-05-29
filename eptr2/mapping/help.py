@@ -791,6 +791,18 @@ def get_help_d(key=None):
             },
             "url": "https://seffaflik.epias.com.tr/electricity/electricity-generation/licenced-power-plant-investments",
         },
+        "long-term-demand-forecast": {
+            "category": "Talep Tahmini",
+            "title": {
+                "tr": "Talep Tahmini",
+                "en": "Demand Forecast",
+            },
+            "desc": {
+                "tr": "İlgili dağıtım bölgesinde dağıtım şirketine ait 2018-2027 arası tüketicilerin yıllık brüt tahmin değerleridir.",
+                "en": "These are the annual gross estimated values of consumers between 2018 and 2027 belonging to the distribution company in the relevant distribution region.",
+            },
+            "url": "https://seffaflik.epias.com.tr/electricity/electricity-consumption/forecast/demand-forecast",
+        },
         "load-plan": {
             "category": "Tüketim Tahmin",
             "title": {

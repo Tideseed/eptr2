@@ -125,6 +125,8 @@ class EPTR2:
 
         res = json.loads(res.data.decode("utf-8"))
         if kwargs.get("postprocess", self.postprocess):
+            from eptr2.mapping.processing import get_postprocess_function
+
             df = get_postprocess_function(key)(res, key=key)
             return df
 

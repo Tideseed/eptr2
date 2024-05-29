@@ -286,6 +286,30 @@ def get_path_map(just_call_keys: bool = False):
                 "prev": "generation",
                 "label": "licensed-powerplant-investment-list",
             },
+            ## Talep Tahmini Listeleme Servisi
+            "long-term-demand-forecast": {
+                "prefix": "data",
+                "prev": "consumption",
+                "label": "demand-forecast",
+            },
+            ## Tüketici Sayısı Servisi
+            "consumer-breakdown": {
+                "prefix": "data",
+                "prev": "consumption",
+                "label": "consumer-quantity",
+            },
+            ## Tüketim Miktarları (İl ve Profil Bazında)
+            "consumption-breakdown": {
+                "prefix": "data",
+                "prev": "consumption",
+                "label": "consumption-quantity",
+            },
+            ## Dağıtım Bölgesi Servisi
+            "distribution-region-list": {
+                "prefix": "data",
+                "prev": "consumption",
+                "label": "distribution-region",
+            },
             ## Yük Tahmin Planı
             "load-plan": {
                 "prefix": "data",
@@ -515,6 +539,24 @@ def get_path_map(just_call_keys: bool = False):
                 "prev": "markets",
                 "label": "uevcb-list-by-power-plant-id",
             },
+            ## İlçe Listeleme
+            "district-list": {
+                "prefix": "main",
+                "prev": "electricity-service",
+                "label": "district-list",
+            },
+            ## Profil Grubu Listeleme
+            "profile-group-list": {
+                "prefix": "data",
+                "prev": "consumption",
+                "label": "consumer-sector-list",
+            },
+            ## Şehir Listeleme
+            "province-list": {
+                "prefix": "main",
+                "prev": "electricity-service",
+                "label": "province-list",
+            },
             ## Gün bilgileri
             "date-init": {
                 "prefix": "main",
@@ -689,6 +731,9 @@ def get_call_method(key):
         "intl-direction-list",
         "intl-capacity-demand-direction-list",
         "basin-list",
+        "distribution-region-list",
+        "province-list",
+        "profile-group-list",
     ]
 
     if key in get_methods:
