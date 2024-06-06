@@ -10,7 +10,7 @@ _🇹🇷 Türkçe açıklama için aşağıya bakınız._
 `eptr2` (**EP**IAS **Tr**ansparency **2**.0) package is a thin wrapper around [EPIAS Transparency Platform v2.0](https://seffaflik.epias.com.tr/home) API brought to you by [Robokami](https://robokami.com). It is an unofficial package with Apache License 2.0 (free and permissable use for commercial applications, [see details](https://www.tldrlegal.com/license/apache-license-2-0-apache-2-0)).
 
 
-`eptr2` currently more than 100 services with convenience methods. You can also use `transparency_call` function to call any service with any method and body.
+`eptr2` currently more than 110 services with convenience methods. You can also use `transparency_call` function to call any service with any method and body.
 
 ## Installation
 
