@@ -30,7 +30,9 @@ def get_param_label(key):
         "dam_name": {"label": "damName"},
         "idm_contract_id": {"label": "contractId"},
         "se_date": {"label": ["startDate", "endDate"]},  ## Start-end date
-        "dist_org_id": {"label": "distributionOrganization"},
+        "dist_org_id": {
+            "label": "distrubutionOrganization"
+        },  ## TYPO is intentional (same as api)
         "province_id": {"label": "provinceId"},
         "profile_group_id": {"label": "profileGroupId"},
     }
@@ -95,7 +97,7 @@ def get_required_parameters(key):
         "lic-pp-list": ["start_date", "end_date"],
         "load-plan": ["start_date", "end_date"],
         "rt-cons": ["start_date", "end_date"],
-        "pp-list": ["dist_org"],
+        "pp-list": [],
         "uevm-pp-list": [],
         "ren-pp-list": ["period"],
         "ren-rt-gen": ["start_date", "end_date"],
