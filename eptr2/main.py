@@ -14,10 +14,11 @@ from eptr2.mapping import (
 )
 from warnings import warn
 from eptr2.processing.preprocess.params import preprocess_parameter
+from datetime import datetime, timedelta
 
 
 class EPTR2:
-    def __init__(self, **kwargs) -> None:
+    def __init__(self, username: str = None, password: str = None, **kwargs) -> None:
         ## kwargs are
         ### map_param_labels: bool
         ### secure: bool
@@ -26,7 +27,14 @@ class EPTR2:
         self.ssl_verify = kwargs.get("ssl_verify", True)
         self.check_postprocess(postprocess=kwargs.get("postprocess", True))
         self.get_raw_response = kwargs.get("get_raw_response", False)
+        self.username = username
+        self.password = password
+        self.is_test = kwargs.get("is_test", False)
         self.root_phrase = kwargs.get("root_phrase", "https://seffaflik.epias.com.tr")
+        self.tgt = kwargs.get("tgt", None)
+        self.exp = kwargs.get("exp", 0)
+        if self.is_test:
+            self.check_renew_tgt()
 
     ## Ref: https://stackoverflow.com/a/62303969/3608936
     def __getattr__(self, __name: str) -> Any:
@@ -41,6 +49,49 @@ class EPTR2:
             return getattr(self, "call")(key=key, **kwargs)
 
         return method
+
+    def check_renew_tgt(self):
+        if not self.is_test:
+            print("Currently only test environment is supported for tgt renewal.")
+            return None
+
+        if self.tgt is None or self.exp < datetime.now().timestamp():
+            self.get_tgt()
+
+    def get_tgt(self, **kwargs):
+        if self.username is None or self.password is None:
+            raise Exception("Username and password must be provided for tgt renewal.")
+
+        test_suffix = "-prp" if self.is_test else ""
+        login_url = f"""https://giris{test_suffix}.epias.com.tr/cas/v1/tickets"""
+        login_url += f"?username={self.username}&password={self.password}"
+
+        http = urllib3.PoolManager(
+            cert_reqs="CERT_REQUIRED" if self.ssl_verify else "CERT_NONE"
+        )
+
+        res = http.request(
+            method="POST",
+            url=login_url,
+            headers={
+                "Content-Type": "application/x-www-form-urlencoded",
+                "Accept": "application/json",
+            },
+            **kwargs.get("request_kwargs", {}),
+        )
+        if res.status not in [200, 201]:
+            raise Exception(
+                "Request failed with status code: "
+                + str(res.status)
+                + "\n"
+                + res.data.decode("utf-8")
+            )
+
+        res_data = json.loads(res.data.decode("utf-8"))
+        self.tgt = res_data["tgt"]
+        self.exp = (
+            datetime.fromisoformat(res_data["created"]) + timedelta(hours=6)
+        ).timestamp()
 
     def check_postprocess(self, postprocess: bool = True):
         self.postprocess = postprocess
@@ -117,6 +168,8 @@ class EPTR2:
             call_body=call_body,
             root_phrase=self.root_phrase,
             ssl_verify=self.ssl_verify,
+            is_test=self.is_test,
+            tgt=self.tgt,
             **kwargs,
         )
 
@@ -137,13 +190,18 @@ def transparency_call(
     call_path: dict,
     call_method: str,
     call_body: dict | None = None,
-    root_phrase: str = "https://seffaflik.epias.com.tr",
+    is_test: bool = False,
+    tgt: str = None,
     **kwargs,
 ):
     ## kwargs are
     ### secure: bool
     ### query_parameters: dict
     ### just_call_phrase: bool
+
+    root_phrase_test = "-prp" if is_test else ""
+    root_phrase_default = f"https://seffaflik{root_phrase_test}.epias.com.tr"
+    root_phrase = kwargs.get("root_phrase", root_phrase_default)
 
     call_phrase = urljoin(root_phrase, call_path)
 
@@ -164,13 +222,19 @@ def transparency_call(
     ssl_verify = kwargs.pop("ssl_verify", True)
 
     http = urllib3.PoolManager(cert_reqs="CERT_REQUIRED" if ssl_verify else "CERT_NONE")
+
+    header_d = {"Content-Type": "application/json"}
+    if tgt is not None:
+        header_d["TGT"] = tgt
+
     res = http.request(
         method=call_method,
         url=urljoin(call_phrase, ""),
         body=json.dumps(call_body),
-        headers={"Content-Type": "application/json"},
+        headers=header_d,
         **kwargs.get("request_kwargs", {}),
     )
+
     if res.status not in [200, 201]:
         raise Exception(
             "Request failed with status code: "

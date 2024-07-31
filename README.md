@@ -1,5 +1,28 @@
 ![PyPI - Version](https://img.shields.io/pypi/v/eptr2) ![PyPI - Downloads](https://img.shields.io/pypi/dm/eptr2) 
 
+> [!IMPORTANT]  
+> 🇬🇧 EPIAS has declared on July 30, 2024 that they will require credentials when using their Transparency API platform. [According to announcement](https://seffaflik.epias.com.tr/announcements/announcements) changes will be in effect from August 19, 2024 on live servers. Starting from `eptr2` version `0.5.0` you can try the new method on test servers. Don't forget to register from [here](https://giris-prp.epias.com.tr/cas/login) for test access.
+
+> [!ÖNEMLİ]  
+> 🇹🇷 EPİAŞ 30 Temmuz 2024 tarihinde Şeffaflık API platformuna erişim için giriş bilgileri istemeye başlayacağını bildirmiştir. [İlgili duyuruya](https://seffaflik.epias.com.tr/announcements/announcements) göre değişiklikler 19 Ağustos 2024 tarihinde canlıya geçecektir. `eptr2` sürüm `0.5.0` itibariyle bu değişikilkleri test sunucularında deneyebilirsiniz. Test erişimi şifreleri için [buradan](https://giris-prp.epias.com.tr/cas/login) kayıt olmayı unutmayın.
+
+```python
+from eptr2 import EPTR2
+
+cred_d = {
+    "username": "YOUR_USERNAME",
+    "password": "YOUR_PASSWORD",
+    "is_test": True, ## Needed to access to test server, default is always False
+}
+
+eptr = EPTR2(
+    username=cred_d["username"], password=cred_d["password"], is_test=cred_d["is_test"]
+)
+
+res = eptr.call("mcp", start_date="2024-07-29", end_date="2024-07-29")
+```
+
+
 _🇹🇷 Türkçe açıklama için aşağıya bakınız._
 
 > [!IMPORTANT]  
