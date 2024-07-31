@@ -30,9 +30,11 @@ class EPTR2:
         self.username = username
         self.password = password
         self.is_test = kwargs.get("is_test", False)
-        self.root_phrase = kwargs.get("root_phrase", "https://seffaflik.epias.com.tr")
+        root_phrase_test = "-prp" if self.is_test else ""
+        root_phrase_default = f"https://seffaflik{root_phrase_test}.epias.com.tr"
+        self.root_phrase = kwargs.get("root_phrase", root_phrase_default)
         self.tgt = kwargs.get("tgt", None)
-        self.exp = kwargs.get("exp", 0)
+        self.tgt_exp = kwargs.get("exp", 0)
         if self.is_test:
             self.check_renew_tgt()
 
@@ -55,7 +57,7 @@ class EPTR2:
             print("Currently only test environment is supported for tgt renewal.")
             return None
 
-        if self.tgt is None or self.exp < datetime.now().timestamp():
+        if self.tgt is None or self.tgt_exp_0 < datetime.now().timestamp():
             self.get_tgt()
 
     def get_tgt(self, **kwargs):
@@ -89,9 +91,19 @@ class EPTR2:
 
         res_data = json.loads(res.data.decode("utf-8"))
         self.tgt = res_data["tgt"]
-        self.exp = (
+        ## Hard timeout
+        self.tgt_exp = (
             datetime.fromisoformat(res_data["created"]) + timedelta(hours=6)
         ).timestamp()
+
+        ## Soft timeout
+        self.tgt_exp_0 = min(
+            self.tgt_exp,
+            (
+                datetime.fromisoformat(res_data["created"])
+                + timedelta(hours=1, minutes=45)
+            ).timestamp(),
+        )
 
     def check_postprocess(self, postprocess: bool = True):
         self.postprocess = postprocess
@@ -108,6 +120,9 @@ class EPTR2:
         return get_path_map(just_call_keys=True)
 
     def call(self, key: str, **kwargs):
+        if self.is_test:
+            self.check_renew_tgt()
+
         call_path = get_total_path(key)
         call_method = get_call_method(key)
         required_body_params = get_required_parameters(key)
@@ -171,6 +186,12 @@ class EPTR2:
             is_test=self.is_test,
             tgt=self.tgt,
             **kwargs,
+        )
+
+        ## Set soft timeout for tgt renewal
+        self.tgt_exp_0 = min(
+            self.tgt_exp,
+            datetime.now().timestamp() + 60 * 90,
         )
 
         if kwargs.get("get_raw_response", self.get_raw_response):
