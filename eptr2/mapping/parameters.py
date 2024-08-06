@@ -193,6 +193,7 @@ def get_optional_parameters(key):
         "long-term-demand-forecast": ["dist_org_id"],
         "consumption-breakdown": ["province_id", "profile_group_id"],
         "consumer-breakdown": ["province_id", "profile_group_id"],
+        "idm-qty": ["org_id"],
     }
 
     return d.get(key, [])
