@@ -18,7 +18,13 @@ from datetime import datetime, timedelta
 
 
 class EPTR2:
-    def __init__(self, username: str = None, password: str = None, **kwargs) -> None:
+    def __init__(
+        self,
+        username: str = None,
+        password: str = None,
+        tgt_d: dict | None = None,
+        **kwargs,
+    ) -> None:
         ## kwargs are
         ### map_param_labels: bool
         ### secure: bool
@@ -33,10 +39,16 @@ class EPTR2:
         root_phrase_test = "-prp" if self.is_test else ""
         root_phrase_default = f"https://seffaflik{root_phrase_test}.epias.com.tr"
         self.root_phrase = kwargs.get("root_phrase", root_phrase_default)
-        self.tgt = kwargs.get("tgt", None)
-        self.tgt_exp = kwargs.get("exp", 0)
-        if self.is_test:
-            self.check_renew_tgt()
+        self.skip_login_warning = kwargs.get("skip_login_warning", False)
+
+        if tgt_d is not None:
+            self.import_tgt_info(tgt_d)
+        else:
+            self.tgt = None
+            self.tgt_exp = 0
+            self.tgt_exp_0 = 0
+
+        self.check_renew_tgt()
 
     ## Ref: https://stackoverflow.com/a/62303969/3608936
     def __getattr__(self, __name: str) -> Any:
@@ -52,17 +64,34 @@ class EPTR2:
 
         return method
 
-    def check_renew_tgt(self):
-        if not self.is_test:
-            print("Currently only test environment is supported for tgt renewal.")
-            return None
+    def import_tgt_info(self, tgt_d):
+        self.tgt = tgt_d["tgt"]
+        self.tgt_exp = tgt_d["tgt_exp"]
+        self.tgt_exp_0 = tgt_d["tgt_exp_0"]
 
+    def check_renew_tgt(self):
         if self.tgt is None or self.tgt_exp_0 < datetime.now().timestamp():
             self.get_tgt()
 
     def get_tgt(self, **kwargs):
         if self.username is None or self.password is None:
-            raise Exception("Username and password must be provided for tgt renewal.")
+            if not self.is_test and datetime.now() < datetime.strptime(
+                "2024-08-19", "%Y-%m-%d"
+            ):
+                if not self.skip_login_warning:
+                    print(
+                        "Warning: Username and password will be required in the EPIAS Transparency API after August 19 (check EPIAS Transparency website for the latest and detailed information). This warning is shown once per session. If you want to disable it set 'skip_login_warning' parameter to True when calling EPTR2 class."
+                    )
+                    self.skip_login_warning = True
+
+                self.tgt = None
+                self.tgt_exp = 0
+                self.tgt_exp_0 = 0
+                return None
+            else:
+                raise Exception(
+                    "Username and password must be provided for tgt renewal."
+                )
 
         test_suffix = "-prp" if self.is_test else ""
         login_url = f"""https://giris{test_suffix}.epias.com.tr/cas/v1/tickets"""
@@ -104,6 +133,13 @@ class EPTR2:
                 + timedelta(hours=1, minutes=45)
             ).timestamp(),
         )
+
+    def export_tgt_info(self):
+        return {
+            "tgt": self.tgt,
+            "tgt_exp": self.tgt_exp,
+            "tgt_exp_0": self.tgt_exp_0,
+        }
 
     def check_postprocess(self, postprocess: bool = True):
         self.postprocess = postprocess
