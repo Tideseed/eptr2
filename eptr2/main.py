@@ -36,6 +36,7 @@ class EPTR2:
         self.username = username
         self.password = password
         self.is_test = kwargs.get("is_test", False)
+        self.skip_credentials = kwargs.get("skip_credentials", False)
         root_phrase_test = "-prp" if self.is_test else ""
         root_phrase_default = f"https://seffaflik{root_phrase_test}.epias.com.tr"
         self.root_phrase = kwargs.get("root_phrase", root_phrase_default)
@@ -75,12 +76,10 @@ class EPTR2:
 
     def get_tgt(self, **kwargs):
         if self.username is None or self.password is None:
-            if not self.is_test and datetime.now() < datetime.strptime(
-                "2024-08-19", "%Y-%m-%d"
-            ):
+            if self.skip_credentials:
                 if not self.skip_login_warning:
                     print(
-                        "Warning: Username and password will be required in the EPIAS Transparency API after August 19 (check EPIAS Transparency website for the latest and detailed information). This warning is shown once per session. If you want to disable it set 'skip_login_warning' parameter to True when calling EPTR2 class."
+                        "Warning: You chose to skip the credentials and your calls may fail due to authentication requirements. Username and password will be required in the EPIAS Transparency API after August 26 (check EPIAS Transparency website for the latest and detailed information). This warning is shown once per session. If you want to disable it set 'skip_login_warning' parameter to True when calling EPTR2 class."
                     )
                     self.skip_login_warning = True
 
