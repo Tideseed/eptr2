@@ -121,7 +121,7 @@ class EPTR2:
         self.tgt = res_data["tgt"]
         ## Hard timeout
         self.tgt_exp = (
-            datetime.fromisoformat(res_data["created"]) + timedelta(hours=6)
+            datetime.now() + timedelta(hours=6)
         ).timestamp()
 
         ## Soft timeout
