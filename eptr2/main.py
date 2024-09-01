@@ -119,18 +119,18 @@ class EPTR2:
 
         res_data = json.loads(res.data.decode("utf-8"))
         self.tgt = res_data["tgt"]
+        try:
+            tgt_start_time = datetime.fromisoformat(res_data["created"])
+        except:
+            tgt_start_time = datetime.now()
+
         ## Hard timeout
-        self.tgt_exp = (
-            datetime.now() + timedelta(hours=6)
-        ).timestamp()
+        self.tgt_exp = (tgt_start_time + timedelta(hours=6)).timestamp()
 
         ## Soft timeout
         self.tgt_exp_0 = min(
             self.tgt_exp,
-            (
-                datetime.fromisoformat(res_data["created"])
-                + timedelta(hours=1, minutes=45)
-            ).timestamp(),
+            (tgt_start_time + timedelta(hours=1, minutes=45)).timestamp(),
         )
 
     def export_tgt_info(self):
