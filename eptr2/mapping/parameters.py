@@ -121,6 +121,7 @@ def get_required_parameters(key):
         "mms-pp-list": ["start_date"],
         "mms-uevcb-list": ["start_date", "pp_id"],
         "mms-message-type-list": [],
+        "mms-region-list": [],
         "international-line-events": ["start_date", "end_date"],
         "tcat-pre-year-forecast": ["start_date", "end_date"],
         "tcat-pre-month-forecast": ["start_date", "end_date"],
@@ -157,6 +158,8 @@ def get_required_parameters(key):
         "district-list": ["province_id"],
         "profile-group-list": [],
         "consumer-breakdown": ["period"],
+        "ra-distribution-list": [],
+        "ra-organization-list": [],
     }
 
     ## UPDATE: As a precaution every call should have an input parameter

@@ -155,8 +155,7 @@ class EPTR2:
         return get_path_map(just_call_keys=True)
 
     def call(self, key: str, **kwargs):
-        if self.is_test:
-            self.check_renew_tgt()
+        self.check_renew_tgt()
 
         call_path = get_total_path(key)
         call_method = get_call_method(key)

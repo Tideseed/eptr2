@@ -767,6 +767,18 @@ def get_help_d(key=None):
             },
             "url": "https://seffaflik.epias.com.tr/electricity-service/technical/tr/index.html#_umm-message-type-list",
         },
+        "mms-region-list": {
+            "category": "Listeleme",
+            "title": {
+                "tr": "Piyasa Mesaj Sistemi Bölge Listeleme Servisi",
+                "en": "Market Message System Region List",
+            },
+            "desc": {
+                "tr": "Piyasa Mesaj Sistemi Bölge Listeleme Servisi",
+                "en": "Market Message System Region List",
+            },
+            "url": "https://seffaflik.epias.com.tr/electricity-service/technical/tr/index.html#_umm-region-list",
+        },
         "gen-uevcb": {
             "category": "Listeleme",
             "title": {
@@ -1324,6 +1336,30 @@ def get_help_d(key=None):
                 "en": "The percentage of volume between the maximum and minimum operating levels of a dam. Formula: Active Occupancy= [( Volume Corresponding to the Level on the Relevant Date - Minimum Volume ) / ( Maximum Volume - Minimum Volume )] *100. Data is finalized as of 17:00.",
             },
             "url": "https://seffaflik.epias.com.tr/electricity/electricity-markets/general-data/market-participants",
+        },
+        "ra-distribution-list": {
+            "category": "GDDK",
+            "title": {
+                "tr": "GDDK Dağıtım Liste Servisi",
+                "en": "Retroactive Adjustment Distribution List",
+            },
+            "desc": {
+                "tr": "GDDK Dağıtım Liste Servisi",
+                "en": "Retroactive Adjustment Distribution List",
+            },
+            "url": "https://seffaflik.epias.com.tr/electricity-service/technical/tr/index.html#_distribution-list",
+        },
+        "ra-organization-list": {
+            "category": "GDDK",
+            "title": {
+                "tr": "Sayaç Okuyan Kurum Liste Servisi",
+                "en": "Meter Reading Organizations List",
+            },
+            "desc": {
+                "tr": "Sayaç Okuyan Kurum Liste Servisi",
+                "en": "Meter Reading Organizations List",
+            },
+            "url": "https://seffaflik.epias.com.tr/electricity-service/technical/tr/index.html#_gddk-organization-list",
         },
     }
 

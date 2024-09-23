@@ -274,6 +274,12 @@ def get_path_map(just_call_keys: bool = False):
                 "prev": "markets",
                 "label": "umm-message-type-list",
             },
+            ## PMS Bölge Listeleme Servisi
+            "mms-region-list": {
+                "prefix": "data",
+                "prev": "markets",
+                "label": "umm-region-list",
+            },
             ## Üretici UEVÇB Listesi
             "gen-uevcb": {
                 "prefix": "data",
@@ -665,6 +671,18 @@ def get_path_map(just_call_keys: bool = False):
                 "prev": "reporting-service",
                 "label": "idm-order-list",
             },
+            ## GDDK Dağıtım Liste
+            "ra-distribution-list": {
+                "prefix": "data",
+                "prev": "retroactive-adjustment",
+                "label": "distribution-list",
+            },
+            ##GDDK Sayaç Okuyan Kurum Liste
+            "ra-organization-list": {
+                "prefix": "data",
+                "prev": "retroactive-adjustment",
+                "label": "organization-list",
+            },
         },
         ## category
         "idm": {"prev": "markets"},
@@ -673,6 +691,7 @@ def get_path_map(just_call_keys: bool = False):
         "bilateral-contracts": {"prev": "markets"},
         "general-data": {"prev": "markets"},
         "imbalance": {"prev": "markets"},
+        "retroactive-adjustment": {"prev": "markets"},
         "dams": {"prev": "electricity-service"},
         "markets": {"prev": "electricity-service"},
         "generation": {"prev": "electricity-service"},
@@ -728,12 +747,15 @@ def get_call_method(key):
         "uevm-pp-list",
         "region-list",
         "mms-message-type-list",
+        "mms-region-list",
         "intl-direction-list",
         "intl-capacity-demand-direction-list",
         "basin-list",
         "distribution-region-list",
         "province-list",
         "profile-group-list",
+        "ra-distribution-list",
+        "ra-organization-list",
     ]
 
     if key in get_methods:

@@ -85,6 +85,7 @@ def get_postprocess_function(key):
         "mms-pp-list",
         "region-list",
         "mms-message-type-list",
+        "mms-region-list",
         "mms-uevcb-list",
         "tcat-pre-year-forecast",
         "tcat-pre-month-forecast",
@@ -112,6 +113,8 @@ def get_postprocess_function(key):
         "consumption-breakdown",
         "consumer-breakdown",
         "distribution-region-list",
+        "ra-distribution-list",
+        "ra-organization-list",
     ]:
         return postprocess_items_to_df
 
