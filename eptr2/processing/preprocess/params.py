@@ -14,7 +14,17 @@ def format_date_epias_hour(date: str | datetime, transform: str | None = None):
 
 
 def preprocess_parameter(key, value):
-    if key in ["start_date", "end_date", "date", "period", "se_date"]:
+    if key in [
+        "start_date",
+        "end_date",
+        "date",
+        "period",
+        "se_date",
+        "period_start_date",
+        "period_end_date",
+        "version_start_date",
+        "version_end_date",
+    ]:
         value = format_date_epias_hour(value)
 
     elif key in ["region"]:

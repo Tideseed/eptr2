@@ -677,11 +677,47 @@ def get_path_map(just_call_keys: bool = False):
                 "prev": "retroactive-adjustment",
                 "label": "distribution-list",
             },
-            ##GDDK Sayaç Okuyan Kurum Liste
+            ## GDDK Sayaç Okuyan Kurum Liste
             "ra-organization-list": {
                 "prefix": "data",
                 "prev": "retroactive-adjustment",
                 "label": "organization-list",
+            },
+            ## GDDK Profil Abone Grubu Liste Servisi
+            "ra-spg-list": {
+                "prefix": "data",
+                "prev": "retroactive-adjustment",
+                "label": "subscriber-profile-group-list",
+            },
+            ## GDDK Hacim Profil Abone Grubu Liste Servisi
+            "ra-vspg-list": {
+                "prefix": "data",
+                "prev": "retroactive-adjustment",
+                "label": "volume-subscriber-profile-group-list",
+            },
+            ## GDDK’ya Konu olan Sayaç Sayısı Listeleme Servisi
+            "ra-meters": {
+                "prefix": "data",
+                "prev": "retroactive-adjustment",
+                "label": "meter-count-subject-to-retroactive-adjustment",
+            },
+            ## GDDK’ya Konu olan Sayaç Hacim Verileri Listeleme Servisi
+            "ra-meter-volumes-period": {
+                "prefix": "data",
+                "prev": "retroactive-adjustment",
+                "label": "meter-volume",
+            },
+            ## GDDK’ya Konu olan Sayaç Hacim Verileri Listeleme Servisi
+            "ra-meter-volumes-version": {
+                "prefix": "data",
+                "prev": "retroactive-adjustment",
+                "label": "meter-volume",
+            },
+            ## GDDK Tutarı
+            "ra-sum": {
+                "prefix": "data",
+                "prev": "retroactive-adjustment",
+                "label": "retroactive-adjustment-sum",
             },
         },
         ## category
@@ -756,6 +792,8 @@ def get_call_method(key):
         "profile-group-list",
         "ra-distribution-list",
         "ra-organization-list",
+        "ra-spg-list",
+        "ra-vspg-list",
     ]
 
     if key in get_methods:

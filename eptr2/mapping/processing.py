@@ -115,6 +115,12 @@ def get_postprocess_function(key):
         "distribution-region-list",
         "ra-distribution-list",
         "ra-organization-list",
+        "ra-spg-list",
+        "ra-vspg-list",
+        "ra-meters",
+        "ra-meter-volumes-period",
+        "ra-meter-volumes-version",
+        "ra-sum",
     ]:
         return postprocess_items_to_df
 

@@ -35,6 +35,13 @@ def get_param_label(key):
         },  ## TYPO is intentional (same as api)
         "province_id": {"label": "provinceId"},
         "profile_group_id": {"label": "profileGroupId"},
+        "distribution_id": {"label": "distributionId"},
+        "spg_name": {"label": "subscriberProfileGroupName"},
+        "mr_org_id": {"label": "meterReadOrgId"},
+        "period_start_date": {"label": "periodStartDate"},
+        "period_end_date": {"label": "periodEndDate"},
+        "version_start_date": {"label": "versionStartDate"},
+        "version_end_date": {"label": "versionEndDate"},
     }
     return d.get(key, key)
 
@@ -160,6 +167,20 @@ def get_required_parameters(key):
         "consumer-breakdown": ["period"],
         "ra-distribution-list": [],
         "ra-organization-list": [],
+        "ra-spg-list": [],
+        "ra-vspg-list": [],
+        "ra-meters": ["distribution_id", "start_date", "end_date"],
+        "ra-meter-volumes-period": [
+            "mr_org_id",
+            "period_start_date",
+            "period_end_date",
+        ],
+        "ra-meter-volumes-version": [
+            "mr_org_id",
+            "version_start_date",
+            "version_end_date",
+        ],
+        "ra-sum": ["start_date", "end_date"],
     }
 
     ## UPDATE: As a precaution every call should have an input parameter
@@ -197,6 +218,17 @@ def get_optional_parameters(key):
         "consumption-breakdown": ["province_id", "profile_group_id"],
         "consumer-breakdown": ["province_id", "profile_group_id"],
         "idm-qty": ["org_id"],
+        "ra-meters": ["ra_spg_name"],
+        "ra-meter-volume-period": [
+            "ra_spg_name",
+            "version_start_date",
+            "version_end_date",
+        ],
+        "ra-meter-volume-version": [
+            "ra_spg_name",
+            "period_start_date",
+            "period_end_date",
+        ],
     }
 
     return d.get(key, [])

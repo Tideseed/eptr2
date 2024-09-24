@@ -1361,6 +1361,78 @@ def get_help_d(key=None):
             },
             "url": "https://seffaflik.epias.com.tr/electricity-service/technical/tr/index.html#_gddk-organization-list",
         },
+        "ra-spg-list": {
+            "category": "GDDK",
+            "title": {
+                "tr": "GDDK Profil Abone Grubu Liste Servisi",
+                "en": "GDDK Volume Customer Profile Group List",
+            },
+            "desc": {
+                "tr": "GDDK Profil Abone Grubu Liste Servisi",
+                "en": "GDDK Volume Customer Profile Group List",
+            },
+            "url": "https://seffaflik.epias.com.tr/electricity-service/technical/en/index.html#_subscriber-profile-group-list",
+        },
+        "ra-vspg-list": {
+            "category": "GDDK",
+            "title": {
+                "tr": "GDDK Hacim Profil Abone Grubu Liste Servisi",
+                "en": "GDDK Volume Customer Profile Group List",
+            },
+            "desc": {
+                "tr": "GDDK Hacim Profil Abone Grubu Liste Servisi",
+                "en": "GDDK Volume Customer Profile Group List",
+            },
+            "url": "https://seffaflik.epias.com.tr/electricity-service/technical/en/index.html#_volume-subscriber-profile-group-list",
+        },
+        "ra-meters": {
+            "category": "GDDK",
+            "title": {
+                "tr": "GDDK’ya Konu olan Sayaç Sayısı",
+                "en": "Meter Count Subject To Retroactive Adjustment Data",
+            },
+            "desc": {
+                "tr": "Geçmiş 12 ay içindeki ilgili ayın tüketiminin eksik ya da fazla faturalandırılması nedeniyle faturaya yansıtalan kalem “Geçmişe Dönük Düzeltme Kalemi” olarak adlandırılır. Bu veri GDDK ile ilişkilendirilen sayaç sayısını ifade eder.",
+                "en": "The item that is reflected on the invoice due to under- or over-invoicing of the relevant month’s consumption in the previous 12 months is called 'Retroactive Adjustment Item'. This data refers to the number of meters associated with Retroactive Adjustment Item.",
+            },
+            "url": "https://seffaflik.epias.com.tr/electricity/electricity-markets/retroactive-adjustment/meter-count-subject-to-retroactive-adjustment",
+        },
+        "ra-meter-volumes-period": {
+            "category": "GDDK",
+            "title": {
+                "tr": "GDDK’ya Konu olan Sayaç Hacim Verileri (Zorunlu Period Seçimi)",
+                "en": "Meter Volumes Subject to Retroactive Adjustment Data (Mandatory Period Selection)",
+            },
+            "desc": {
+                "tr": "Geçmiş 12 ay içindeki ilgili ayın tüketiminin eksik ya da fazla faturalandırılması nedeniyle faturaya yansıtılan kalem 'Geçmişe Dönük Düzeltme Kalemi' olarak adlandırılır. Bu veri GDDK ile ilişkilendirilen sayaçların hacim verilerini ifade eder.",
+                "en": "The item that is reflected on the invoice due to under- or over-invoicing of the relevant month’s consumption in the previous 12 months is called 'Retroactive Adjustment Item'. This data refers to the volume of meters associated with Retroactive Adjustment Item.",
+            },
+            "url": "https://seffaflik.epias.com.tr/electricity-service/technical/tr/index.html#_meter-volume-subject-to-retroactive-adjustment",
+        },
+        "ra-meter-volumes-version": {
+            "category": "GDDK",
+            "title": {
+                "tr": "GDDK’ya Konu olan Sayaç Hacim Verileri (Zorunlu Versiyon Seçimi)",
+                "en": "Meter Volumes Subject to Retroactive Adjustment Data (Mandatory Version Selection)",
+            },
+            "desc": {
+                "tr": "Geçmiş 12 ay içindeki ilgili ayın tüketiminin eksik ya da fazla faturalandırılması nedeniyle faturaya yansıtılan kalem 'Geçmişe Dönük Düzeltme Kalemi' olarak adlandırılır. Bu veri GDDK ile ilişkilendirilen sayaçların hacim verilerini ifade eder.",
+                "en": "The item that is reflected on the invoice due to under- or over-invoicing of the relevant month’s consumption in the previous 12 months is called 'Retroactive Adjustment Item'. This data refers to the volume of meters associated with Retroactive Adjustment Item.",
+            },
+            "url": "https://seffaflik.epias.com.tr/electricity-service/technical/tr/index.html#_meter-volume-subject-to-retroactive-adjustment",
+        },
+        "ra-sum": {
+            "category": "GDDK",
+            "title": {
+                "tr": "GDDK Tutarı",
+                "en": "Retroactive Adjustment Sum",
+            },
+            "desc": {
+                "tr": "Geçmiş 12 ay içindeki ilgili ayın tüketiminin eksik ya da fazla faturalandırılması nedeniyle faturaya yansıtılan kalem 'Geçmişe Dönük Düzeltme Kalemi' olarak adlandırılır. Bu veri GDDK ile ilişkilendirilen finansal tutarı ifade eder.",
+                "en": "The item that is reflected on the invoice due to under- or over-invoicing of the relevant month’s consumption in the previous 12 months is called 'Retroactive Adjustment Item'. This data refers to the financial amount associated with Retroactive Adjustment Item",
+            },
+            "url": "https://seffaflik.epias.com.tr/electricity/electricity-markets/retroactive-adjustment/retroactive-adjustment-sum",
+        },
     }
 
     if key is None:

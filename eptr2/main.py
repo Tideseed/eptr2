@@ -165,13 +165,16 @@ class EPTR2:
         ## Parameter change
         if key in ["bpm-orders", "bpm-orders-w-avg"]:
             if "date_time" in call_body_raw.keys():
-                warn(
-                    f"date_time parameter name is deprecated for {key}. Use 'date' instead. Support will be removed starting from version 0.3.0.",
-                    DeprecationWarning,
-                    stacklevel=2,
+                raise Exception(
+                    f"date_time parameter is not supported for {key}. Use 'date' instead."
                 )
+                # warn(
+                #     f"date_time parameter name is deprecated for {key}. Use 'date' instead. Support will be removed starting from version 0.3.0.",
+                #     DeprecationWarning,
+                #     stacklevel=2,
+                # )
 
-                call_body_raw["date"] = call_body_raw.pop("date_time")
+                # call_body_raw["date"] = call_body_raw.pop("date_time")
 
         optional_body_params = get_optional_parameters(key)
         all_params = required_body_params + optional_body_params
