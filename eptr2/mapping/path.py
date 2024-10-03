@@ -1,3 +1,6 @@
+import re
+
+
 def get_path_map(just_call_keys: bool = False):
     path_map = {
         "call": {
@@ -719,20 +722,126 @@ def get_path_map(just_call_keys: bool = False):
                 "prev": "retroactive-adjustment",
                 "label": "retroactive-adjustment-sum",
             },
+            ## Doğal Gaz Piyasa Katılımcıları
+            "ng-participants": {
+                "prefix": "data",
+                "prev": "general-data",
+                "label": "market-participant",
+                "root": "natural-gas",
+            },
+            ## Doğal Gaz Katılımcı Listesi
+            "ng-participant-list": {
+                "prefix": "data",
+                "prev": "general-data",
+                "label": "participant-list",
+                "root": "natural-gas",
+            },
+            ## İlave Dengeleyici Bildirimleri Listeleme Servisi
+            "ng-balancing-notifications": {
+                "prefix": "data",
+                "prev": "sgp",
+                "label": "additional-notifications",
+                "root": "natural-gas",
+            },
+            ## Dengeleme Gazı Fiyatları (DGF) Listeleme Servisi
+            "ng-balancing-price": {
+                "prefix": "data",
+                "prev": "sgp",
+                "label": "balancing-gas-price",
+                "root": "natural-gas",
+            },
+            ## Bakiye Sıfırlama Tutarı (BAST) Listeleme Servisi
+            "ng-bast": {
+                "prefix": "data",
+                "prev": "sgp",
+                "label": "bast",
+                "root": "natural-gas",
+            },
+            ## 2 Kodlu İşlemler Listeleme Servisi
+            "ng-blue-code-ops": {
+                "prefix": "data",
+                "prev": "sgp",
+                "label": "blue-code-operation",
+                "root": "natural-gas",
+            },
+            ## SGP Günlük Eşleşme Miktarı Listeleme Servisi
+            "ng-daily-match-qty": {
+                "prefix": "data",
+                "prev": "sgp",
+                "label": "daily-matched-quantity",
+                "root": "natural-gas",
+            },
+            ## Günlük Referans Fiyatı (GRF) Listeleme Servisi
+            "ng-drp": {
+                "prefix": "data",
+                "prev": "sgp",
+                "label": "daily-reference-price",
+                "root": "natural-gas",
+            },
+            ## SGP Günlük İşlem Hacmi Listeleme Servisi
+            "ng-daily-trade-volume": {
+                "prefix": "data",
+                "prev": "sgp",
+                "label": "daily-trade-volume",
+                "root": "natural-gas",
+            },
+            ## 4 Kodlu İşlemler Listeleme Servisi
+            "ng-code-four-ops": {
+                "prefix": "data",
+                "prev": "sgp",
+                "label": "four-code-operation",
+                "root": "natural-gas",
+            },
+            ## Geriye Dönük Düzeltme Kalemi (GDDK) Tutarı Listeleme Servisi
+            "ng-gddk": {
+                "prefix": "data",
+                "prev": "sgp",
+                "label": "gddk-amount",
+                "root": "natural-gas",
+            },
+            ## 1 Kodlu İşlemler Listeleme Servisi
+            "ng-green-code-ops": {
+                "prefix": "data",
+                "prev": "sgp",
+                "label": "green-code-operation",
+                "root": "natural-gas",
+            },
+            ## GRF Eşleşme Miktarı Listeleme Servisi
+            "ng-grp-match-qty": {
+                "prefix": "data",
+                "prev": "sgp",
+                "label": "grf-match-quantity",
+                "root": "natural-gas",
+            },
+            ## GRF İşlem Hacmi Listeleme Servisi
+            "ng-grp-trade-volume": {
+                "prefix": "data",
+                "prev": "sgp",
+                "label": "grf-trade-volume",
+                "root": "natural-gas",
+            },
+            ## SGP Dengesizlik Tutarı Listeleme Servisi
+            "ng-imbalance-amount": {
+                "prefix": "data",
+                "prev": "sgp",
+                "label": "imbalance-amount",
+                "root": "natural-gas",
+            },
         },
         ## category
         "idm": {"prev": "markets"},
         "dam": {"prev": "markets"},
         "bpm": {"prev": "markets"},
+        "sgp": {"prev": "markets"},
         "bilateral-contracts": {"prev": "markets"},
         "general-data": {"prev": "markets"},
         "imbalance": {"prev": "markets"},
         "retroactive-adjustment": {"prev": "markets"},
+        "ancillary-services": {"prev": "markets"},
         "dams": {"prev": "electricity-service"},
         "markets": {"prev": "electricity-service"},
         "generation": {"prev": "electricity-service"},
         "consumption": {"prev": "electricity-service"},
-        "ancillary-services": {"prev": "markets"},
         "renewables": {"prev": "electricity-service"},
         "transmission": {"prev": "electricity-service"},
         #### services
@@ -766,7 +875,11 @@ def get_total_path(key: str, join_path: bool = True):
         if d.get("next", None) is not None:
             total_path += get_total_path(key=d["next"], join_path=False)
 
-        return "/".join(total_path) if join_path else total_path
+        full_path = "/".join(total_path) if join_path else total_path
+        root_path = d.get("root", None)
+        if root_path is not None:
+            full_path = re.sub("electricity-service", root_path + "-service", full_path)
+        return full_path
     else:
         raise Exception("Key not found in path map.")
 
@@ -794,6 +907,7 @@ def get_call_method(key):
         "ra-organization-list",
         "ra-spg-list",
         "ra-vspg-list",
+        "ng-participant-list",
     ]
 
     if key in get_methods:

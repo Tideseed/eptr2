@@ -181,10 +181,25 @@ def get_required_parameters(key):
             "version_end_date",
         ],
         "ra-sum": ["start_date", "end_date"],
+        "ng-participants": [],
+        "ng-participant-list": [],
+        "ng-balancing-notifications": ["start_date", "end_date"],
+        "ng-balancing-price": ["start_date", "end_date"],
+        "ng-bast": ["period"],
+        "ng-blue-code-ops": ["start_date", "end_date"],
+        "ng-daily-match-qty": ["start_date", "end_date"],
+        "ng-drp": ["start_date", "end_date"],
+        "ng-daily-trade-volume": ["start_date", "end_date"],
+        "ng-code-four-ops": ["start_date", "end_date"],
+        "ng-gddk": ["start_date", "end_date"],
+        "ng-green-code-ops": ["start_date", "end_date"],
+        "ng-grp-match-qty": ["start_date", "end_date"],
+        "ng-grp-trade-volume": ["start_date", "end_date"],
+        "ng-imbalance-amount": ["period"],
     }
 
     ## UPDATE: As a precaution every call should have an input parameter
-    return d[key]
+    return d.get(key, [])
 
 
 def get_optional_parameters(key):
@@ -229,6 +244,7 @@ def get_optional_parameters(key):
             "period_start_date",
             "period_end_date",
         ],
+        "ng-participants": ["org_id"],
     }
 
     return d.get(key, [])

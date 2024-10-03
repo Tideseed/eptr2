@@ -121,6 +121,21 @@ def get_postprocess_function(key):
         "ra-meter-volumes-period",
         "ra-meter-volumes-version",
         "ra-sum",
+        "ng-participants",
+        "ng-participant-list",
+        "ng-balancing-notifications",
+        "ng-balancing-price",
+        "ng-bast",
+        "ng-blue-code-ops",
+        "ng-daily-match-qty",
+        "ng-drp",
+        "ng-daily-trade-volume",
+        "ng-code-four-ops",
+        "ng-gddk",
+        "ng-green-code-ops",
+        "ng-grp-match-qty",
+        "ng-grp-trade-volume",
+        "ng-imbalance-amount",
     ]:
         return postprocess_items_to_df
 
