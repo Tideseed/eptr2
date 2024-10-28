@@ -196,6 +196,19 @@ def get_required_parameters(key):
         "ng-grp-match-qty": ["start_date", "end_date"],
         "ng-grp-trade-volume": ["start_date", "end_date"],
         "ng-imbalance-amount": ["period"],
+        "ng-imbalance-system": ["start_date", "end_date"],
+        "ng-latest-settlement-date": [],
+        "ng-match-quantity": ["start_date", "end_date"],
+        "ng-orange-code-ops": ["start_date", "end_date"],
+        "ng-physical-realization": ["start_date", "end_date"],
+        "ng-spot-prices": ["start_date", "end_date"],
+        "ng-shippers-imbalance-quantity": ["period"],
+        "ng-system-direction": ["start_date", "end_date"],
+        "ng-total-trade-volume": ["start_date", "end_date"],
+        "ng-transaction-history": ["start_date", "end_date"],
+        "ng-virtual-realization": ["start_date", "end_date"],
+        "ng-weekly-matched-quantity": ["start_date", "end_date"],
+        "ng-wrp": ["start_date", "end_date"],
     }
 
     ## UPDATE: As a precaution every call should have an input parameter

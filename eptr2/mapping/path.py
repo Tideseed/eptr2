@@ -1,6 +1,31 @@
 import re
 
 
+def get_path_template(template: str, label: str):
+
+    template_map_d = {
+        "ng-sgp": {
+            "prefix": "data",
+            "prev": "sgp",
+            "root": "natural-gas",
+        },
+        "ng-general": {
+            "prefix": "data",
+            "prev": "general-data",
+            "root": "natural-gas",
+        },
+        "ra": {
+            "prefix": "data",
+            "prev": "retroactive-adjustment",
+        },
+    }
+
+    d = template_map_d[template]
+    d["label"] = label
+
+    return d
+
+
 def get_path_map(just_call_keys: bool = False):
     path_map = {
         "call": {
@@ -675,158 +700,96 @@ def get_path_map(just_call_keys: bool = False):
                 "label": "idm-order-list",
             },
             ## GDDK Dağıtım Liste
-            "ra-distribution-list": {
-                "prefix": "data",
-                "prev": "retroactive-adjustment",
-                "label": "distribution-list",
-            },
+            "ra-distribution-list": get_path_template("ra", "distribution-list"),
             ## GDDK Sayaç Okuyan Kurum Liste
-            "ra-organization-list": {
-                "prefix": "data",
-                "prev": "retroactive-adjustment",
-                "label": "organization-list",
-            },
+            "ra-organization-list": get_path_template("ra", "organization-list"),
             ## GDDK Profil Abone Grubu Liste Servisi
-            "ra-spg-list": {
-                "prefix": "data",
-                "prev": "retroactive-adjustment",
-                "label": "subscriber-profile-group-list",
-            },
+            "ra-spg-list": get_path_template("ra", "subscriber-profile-group-list"),
             ## GDDK Hacim Profil Abone Grubu Liste Servisi
-            "ra-vspg-list": {
-                "prefix": "data",
-                "prev": "retroactive-adjustment",
-                "label": "volume-subscriber-profile-group-list",
-            },
+            "ra-vspg-list": get_path_template(
+                "ra", "volume-subscriber-profile-group-list"
+            ),
             ## GDDK’ya Konu olan Sayaç Sayısı Listeleme Servisi
-            "ra-meters": {
-                "prefix": "data",
-                "prev": "retroactive-adjustment",
-                "label": "meter-count-subject-to-retroactive-adjustment",
-            },
-            ## GDDK’ya Konu olan Sayaç Hacim Verileri Listeleme Servisi
-            "ra-meter-volumes-period": {
-                "prefix": "data",
-                "prev": "retroactive-adjustment",
-                "label": "meter-volume",
-            },
-            ## GDDK’ya Konu olan Sayaç Hacim Verileri Listeleme Servisi
-            "ra-meter-volumes-version": {
-                "prefix": "data",
-                "prev": "retroactive-adjustment",
-                "label": "meter-volume",
-            },
+            "ra-meters": get_path_template(
+                "ra", "meter-count-subject-to-retroactive-adjustment"
+            ),
+            ## GDDK’ya Konu olan Sayaç Hacim Verileri Listeleme Servisi (with Period)
+            "ra-meter-volumes-period": get_path_template("ra", "meter-volume"),
+            ## GDDK’ya Konu olan Sayaç Hacim Verileri Listeleme Servisi (with Version)
+            "ra-meter-volumes-version": get_path_template("ra", "meter-volume"),
             ## GDDK Tutarı
-            "ra-sum": {
-                "prefix": "data",
-                "prev": "retroactive-adjustment",
-                "label": "retroactive-adjustment-sum",
-            },
+            "ra-sum": get_path_template("ra", "retroactive-adjustment-sum"),
             ## Doğal Gaz Piyasa Katılımcıları
-            "ng-participants": {
-                "prefix": "data",
-                "prev": "general-data",
-                "label": "market-participant",
-                "root": "natural-gas",
-            },
+            "ng-participants": get_path_template("ng-general", "market-participant"),
             ## Doğal Gaz Katılımcı Listesi
-            "ng-participant-list": {
-                "prefix": "data",
-                "prev": "general-data",
-                "label": "participant-list",
-                "root": "natural-gas",
-            },
+            "ng-participant-list": get_path_template("ng-general", "participant-list"),
             ## İlave Dengeleyici Bildirimleri Listeleme Servisi
-            "ng-balancing-notifications": {
-                "prefix": "data",
-                "prev": "sgp",
-                "label": "additional-notifications",
-                "root": "natural-gas",
-            },
+            "ng-balancing-notifications": get_path_template(
+                "ng-sgp", "additional-notifications"
+            ),
             ## Dengeleme Gazı Fiyatları (DGF) Listeleme Servisi
-            "ng-balancing-price": {
-                "prefix": "data",
-                "prev": "sgp",
-                "label": "balancing-gas-price",
-                "root": "natural-gas",
-            },
+            "ng-balancing-price": get_path_template("ng-sgp", "balancing-gas-price"),
             ## Bakiye Sıfırlama Tutarı (BAST) Listeleme Servisi
-            "ng-bast": {
-                "prefix": "data",
-                "prev": "sgp",
-                "label": "bast",
-                "root": "natural-gas",
-            },
+            "ng-bast": get_path_template("ng-sgp", "bast"),
             ## 2 Kodlu İşlemler Listeleme Servisi
-            "ng-blue-code-ops": {
-                "prefix": "data",
-                "prev": "sgp",
-                "label": "blue-code-operation",
-                "root": "natural-gas",
-            },
+            "ng-blue-code-ops": get_path_template("ng-sgp", "blue-code-operation"),
             ## SGP Günlük Eşleşme Miktarı Listeleme Servisi
-            "ng-daily-match-qty": {
-                "prefix": "data",
-                "prev": "sgp",
-                "label": "daily-matched-quantity",
-                "root": "natural-gas",
-            },
+            "ng-daily-match-qty": get_path_template("ng-sgp", "daily-matched-quantity"),
             ## Günlük Referans Fiyatı (GRF) Listeleme Servisi
-            "ng-drp": {
-                "prefix": "data",
-                "prev": "sgp",
-                "label": "daily-reference-price",
-                "root": "natural-gas",
-            },
+            "ng-drp": get_path_template("ng-sgp", "daily-reference-price"),
             ## SGP Günlük İşlem Hacmi Listeleme Servisi
-            "ng-daily-trade-volume": {
-                "prefix": "data",
-                "prev": "sgp",
-                "label": "daily-trade-volume",
-                "root": "natural-gas",
-            },
+            "ng-daily-trade-volume": get_path_template("ng-sgp", "daily-trade-volume"),
             ## 4 Kodlu İşlemler Listeleme Servisi
-            "ng-code-four-ops": {
-                "prefix": "data",
-                "prev": "sgp",
-                "label": "four-code-operation",
-                "root": "natural-gas",
-            },
+            "ng-code-four-ops": get_path_template("ng-sgp", "four-code-operation"),
             ## Geriye Dönük Düzeltme Kalemi (GDDK) Tutarı Listeleme Servisi
-            "ng-gddk": {
-                "prefix": "data",
-                "prev": "sgp",
-                "label": "gddk-amount",
-                "root": "natural-gas",
-            },
+            "ng-gddk": get_path_template("ng-sgp", "gddk-amount"),
             ## 1 Kodlu İşlemler Listeleme Servisi
-            "ng-green-code-ops": {
-                "prefix": "data",
-                "prev": "sgp",
-                "label": "green-code-operation",
-                "root": "natural-gas",
-            },
+            "ng-green-code-ops": get_path_template("ng-sgp", "green-code-operation"),
             ## GRF Eşleşme Miktarı Listeleme Servisi
-            "ng-grp-match-qty": {
-                "prefix": "data",
-                "prev": "sgp",
-                "label": "grf-match-quantity",
-                "root": "natural-gas",
-            },
+            "ng-grp-match-qty": get_path_template("ng-sgp", "grf-match-quantity"),
             ## GRF İşlem Hacmi Listeleme Servisi
-            "ng-grp-trade-volume": {
-                "prefix": "data",
-                "prev": "sgp",
-                "label": "grf-trade-volume",
-                "root": "natural-gas",
-            },
+            "ng-grp-trade-volume": get_path_template("ng-sgp", "grf-trade-volume"),
             ## SGP Dengesizlik Tutarı Listeleme Servisi
-            "ng-imbalance-amount": {
-                "prefix": "data",
-                "prev": "sgp",
-                "label": "imbalance-amount",
-                "root": "natural-gas",
-            },
+            "ng-imbalance-amount": get_path_template("ng-sgp", "imbalance-amount"),
+            ## SGP Dengesizlik Sistem Listeleme Servisi
+            "ng-imbalance-system": get_path_template("ng-sgp", "imbalance-system"),
+            ## Sgp Son Uzlaştırma Tarihi Servisi
+            "ng-latest-settlement-date": get_path_template(
+                "ng-sgp", "last-reconciliation-date"
+            ),
+            ## SGP Toplam Eşleşme Miktarı Listeleme Servisi
+            "ng-match-quantity": get_path_template("ng-sgp", "match-quantity"),
+            ## 3 Kodlu İşlemler Listeleme Servisi
+            "ng-orange-code-ops": get_path_template("ng-sgp", "orange-code-operation"),
+            ## Fiziki Gerçekleşme Listeleme Servisi
+            "ng-physical-realization": get_path_template(
+                "ng-sgp", "physical-realization"
+            ),
+            ## SGP Fiyatlar Listeleme Servisi
+            "ng-spot-prices": get_path_template("ng-sgp", "sgp-price"),
+            # get_path_template("ng-sgp", "shippers-imbalance-quantity"),
+            ## Dengesizlik Taşıtan Listeleme Servisi
+            "ng-shippers-imbalance-quantity": get_path_template(
+                "ng-sgp", "shippers-imbalance-quantity"
+            ),
+            ## Sistem Yönü Listeleme Servisi
+            "ng-system-direction": get_path_template("ng-sgp", "system-direction"),
+            ## SGP Toplam İşlem Hacmi Listeleme Servisi
+            "ng-total-trade-volume": get_path_template("ng-sgp", "total-trade-volume"),
+            ## SGP İşlem Akışı Listeleme Servisi
+            "ng-transaction-history": get_path_template(
+                "ng-sgp", "transaction-history"
+            ),
+            ## Sanal Gerçekleşme Listeleme Servisi
+            "ng-virtual-realization": get_path_template(
+                "ng-sgp", "virtual-realization"
+            ),
+            ## SGP Haftalık Eşleşme Miktarı Listeleme Servisi
+            "ng-weekly-matched-quantity": get_path_template(
+                "ng-sgp", "weekly-matched-quantity"
+            ),
+            ## Haftalık Referans Fiyatı (HRF) Listeleme Servisi
+            "ng-wrp": get_path_template("ng-sgp", "weekly-ref-price"),
         },
         ## category
         "idm": {"prev": "markets"},
@@ -908,6 +871,7 @@ def get_call_method(key):
         "ra-spg-list",
         "ra-vspg-list",
         "ng-participant-list",
+        "ng-latest-settlement-date",
     ]
 
     if key in get_methods:

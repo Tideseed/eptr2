@@ -136,6 +136,18 @@ def get_postprocess_function(key):
         "ng-grp-match-qty",
         "ng-grp-trade-volume",
         "ng-imbalance-amount",
+        "ng-imbalance-system",
+        "ng-match-quantity",
+        "ng-orange-code-ops",
+        "ng-physical-realization",
+        "ng-spot-prices",
+        "ng-shippers-imbalance-quantity",
+        "ng-system-direction",
+        "ng-total-trade-volume",
+        "ng-transaction-history",
+        "ng-virtual-realization",
+        "ng-weekly-matched-quantity",
+        "ng-wrp",
     ]:
         return postprocess_items_to_df
 
@@ -148,6 +160,7 @@ def get_postprocess_function(key):
         "intl-capacity-demand-direction-list",
         "basin-list",
         "dam-list",
+        "ng-latest-settlement-date",
     ]:
         return postprocess_direct_dict
 

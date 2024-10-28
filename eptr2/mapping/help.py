@@ -1433,6 +1433,66 @@ def get_help_d(key=None):
             },
             "url": "https://seffaflik.epias.com.tr/electricity/electricity-markets/retroactive-adjustment/retroactive-adjustment-sum",
         },
+        "ng-participants": {
+            "category": "NG",
+            "title": {
+                "tr": "Doğal Gaz Piyasa Katılımcıları",
+                "en": "Natural Gas Market Participants",
+            },
+            "desc": {
+                "tr": "Katılımcıların piyasa (SGP, VGP) kayıt durumlarını gösterir.",
+                "en": "It shows market (SGP, VGP) registration status of the participants.",
+            },
+            "url": "https://seffaflik.epias.com.tr/natural-gas/natural-gas-markets/general-data/natural-gas-market-participants",
+        },
+        "ng-participant-list": {
+            "category": "NG",
+            "title": {
+                "tr": "Doğal Gaz Katılımcı Listesi",
+                "en": "Natural Gas Market Participant List",
+            },
+            "desc": {
+                "tr": "Katılımcı Listesi Servisi",
+                "en": "Participant List Service",
+            },
+            "url": "https://seffaflik.epias.com.tr/natural-gas-service/technical/tr/index.html#_participant-list",
+        },
+        "ng-balancing-notifications": {
+            "category": "NG",
+            "title": {
+                "tr": "İlave Dengeleyici Bildirimleri",
+                "en": "Announcement for TSO Transactions",
+            },
+            "desc": {
+                "tr": "Şebekede oluşan dengesizliği gidermeyi amaçlayan işlemler için piyasa katılımcılarına yapılan bildirimleri ifade eder.",
+                "en": "It shows to the notifications made to market participants for transactions aiming to eliminate the imbalance in the network.",
+            },
+            "url": "https://seffaflik.epias.com.tr/natural-gas/natural-gas-markets/spot-gas-markets-sgp/tso-balancing-transactions/announcement-for-tso-transactions",
+        },
+        "ng-balancing-price": {
+            "category": "NG",
+            "title": {
+                "tr": "Dengeleme Gazı Fiyatları (DGF)",
+                "en": "Balancing Gas Price (BGP)",
+            },
+            "desc": {
+                "tr": "İlgili gaz gününde İletim Şirketince gerçekleştirilen İlave Dengeleme Alış veya Satış işlemlerinin Ağırlıklı Ortalama Fiyatını gösterir.",
+                "en": "It shows the Weighted Average Price of Additional Balancing Buy or Sell transactions performed by the Transmission Company on the relevant gas day.",
+            },
+            "url": "https://seffaflik.epias.com.tr/natural-gas/natural-gas-markets/spot-gas-markets-sgp/price/balancing-gas-price-bgp",
+        },
+        "ng-bast": {
+            "category": "NG",
+            "title": {
+                "tr": "Bakiye Sıfırlama Tutarı (BAST)",
+                "en": "Neutralization Item",
+            },
+            "desc": {
+                "tr": "İletim Şirketi alacak veya borcunun düşülmesinden sonra EPİAŞ'ta kalan ve mevzuata uygun şekilde Katılımcılara Dağıtılacak Tutarı gösterir.",
+                "en": "It shows amount remaining in EPİAŞ after deducting the receivables or debts of the Transmission Company and to be Distributed to the Participants in accordance with the legislation.",
+            },
+            "url": "https://seffaflik.epias.com.tr/natural-gas/natural-gas-markets/spot-gas-markets-sgp/neutralization-item",
+        },
     }
 
     if key is None:
