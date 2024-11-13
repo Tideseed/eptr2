@@ -1493,6 +1493,582 @@ def get_help_d(key=None):
             },
             "url": "https://seffaflik.epias.com.tr/natural-gas/natural-gas-markets/spot-gas-markets-sgp/neutralization-item",
         },
+        "ng-blue-code-ops": {
+            "category": "NG",
+            "title": {
+                "tr": "2 Kodlu İşlemler",
+                "en": "2 Coded Transaction",
+            },
+            "desc": {
+                "tr": "Şebekede oluşan dengesizliği gidermeyi amaçlayan 2 Kodlu İlave Dengeleyici İşlemlerini ifade eder.",
+                "en": "It shows to the 2 Coded Additional Balancer Operations aimed at eliminating the imbalance in the network.",
+            },
+            "url": "https://seffaflik.epias.com.tr/natural-gas/natural-gas-markets/spot-gas-markets-sgp/tso-balancing-transactions/2-coded-transaction",
+        },
+        "ng-daily-match-qty": {
+            "category": "NG",
+            "title": {
+                "tr": "SGP Günlük Eşleşme Miktarı",
+                "en": "SGP Daily Matched Quantity",
+            },
+            "desc": {
+                "tr": "Spot Doğal Gaz Piyasasında günlük kontratlardaki gün öncesi ve gün içi eşleşmelerin Toplam Miktarını gösterir.",
+                "en": "It shows Total Amount of day-ahead and intra-day matches in daily contracts in the Spot Natural Gas Market.",
+            },
+            "url": "https://seffaflik.epias.com.tr/natural-gas/natural-gas-markets/spot-gas-markets-sgp/matched-quantity/sgp-daily-matched-quantity",
+        },
+        "ng-drp": {
+            "category": "NG",
+            "title": {
+                "tr": "Günlük Referans Fiyatı (GRF)",
+                "en": "",
+            },
+            "desc": {
+                "tr": "Spot Doğal Gaz Piyasasında gün öncesi ve gün içi eşleşmelerinin Ağırlıklı Ortalama Fiyatını gösterir",
+                "en": "",
+            },
+            "url": "https://seffaflik.epias.com.tr/natural-gas/natural-gas-markets/spot-gas-markets-sgp/price/daily-reference-price-drp",
+        },
+        "ng-daily-trade-volume": {
+            "category": "NG",
+            "title": {
+                "tr": "SGP Günlük İşlem Hacmi",
+                "en": "Daily Reference Price (DRP)",
+            },
+            "desc": {
+                "tr": "Spot Doğal Gaz Piyasasında günlük kontratlardaki eşleşmelerin Toplam Tutarını gösterir.",
+                "en": "It shows Weighted Average Price of day-ahead and intraday pairings in the Spot Natural Gas Market.",
+            },
+            "url": "https://seffaflik.epias.com.tr/natural-gas/natural-gas-markets/spot-gas-markets-sgp/trade-volume/sgp-daily-trade-volume",
+        },
+        "ng-code-four-ops": {
+            "category": "NG",
+            "title": {
+                "tr": "4 Kodlu İşlemler",
+                "en": "4 Coded Transaction",
+            },
+            "desc": {
+                "tr": "Şebekede oluşan dengesizliği gidermeyi amaçlayan 4 Kodlu İlave Dengeleyici İşlemlerini ifade eder.",
+                "en": "It shows to the 4 Coded Additional Balancer Operations aimed at eliminating the imbalance in the network.",
+            },
+            "url": "https://seffaflik.epias.com.tr/natural-gas/natural-gas-markets/spot-gas-markets-sgp/tso-balancing-transactions/4-coded-transaction",
+        },
+        "ng-gddk": {
+            "category": "NG",
+            "title": {
+                "tr": "Geriye Dönük Düzeltme Kalemi (GDDK) Tutarı",
+                "en": "Retroactive Adjustment Item Amount",
+            },
+            "desc": {
+                "tr": "Geçmiş dönem faturalarında yapılan geriye dönük düzeltmeler ile yeni faturada oluşan Toplam Alacak veya Borç Tutarını gösterir.",
+                "en": "It shows total Credit or Payable Amount in the new invoice with the retrospective corrections made in the previous period invoices.",
+            },
+            "url": "https://seffaflik.epias.com.tr/natural-gas/natural-gas-markets/spot-gas-markets-sgp/retroactive-adjustment-item-amount",
+        },
+        "ng-green-code-ops": {
+            "category": "NG",
+            "title": {
+                "tr": "1 Kodlu İşlemler",
+                "en": "1 Coded Transaction",
+            },
+            "desc": {
+                "tr": "Şebekede oluşan dengesizliği gidermeyi amaçlayan 1 Kodlu İlave Dengeleyici İşlemlerini ifade eder.",
+                "en": "It shows to Additional Balancer Operations with Code 1 aiming to eliminate the imbalance in the network.",
+            },
+            "url": "https://seffaflik.epias.com.tr/natural-gas/natural-gas-markets/spot-gas-markets-sgp/tso-balancing-transactions/1-coded-transaction",
+        },
+        "ng-grp-match-qty": {
+            "category": "NG",
+            "title": {
+                "tr": "GRF Eşleşme Miktarı",
+                "en": "Matched Quantity for DRP",
+            },
+            "desc": {
+                "tr": "Spot Doğal Gaz Piyasasında günlük kontratlardaki gün öncesi ve gün içi eşleşmelerin Toplam Miktarını gösterir.",
+                "en": "It shows Total Amount of day-ahead and intra-day matches in daily contracts in the Spot Natural Gas Market.",
+            },
+            "url": "https://seffaflik.epias.com.tr/natural-gas/natural-gas-markets/spot-gas-markets-sgp/matched-quantity/matched-quantity-for-drp",
+        },
+        "ng-grp-trade-volume": {
+            "category": "NG",
+            "title": {
+                "tr": "GRF İşlem Hacmi",
+                "en": "GRP Trade Volume",
+            },
+            "desc": {
+                "tr": "Spot Doğal Gaz Piyasasında günlük kontratlardaki gün öncesi ve gün içi eşleşmelerin Toplam Tutarını gösterir.",
+                "en": "It shows Total Amount of day-ahead and intra-day pairings in daily contracts in the Spot Natural Gas Market.",
+            },
+            "url": "https://seffaflik.epias.com.tr/natural-gas/natural-gas-markets/spot-gas-markets-sgp/trade-volume/grp-trade-volume",
+        },
+        "ng-imbalance-amount": {
+            "category": "NG",
+            "title": {
+                "tr": "SGP Dengesizlik Tutarı",
+                "en": "SGP Imbalance Amount",
+            },
+            "desc": {
+                "tr": "Taşıtanların Alış veya Satış ağırlıklı işlemleri sonucu şebekede oluşan dengesizlik için ödemekle yükümlü oldukları Tutarı gösterir.",
+                "en": "It shows the amount that the Shippers are liable to pay for the imbalance in the network as a result of the purchase or sale weighted transactions.",
+            },
+            "url": "https://seffaflik.epias.com.tr/natural-gas/natural-gas-markets/spot-gas-markets-sgp/imbalance/sgp-imbalance-amount",
+        },
+        "ng-imbalance-system": {
+            "category": "NG",
+            "title": {
+                "tr": "Dengesizlik Sistem",
+                "en": "Imbalance System",
+            },
+            "desc": {
+                "tr": "Önceki gaz gününe kıyasla, Şebeke Stok Gazı Miktarında oluşan artış veya azalışı gösterir. Büyükse (+) , küçükse (-) işaretlenir.",
+                "en": "It shows increase or decrease in the Network Stock Gas Amount compared to the previous gas day. It is marked with (+) if it is greater and (-) if it is less.",
+            },
+            "url": "https://seffaflik.epias.com.tr/natural-gas/natural-gas-markets/spot-gas-markets-sgp/imbalance/imbalance-system",
+        },
+        "ng-latest-settlement-date": {
+            "category": "NG",
+            "title": {
+                "tr": "SGP Son Uzlaştırma Tarihi Servisi",
+                "en": "SGP Last Reconciliation Date Service",
+            },
+            "desc": {
+                "tr": "Son uzlaştırma tarihini verir.",
+                "en": "Last reconciliation date service.",
+            },
+            "url": "https://seffaflik.epias.com.tr/natural-gas-service/technical/tr/index.html#_stp-last-reconciliation-date",
+        },
+        "ng-match-quantity": {
+            "category": "NG",
+            "title": {
+                "tr": "SGP Toplam Eşleşme Miktarı",
+                "en": "SGP Total Matched Quantity",
+            },
+            "desc": {
+                "tr": "Spot Doğal Gaz Piyasasında günlük ve haftalık kontratlardaki eşleşmelerin Toplam Miktarını gösterir.",
+                "en": "It shows Total Amount of matches in daily and weekly contracts in the Spot Natural Gas Market.",
+            },
+            "url": "https://seffaflik.epias.com.tr/natural-gas/natural-gas-markets/spot-gas-markets-sgp/matched-quantity/sgp-total-matched-quantity",
+        },
+        "ng-orange-code-ops": {
+            "category": "NG",
+            "title": {
+                "tr": "3 Kodlu İşlemler",
+                "en": "3 Coded Transaction",
+            },
+            "desc": {
+                "tr": "Şebekede oluşan dengesizliği gidermeyi amaçlayan 3 Kodlu İlave Dengeleyici İşlemlerini ifade eder.",
+                "en": "It shows to the 3 Coded Additional Balancer Operations aimed at eliminating the imbalance in the network.",
+            },
+            "url": "https://seffaflik.epias.com.tr/natural-gas/natural-gas-markets/spot-gas-markets-sgp/tso-balancing-transactions/3-coded-transaction",
+        },
+        "physical-realization": {
+            "category": "NG",
+            "title": {
+                "tr": "Fiziki Gerçekleşme",
+                "en": "Physical Realization",
+            },
+            "desc": {
+                "tr": "Taşıtanların Alış veya Satış yoluyla, fiziki şebeke noktalarından sisteme eklediği veya çıkardığı Doğal Gaz Miktarını gösterir.",
+                "en": "It shows Natural Gas Quantity that the Shippers add or remove from the physical network points to the system through Buying or Selling.",
+            },
+            "url": "https://seffaflik.epias.com.tr/natural-gas/natural-gas-markets/spot-gas-markets-sgp/allocation-data/physical-realization",
+        },
+        "ng-spot-prices": {
+            "category": "NG",
+            "title": {
+                "tr": "SGP Fiyatlar",
+                "en": "SGP Price",
+            },
+            "desc": {
+                "tr": "Spot Doğal Gaz Piyasasında ilgili ticaret aralığında gerçekleşen eşleşmelerin Ağırlıklı Ortalama Fiyatını gösterir.",
+                "en": "It shows Weighted Average Price of matches in the relevant trading range in the Spot Natural Gas Market.",
+            },
+            "url": "https://seffaflik.epias.com.tr/natural-gas/natural-gas-markets/spot-gas-markets-sgp/price/sgp-price",
+        },
+        "ng-shippers-imbalance-quantity": {
+            "category": "NG",
+            "title": {
+                "tr": "Dengesizlik Taşıtan",
+                "en": "Shipper's Imbalance Quantity",
+            },
+            "desc": {
+                "tr": "Taşıtanların Alış veya Satış ağırlıklı işlemleri sonucu şebekede oluşan Doğal Gaz Fazlalığı veya Eksikliği Miktarını gösterir.",
+                "en": "It shows Natural Gas Excess or Deficiency Amount that occurs in the network as a result of the purchase or sale weighted transactions of the shippers.",
+            },
+            "url": "https://seffaflik.epias.com.tr/natural-gas/natural-gas-markets/spot-gas-markets-sgp/imbalance/shipper-s-imbalance-quantity",
+        },
+        "ng-system-direction": {
+            "category": "NG",
+            "title": {
+                "tr": "Sistem Yönü",
+                "en": "System Balance",
+            },
+            "desc": {
+                "tr": "İletim Şirketince ilgili gün için hedeflenen Şebeke Stok Gazı Miktarı değerine kıyasla, gerçekleşen değeri gösterir. Büyükse (+) , küçükse (-) değerlenir.",
+                "en": "It shows actual value compared to the Network Stock Gas Amount value targeted by the Transmission Company for the relevant day. It is valued as (+) if it is greater than (-) if it is less.",
+            },
+            "url": "https://seffaflik.epias.com.tr/natural-gas/natural-gas-markets/spot-gas-markets-sgp/allocation-data/system-balance",
+        },
+        "ng-total-trade-volume": {
+            "category": "NG",
+            "title": {
+                "tr": "SGP Toplam İşlem Hacmi",
+                "en": "SGP Total Trade Volume",
+            },
+            "desc": {
+                "tr": "Spot Doğal Gaz Piyasasında günlük ve haftalık kontratlardaki eşleşmelerin Toplam Tutarını gösterir.",
+                "en": "It shows Total Amount of the matches in the daily and weekly contracts in the Spot Natural Gas Market.",
+            },
+            "url": "https://seffaflik.epias.com.tr/natural-gas/natural-gas-markets/spot-gas-markets-sgp/trade-volume/sgp-total-trade-volume",
+        },
+        "ng-transaction-history": {
+            "category": "NG",
+            "title": {
+                "tr": "SGP İşlem Akışı",
+                "en": "SGP Transaction History",
+            },
+            "desc": {
+                "tr": "Spot kontratların Eşleşme Zamanlarını gösterir.",
+                "en": "It shows Matching Times of spot contracts.",
+            },
+            "url": "https://seffaflik.epias.com.tr/natural-gas/natural-gas-markets/spot-gas-markets-sgp/sgp-transaction-history",
+        },
+        "ng-virtual-realization": {
+            "category": "NG",
+            "title": {
+                "tr": "Sanal Gerçekleşme",
+                "en": "Virtual Realization",
+            },
+            "desc": {
+                "tr": "Taşıtanların Alış veya Satış yoluyla, sanal şebeke noktalarından (UDN) sisteme eklediği veya çıkardığı Doğal Gaz Miktarını gösterir.",
+                "en": "It shows Natural Gas Quantity that the Shippers add or remove from the virtual network points (UDN) through Purchase or Sale.",
+            },
+            "url": "https://seffaflik.epias.com.tr/natural-gas/natural-gas-markets/spot-gas-markets-sgp/allocation-data/virtual-realization",
+        },
+        "ng-weekly-matched-quantity": {
+            "category": "NG",
+            "title": {
+                "tr": "SGP Haftalık Eşleşme Miktarı",
+                "en": "SGP Weekly Matched Quantity",
+            },
+            "desc": {
+                "tr": "Spot Doğal Gaz Piyasasında haftalık kontratlardaki eşleşmelerin Toplam Miktarını gösterir.",
+                "en": "It shows Total Amount of weekly contracts in the Spot Natural Gas Market.",
+            },
+            "url": "https://seffaflik.epias.com.tr/natural-gas/natural-gas-markets/spot-gas-markets-sgp/matched-quantity/sgp-weekly-matched-quantity",
+        },
+        "ng-wrp": {
+            "category": "NG",
+            "title": {
+                "tr": "Haftalık Referans Fiyatı (HRF)",
+                "en": "Weekly Reference Price (WRP)",
+            },
+            "desc": {
+                "tr": "Spot Doğal Gaz Piyasasında haftalık kontratlardaki eşleşmelerin Ağırlıklı Ortalama Fiyatını gösterir.",
+                "en": "It shows Weighted Average Price of weekly contract pairings in the Spot Natural Gas Market",
+            },
+            "url": "https://seffaflik.epias.com.tr/natural-gas/natural-gas-markets/spot-gas-markets-sgp/price/weekly-reference-price-wrp",
+        },
+        "ng-weekly-trade-volume": {
+            "category": "NG",
+            "title": {
+                "tr": "SGP Haftalık İşlem Hacmi",
+                "en": "SGP Weekly Trade Volume",
+            },
+            "desc": {
+                "tr": "Spot Doğal Gaz Piyasasında haftalık kontratlardaki eşleşmelerin Toplam Tutarını gösterir.",
+                "en": "It shows Total Amount of weekly contracts in the Spot Natural Gas Market",
+            },
+            "url": "https://seffaflik.epias.com.tr/natural-gas/natural-gas-markets/spot-gas-markets-sgp/trade-volume/sgp-weekly-trade-volume",
+        },
+        "ng-vgp-contract-price-summary": {
+            "category": "NG",
+            "title": {
+                "tr": "VGP Kontrat Fiyatları Özeti",
+                "en": "GFM Contract Price Summary",
+            },
+            "desc": {
+                "tr": "Vadeli kontratların Eşleşme Fiyatı İstatistiklerini gösterir.",
+                "en": "It shows Match Price Statistics of futures contracts.",
+            },
+            "url": "https://seffaflik.epias.com.tr/natural-gas/natural-gas-markets/gas-future-market-gfm/gfm-contract-price-summary",
+        },
+        "ng-vgp-delivery-period": {
+            "category": "NG",
+            "title": {
+                "tr": "VGP Teslimat Dönemi",
+                "en": "VGP Delivery Period",
+            },
+            "desc": {
+                "tr": "Teslimat dönemi bilgilerini gösterir.",
+                "en": "Delivery period information.",
+            },
+            "url": "https://seffaflik.epias.com.tr/natural-gas-service/technical/tr/index.html#_delivery-period",
+        },
+        "ng-vgp-delivery-year": {
+            "category": "NG",
+            "title": {
+                "tr": "VGP Teslimat Yılı",
+                "en": "VGP Delivery Year",
+            },
+            "desc": {
+                "tr": "Teslimat yılı bilgilerini gösterir.",
+                "en": "Delivery year information",
+            },
+            "url": "https://seffaflik.epias.com.tr/natural-gas-service/technical/tr/index.html#_delivery-year",
+        },
+        "ng-vgp-ggf": {
+            "category": "NG",
+            "title": {
+                "tr": "VGP Günlük Gösterge Fiyatı",
+                "en": "GFM Daily Index Price",
+            },
+            "desc": {
+                "tr": "Vadeli Doğal Gaz Piyasasında (VGP) gün öncesi ve gün içi eşleşmelerinin Ağırlıklı Ortalama Fiyatını gösterir.",
+                "en": "It shows Weighted Average Price of day-ahead and intraday pairings in the Futures Natural Gas Market (VGP).",
+            },
+            "url": "https://seffaflik.epias.com.tr/natural-gas/natural-gas-markets/gas-future-market-gfm/gfm-daily-index-price",
+        },
+        "ng-vgp-matched-quantity": {
+            "category": "NG",
+            "title": {
+                "tr": "VGP Piyasa Eşleşme Miktarı (1000.Sm3/gün)",
+                "en": "GFM Matching Amount (1000.Sm3/day)",
+            },
+            "desc": {
+                "tr": "Vadeli kontratların Teklif ve/veya Eşleşmelerinin Ağırlıklı Ortalama Fiyatlarını gösterir.",
+                "en": "It shows Weighted Average Prices of Bids and/or Matches of Futures Contracts.",
+            },
+            "url": "https://seffaflik.epias.com.tr/natural-gas/natural-gas-markets/gas-future-market-gfm/gfm-matching-amount-1000-sm-day",
+        },
+        "ng-vgp-open-positions": {
+            "category": "NG",
+            "title": {
+                "tr": "VGP Açık Pozisyon Miktarı (1000.Sm3/gün)",
+                "en": "GFM Open Position (1000.Sm3/day)",
+            },
+            "desc": {
+                "tr": "Vadeli kontratların Alış ve Satış Eşleşmeleri Fark Miktarını gösterir",
+                "en": "It shows the Spread Amount of the Futures Contracts for Bid and Sell Matches.",
+            },
+            "url": "https://seffaflik.epias.com.tr/natural-gas/natural-gas-markets/gas-future-market-gfm/gfm-open-position-1000-sm-day",
+        },
+        "ng-vgp-order-book": {
+            "category": "NG",
+            "title": {
+                "tr": "VGP Teklif Fiyatları",
+                "en": "GFM Order Prices",
+            },
+            "desc": {
+                "tr": "Vadeli kontratların Teklif Fiyatı İstatistiklerini gösterir.",
+                "en": "It shows Bid Price Statistics of futures contracts.",
+            },
+            "url": "https://seffaflik.epias.com.tr/natural-gas/natural-gas-markets/gas-future-market-gfm/gfm-order-prices",
+        },
+        "ng-vgp-transaction-history": {
+            "category": "NG",
+            "title": {
+                "tr": "VGP İşlem Akışı",
+                "en": "GFM Transaction History",
+            },
+            "desc": {
+                "tr": "Vadeli kontratların Eşleşme Zamanlarını gösterir.",
+                "en": "It shows Matching Times of futures contracts.",
+            },
+            "url": "https://seffaflik.epias.com.tr/natural-gas/natural-gas-markets/gas-future-market-gfm/gfm-transaction-history",
+        },
+        "ng-vgp-transaction-volumes": {
+            "category": "NG",
+            "title": {
+                "tr": "VGP İşlem Hacmi",
+                "en": "GFM Trade Volume",
+            },
+            "desc": {
+                "tr": "Vadeli kontratların Eşleşme Tutarını gösterir.",
+                "en": "It shows Matched Amount of futures contracts.",
+            },
+            "url": "https://seffaflik.epias.com.tr/natural-gas/natural-gas-markets/gas-future-market-gfm/gfm-trade-volume",
+        },
+        "ng-tr-capacity-point": {
+            "category": "NG",
+            "title": {
+                "tr": "Kapasite Nokta Servisi",
+                "en": "Capacity Point Service",
+            },
+            "desc": {
+                "tr": "Kapasite noktalarını listeleyen servis.",
+                "en": "Capacity point listing service.",
+            },
+            "url": "https://seffaflik.epias.com.tr/natural-gas-service/technical/tr/index.html#_capacity-point",
+        },
+        "ng-tr-daily-transmission": {
+            "category": "NG",
+            "title": {
+                "tr": "Günlük Gerçekleşme Miktarı",
+                "en": "Daily Actualization Amount",
+            },
+            "desc": {
+                "tr": "Şebekeden doğal gaz depolama tesislerine aktarılan doğal gaz miktarını gösterir.",
+                "en": "It shows amount of natural gas transferred from the network to the natural gas storage facilities.",
+            },
+            "url": "https://seffaflik.epias.com.tr/natural-gas/natural-gas-transmission/storage/daily-actualization-amount",
+        },
+        "ng-tr-day-ahead": {
+            "category": "NG",
+            "title": {
+                "tr": "Gün Öncesi (UDN)",
+                "en": "Day Ahead (UDN)",
+            },
+            "desc": {
+                "tr": "İkili anlaşma miktar bildirimini ifade eder",
+                "en": "It shows Bilateral agreement refers to the statement of quantity.",
+            },
+            "url": "https://seffaflik.epias.com.tr/natural-gas/natural-gas-transmission/virtual-trade/day-ahead-udn",
+        },
+        "ng-tr-day-end": {
+            "category": "NG",
+            "title": {
+                "tr": "Gün Sonu (UDN)",
+                "en": "Day End (UDN)",
+            },
+            "desc": {
+                "tr": "Gün Sonu (UDN)",
+                "en": "Day End (UDN)",
+            },
+            "url": "https://seffaflik.epias.com.tr/natural-gas/natural-gas-transmission/virtual-trade/day-end-udn",
+        },
+        "ng-tr-entry-nomination": {
+            "category": "NG",
+            "title": {
+                "tr": "Taşıma Giriş Miktarı Bildirimi (TMB)",
+                "en": "Entry Nomination",
+            },
+            "desc": {
+                "tr": "Fiziki Nokta bazlı giriş miktar bildirimini ifade eder.",
+                "en": "It shows physical point based entry quantity notification",
+            },
+            "url": "https://seffaflik.epias.com.tr/natural-gas/natural-gas-transmission/transport-nomination-tn/entry-nomination",
+        },
+        "ng-tr-exit-nomination": {
+            "category": "NG",
+            "title": {
+                "tr": "Taşıma Çıkış Miktarı Bildirimi (TMB)",
+                "en": "Exit Nomination",
+            },
+            "desc": {
+                "tr": "Fiziki Nokta bazlı çıkış miktar bildirimini ifade eder.",
+                "en": "It shows Physical Point-based output quantity notification",
+            },
+            "url": "https://seffaflik.epias.com.tr/natural-gas/natural-gas-transmission/transport-nomination-tn/exit-nomination",
+        },
+        "ng-tr-max-entry-amount": {
+            "category": "NG",
+            "title": {
+                "tr": "Maks Giriş Kapasite Miktarı",
+                "en": "Max Entry Amount",
+            },
+            "desc": {
+                "tr": "İletim Şirketi kapasite planına göre iletim şebekesine eklenmesi beklenen doğal gaz miktarını gösterir.",
+                "en": "It shows amount of natural gas expected to be added to the transmission network according to the Transmission Company capacity plan.",
+            },
+            "url": "https://seffaflik.epias.com.tr/natural-gas/natural-gas-transmission/capacity/max-entry-amount",
+        },
+        "ng-tr-max-exit-amount": {
+            "category": "NG",
+            "title": {
+                "tr": "Maks Çıkış Kapasite Miktarı",
+                "en": "Max Exit Amount",
+            },
+            "desc": {
+                "tr": "İletim Şirketi kapasite planına göre iletim şebekesinden çıkması beklenen doğal gaz miktarını gösterir.",
+                "en": "It shows amount of natural gas expected to come out of the transmission network according to the Transmission Company capacity plan.",
+            },
+            "url": "https://seffaflik.epias.com.tr/natural-gas/natural-gas-transmission/capacity/max-exit-amount",
+        },
+        "ng-tr-actual-entry-amount": {
+            "category": "NG",
+            "title": {
+                "tr": "Fiili Gerçekleşme Giriş Miktarı",
+                "en": "Entry Amount",
+            },
+            "desc": {
+                "tr": "Taşıtanların Alış işlemi sonucu, sisteme eklenen fiili doğal gaz miktarını gösterir.",
+                "en": "It shows result of the Purchase transaction of the Shippers shows the actual amount of natural gas added to the system.",
+            },
+            "url": "https://seffaflik.epias.com.tr/natural-gas/natural-gas-transmission/actualization/entry-amount",
+        },
+        "ng-tr-actual-exit-amount": {
+            "category": "NG",
+            "title": {
+                "tr": "Fiili Gerçekleşme Çıkış Miktarı",
+                "en": "Exit Amount",
+            },
+            "desc": {
+                "tr": "Taşıtanların Satış işlemi sonucu, sistemden çıkan fiili doğal gaz miktarını gösterir.",
+                "en": "It shows result of the Shipper's Sales transaction shows the actual amount of natural gas released from the system.",
+            },
+            "url": "https://seffaflik.epias.com.tr/natural-gas/natural-gas-transmission/actualization/exit-amount",
+        },
+        "ng-tr-reserved-entry-amount": {
+            "category": "NG",
+            "title": {
+                "tr": "Rezerve Giriş Kapasite Miktarı",
+                "en": "Reserved Entry Amount",
+            },
+            "desc": {
+                "tr": "İletim Şirketi rezervasyon programına göre iletim şebekesine eklenmesi beklenen doğal gaz miktarını gösterir.",
+                "en": "It shows amount of natural gas expected to be added to the transmission network according to the Transmission Company reservation program.",
+            },
+            "url": "https://seffaflik.epias.com.tr/natural-gas/natural-gas-transmission/reserve/entry-amount",
+        },
+        "ng-tr-reserved-exit-amount": {
+            "category": "NG",
+            "title": {
+                "tr": "Rezerve Çıkış Kapasite Miktarı",
+                "en": "Reserved Exit Amount",
+            },
+            "desc": {
+                "tr": "İletim Şirketi rezervasyon programına göre iletim şebekesinden çıkması beklenen doğal gaz miktarını gösterir.",
+                "en": "It shows amount of natural gas expected to come out of the transmission network according to the Transmission Company reservation program.",
+            },
+            "url": "https://seffaflik.epias.com.tr/natural-gas/natural-gas-transmission/reserve/exit-amount",
+        },
+        "ng-tr-stock-amount": {
+            "category": "NG",
+            "title": {
+                "tr": "Stok Miktarı",
+                "en": "Stock Amount",
+            },
+            "desc": {
+                "tr": "İletim Şebekesinde sıkışmış durumdaki günlük doğal gaz miktarını gösterir.",
+                "en": "It shows daily amount of natural gas trapped in the Transmission Network.",
+            },
+            "url": "https://seffaflik.epias.com.tr/natural-gas/natural-gas-transmission/stock-amount",
+        },
+        "ng-tr-storage-facility-list": {
+            "category": "NG",
+            "title": {
+                "tr": "Depolama Tesisi Listeleme Servisi",
+                "en": "Storage Facility Service",
+            },
+            "desc": {
+                "tr": "Depolama Tesisi Listeleme Servisi",
+                "en": "Storage Facility Service",
+            },
+            "url": "https://seffaflik.epias.com.tr/natural-gas-service/technical/tr/index.html#_storage-facility",
+        },
+        "ng-tr-bilateral-transfer": {
+            "category": "NG",
+            "title": {
+                "tr": "Transfer",
+                "en": "Transfer",
+            },
+            "desc": {
+                "tr": "Fiziki Nokta bazlı İkili anlaşma miktar bildirimini ifade eder.",
+                "en": "It shows Physical Point-based Bilateral agreement refers to the amount notification.",
+            },
+            "url": "https://seffaflik.epias.com.tr/natural-gas/natural-gas-transmission/virtual-trade/transfer",
+        },
     }
 
     if key is None:
