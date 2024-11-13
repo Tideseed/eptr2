@@ -38,6 +38,10 @@ def preprocess_parameter(key, value):
         if value not in ["MCP", "SMP"]:
             raise Exception("Price type must be either MCP or SMP")
 
+    elif key in ["point_type"]:
+        if value not in ["INPUT", "OUTPUT"]:
+            raise Exception("Point type must be either INPUT or OUTPUT")
+
     elif key in ["intl_direction"]:
         # value = "TRGR" if value is None else value
         val_list = ["TRGR", "GRTR", "TRBG", "BGTR"]

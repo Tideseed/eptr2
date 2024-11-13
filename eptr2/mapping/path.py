@@ -9,6 +9,16 @@ def get_path_template(template: str, label: str):
             "prev": "sgp",
             "root": "natural-gas",
         },
+        "ng-vgp": {
+            "prefix": "data",
+            "prev": "vgp",
+            "root": "natural-gas",
+        },
+        "ng-tr": {
+            "prefix": "data",
+            "prev": "transmission",
+            "root": "natural-gas",
+        },
         "ng-general": {
             "prefix": "data",
             "prev": "general-data",
@@ -790,12 +800,81 @@ def get_path_map(just_call_keys: bool = False):
             ),
             ## Haftalık Referans Fiyatı (HRF) Listeleme Servisi
             "ng-wrp": get_path_template("ng-sgp", "weekly-ref-price"),
+            ## SGP Haftalık İşlem Hacmi Listeleme Servisi
+            "ng-weekly-trade-volume": get_path_template(
+                "ng-sgp", "weekly-trade-volume"
+            ),
+            # VGP Kontrat Fiyatları Özeti Listeleme Servisi
+            "ng-vgp-contract-price-summary": get_path_template(
+                "ng-vgp", "contract-price-summary"
+            ),
+            ## VGP Teslimat Dönemi
+            "ng-vgp-delivery-period": get_path_template("ng-vgp", "delivery-period"),
+            ## VGP Teslimat Yılı
+            "ng-vgp-delivery-year": get_path_template("ng-vgp", "delivery-year"),
+            ## VGP Günlük Gösterge Fiyatı Listeleme Servisi
+            "ng-vgp-ggf": get_path_template("ng-vgp", "ggf"),
+            ## VGP Piyasa Eşleşme Miktarı (1000.Sm³/gün) Listeleme Servisi
+            "ng-vgp-matched-quantity": get_path_template("ng-vgp", "matching-quantity"),
+            ## VGP Açık Pozisyon Miktarı (1000.Sm³/gün) Listeleme Servisi
+            "ng-vgp-open-positions": get_path_template("ng-vgp", "open-position"),
+            ## VGP Teklif Fiyatları Listeleme Servisi
+            "ng-vgp-order-book": get_path_template("ng-vgp", "vgp-offer-price"),
+            ## VGP İşlem Akışı Listeleme Servisi
+            "ng-vgp-transaction-history": get_path_template(
+                "ng-vgp", "vgp-transaction-history"
+            ),
+            ## VGP İşlem Hacmi Listeleme Servisi
+            "ng-vgp-transaction-volumes": get_path_template("ng-vgp", "vgp-volume"),
+            ## Kapasite Nokta Servisi
+            "ng-tr-capacity-point": get_path_template("ng-tr", "capacity-point"),
+            ## Günlük Gerçekleşme Miktarı Listeleme Servisi
+            "ng-tr-daily-transmission": get_path_template(
+                "ng-tr", "daily-actualization-amount"
+            ),
+            ## Gün Öncesi (UDN) Listeleme Servisi
+            "ng-tr-day-ahead": get_path_template("ng-tr", "day-ahead"),
+            ## Gün Sonu (UDN) Listeleme Servisi
+            "ng-tr-day-end": get_path_template("ng-tr", "day-end"),
+            ## Taşıma Giriş Miktarı Bildirimi (TMB) Listeleme Servisi
+            "ng-tr-entry-nomination": get_path_template("ng-tr", "entry-nomination"),
+            ## Taşıma Çıkış Miktarı Bildirimi (TMB) Listeleme Servisi
+            "ng-tr-exit-nomination": get_path_template("ng-tr", "exit-nomination"),
+            ## Maks Giriş Kapasite Miktarı Listeleme Servisi
+            "ng-tr-max-entry-amount": get_path_template("ng-tr", "max-entry-amount"),
+            ## Maks Çıkış Kapasite Miktarı Listeleme Servisi
+            "ng-tr-max-exit-amount": get_path_template("ng-tr", "max-exit-amount"),
+            ## Fiili Gerçekleşme Giriş Kapasite Miktarı Listeleme Servisi
+            "ng-tr-actual-entry-amount": get_path_template(
+                "ng-tr", "realization-entry-amount"
+            ),
+            ## Fiili Gerçekleşme Çıkış Kapasite Miktarı Listeleme Servisi
+            "ng-tr-actual-exit-amount": get_path_template(
+                "ng-tr", "realization-exit-amount"
+            ),
+            ## Rezerve Giriş Kapasite Miktarı Listeleme Servisi
+            "ng-tr-reserved-entry-amount": get_path_template(
+                "ng-tr", "rezerve-entry-amount"
+            ),
+            ## Rezerve Çıkış Kapasite Miktarı Listeleme Servisi
+            "ng-tr-reserved-exit-amount": get_path_template(
+                "ng-tr", "rezerve-exit-amount"
+            ),
+            ## Stok Miktarı Listeleme Servisi
+            "ng-tr-stock-amount": get_path_template("ng-tr", "stock-amount"),
+            ## Depolama Tesisi Listeleme Servisi
+            "ng-tr-storage-facility-list": get_path_template(
+                "ng-tr", "storage-facility"
+            ),
+            ## Transfer Listeleme Servisi
+            "ng-tr-bilateral-transfer": get_path_template("ng-tr", "transfer"),
         },
         ## category
         "idm": {"prev": "markets"},
         "dam": {"prev": "markets"},
         "bpm": {"prev": "markets"},
         "sgp": {"prev": "markets"},
+        "vgp": {"prev": "markets"},
         "bilateral-contracts": {"prev": "markets"},
         "general-data": {"prev": "markets"},
         "imbalance": {"prev": "markets"},
@@ -807,6 +886,7 @@ def get_path_map(just_call_keys: bool = False):
         "consumption": {"prev": "electricity-service"},
         "renewables": {"prev": "electricity-service"},
         "transmission": {"prev": "electricity-service"},
+        # "transmission-ng": {"label": "transmission"},
         #### services
         "electricity-service": {"next": "version"},
         "reporting-service": {"next": "version"},
@@ -872,6 +952,9 @@ def get_call_method(key):
         "ra-vspg-list",
         "ng-participant-list",
         "ng-latest-settlement-date",
+        "ng-vgp-delivery-period",
+        "ng-vgp-delivery-year",
+        "ng-tr-storage-facility-list",
     ]
 
     if key in get_methods:

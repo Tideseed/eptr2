@@ -42,6 +42,12 @@ def get_param_label(key):
         "period_end_date": {"label": "periodEndDate"},
         "version_start_date": {"label": "versionStartDate"},
         "version_end_date": {"label": "versionEndDate"},
+        "is_txn_period": {"label": "isTransactionPeriod"},
+        "delivery_year": {"label": "deliveryYear"},
+        "delivery_period": {"label": "deliveryPeriod"},
+        "point_type": {"label": "pointType"},
+        "storage_facility_id": {"label": "storageFacilityId"},
+        "point_id": {"label": "pointId"},
     }
     return d.get(key, key)
 
@@ -209,6 +215,34 @@ def get_required_parameters(key):
         "ng-virtual-realization": ["start_date", "end_date"],
         "ng-weekly-matched-quantity": ["start_date", "end_date"],
         "ng-wrp": ["start_date", "end_date"],
+        "ng-weekly-matched-quantity": ["start_date", "end_date"],
+        "ng-weekly-trade-volume": ["start_date", "end_date"],
+        ## TODO: Need to check, if any of [start_date, end_date] or ["delivery_period","delivery_year"] is required for ng-vgp-contract-price-summary. If so, separate it like ra-meter-volumes-period, ra-meter-volumes-version
+        "ng-vgp-contract-price-summary": ["is_txn_period"],
+        "ng-vgp-delivery-period": [],
+        "ng-vgp-delivery-year": [],
+        ## TODO: Same as above
+        "ng-vgp-ggf": ["is_txn_period"],
+        ## TODO: Same as above
+        "ng-vgp-matched-quantity": ["is_txn_period"],
+        "ng-vgp-open-positions": ["is_txn_period"],
+        "ng-vgp-order-book": [],
+        "ng-vgp-transaction-history": ["is_txn_period"],
+        "ng-vgp-transaction-volumes": ["is_txn_period"],
+        "ng-tr-capacity-point": ["start_date", "end_date", "point_type"],
+        "ng-tr-daily-transmission": ["start_date", "end_date"],
+        "ng-tr-day-ahead": ["start_date", "end_date"],
+        "ng-tr-day-end": ["start_date", "end_date"],
+        "ng-tr-entry-nomination": ["start_date", "end_date"],
+        "ng-tr-exit-nomination": ["start_date", "end_date"],
+        "ng-tr-max-entry-amount": ["start_date", "end_date"],
+        "ng-tr-max-exit-amount": ["start_date", "end_date"],
+        "ng-tr-actual-entry-amount": ["start_date", "end_date"],
+        "ng-tr-actual-exit-amount": ["start_date", "end_date"],
+        "ng-tr-reserved-entry-amount": ["start_date", "end_date"],
+        "ng-tr-reserved-exit-amount": ["start_date", "end_date"],
+        "ng-tr-stock-amount": ["start_date", "end_date"],
+        "ng-tr-bilateral-transfer": ["start_date", "end_date"],
     }
 
     ## UPDATE: As a precaution every call should have an input parameter
@@ -258,6 +292,37 @@ def get_optional_parameters(key):
             "period_end_date",
         ],
         "ng-participants": ["org_id"],
+        "ng-vgp-contract-price-summary": [
+            "start_date",
+            "end_date",
+            "delivery_period",
+            "delivery_year",
+        ],
+        "ng-vgp-ggf": [
+            "start_date",
+            "end_date",
+            "delivery_period",
+            "delivery_year",
+        ],
+        "ng-vgp-matched-quantity": [
+            "start_date",
+            "end_date",
+            "delivery_period",
+            "delivery_year",
+        ],
+        "ng-vgp-open-positions": [
+            "start_date",
+            "end_date",
+            "delivery_period",
+            "delivery_year",
+        ],
+        "ng-tr-daily-transmission": ["storage_facility_id"],
+        "ng-tr-max-entry-amount": ["point_id"],
+        "ng-tr-max-exit-amount": ["point_id"],
+        "ng-tr-actual-entry-amount": ["point_id"],
+        "ng-tr-actual-exit-amount": ["point_id"],
+        "ng-tr-reserved-entry-amount": ["point_id"],
+        "ng-tr-reserved-exit-amount": ["point_id"],
     }
 
     return d.get(key, [])
