@@ -1,6 +1,23 @@
 import re
 
 
+def get_alias_map():
+
+    d = {"ptf": "mcp", "smf": "smp"}
+
+    return d
+
+
+def alias_to_path(alias: str, extra_aliases: dict = {}):
+    """
+    Add default aliases here to map them to the correct path
+    """
+    d = get_alias_map()
+    d = {**d, **extra_aliases}
+
+    return d.get(alias, alias)
+
+
 def get_path_template(template: str, label: str):
 
     template_map_d = {

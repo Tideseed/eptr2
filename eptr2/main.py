@@ -11,6 +11,8 @@ from eptr2.mapping import (
     get_param_label,
     get_path_map,
     get_optional_parameters,
+    alias_to_path,
+    get_alias_map,
 )
 from warnings import warn
 from eptr2.processing.preprocess.params import preprocess_parameter
@@ -41,6 +43,8 @@ class EPTR2:
         root_phrase_default = f"https://seffaflik{root_phrase_test}.epias.com.tr"
         self.root_phrase = kwargs.get("root_phrase", root_phrase_default)
         self.skip_login_warning = kwargs.get("skip_login_warning", False)
+        self.path_map_keys = get_path_map(just_call_keys=True)
+        self.extra_aliases = kwargs.get("extra_aliases", {})
 
         if tgt_d is not None:
             self.import_tgt_info(tgt_d)
@@ -56,7 +60,8 @@ class EPTR2:
         def method(*args, **kwargs):
             key_raw = __name
             key = re.sub("_", "-", key_raw)
-            if key not in get_path_map(just_call_keys=True):
+            key = alias_to_path(alias=key, extra_aliases=self.extra_aliases)
+            if key not in self.path_map_keys:
                 raise Exception(
                     "This call is not yet defined. Call 'get_available_calls' method to see the available calls."
                 )
@@ -151,11 +156,32 @@ class EPTR2:
                 )
                 self.postprocess = False
 
-    def get_available_calls(self):
-        return get_path_map(just_call_keys=True)
+    def get_available_calls(self, include_aliases: bool = False):
+
+        if include_aliases:
+
+            return {
+                "keys": self.path_map_keys,
+                "default_aliases": get_alias_map(),
+                "extra_aliases": self.extra_aliases,
+            }
+
+        return self.path_map_keys
 
     def call(self, key: str, **kwargs):
         self.check_renew_tgt()
+        raw_key = key
+        key = alias_to_path(alias=key, extra_aliases=self.extra_aliases)
+
+        if key not in self.path_map_keys:
+            if raw_key == key:
+                raise Exception(
+                    f"This call {raw_key} is not yet defined in calls or aliases. Call 'get_available_calls' method to see the available calls."
+                )
+            else:
+                raise Exception(
+                    f"This alias {raw_key} forwarded to key {key} is not yet defined in calls. Call 'get_available_calls' method to see the available calls."
+                )
 
         call_path = get_total_path(key)
         call_method = get_call_method(key)
