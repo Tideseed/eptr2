@@ -52,7 +52,7 @@ def get_param_label(key):
     return d.get(key, key)
 
 
-def get_required_parameters(key):
+def get_required_parameters(key, return_mapping=False, mapping_only_keys=False):
     d = {
         "mcp": ["start_date", "end_date"],
         "interim-mcp": ["start_date", "end_date"],
@@ -217,18 +217,51 @@ def get_required_parameters(key):
         "ng-wrp": ["start_date", "end_date"],
         "ng-weekly-matched-quantity": ["start_date", "end_date"],
         "ng-weekly-trade-volume": ["start_date", "end_date"],
-        ## TODO: Need to check, if any of [start_date, end_date] or ["delivery_period","delivery_year"] is required for ng-vgp-contract-price-summary. If so, separate it like ra-meter-volumes-period, ra-meter-volumes-version
         "ng-vgp-contract-price-summary": ["is_txn_period"],
+        "ng-vgp-contract-price-summary-period": [
+            "is_txn_period",
+            "delivery_period",
+            "delivery_year",
+        ],
+        "ng-vgp-contract-price-summary-se": ["is_txn_period", "start_date", "end_date"],
         "ng-vgp-delivery-period": [],
         "ng-vgp-delivery-year": [],
-        ## TODO: Same as above
         "ng-vgp-ggf": ["is_txn_period"],
-        ## TODO: Same as above
+        "ng-vgp-ggf-period": [
+            "is_txn_period",
+            "delivery_period",
+            "delivery_year",
+        ],
+        "ng-vgp-ggf-se": ["is_txn_period", "start_date", "end_date"],
         "ng-vgp-matched-quantity": ["is_txn_period"],
+        "ng-vgp-matched-quantity-period": [
+            "is_txn_period",
+            "delivery_period",
+            "delivery_year",
+        ],
+        "ng-vgp-matched-quantity-se": ["is_txn_period", "start_date", "end_date"],
         "ng-vgp-open-positions": ["is_txn_period"],
+        "ng-vgp-open-positions-period": [
+            "is_txn_period",
+            "delivery_period",
+            "delivery_year",
+        ],
+        "ng-vgp-open-positions-se": ["is_txn_period", "start_date", "end_date"],
         "ng-vgp-order-book": [],
         "ng-vgp-transaction-history": ["is_txn_period"],
+        "ng-vgp-transaction-history-period": [
+            "is_txn_period",
+            "delivery_period",
+            "delivery_year",
+        ],
+        "ng-vgp-transaction-history-se": ["is_txn_period", "start_date", "end_date"],
         "ng-vgp-transaction-volumes": ["is_txn_period"],
+        "ng-vgp-transaction-volumes-period": [
+            "is_txn_period",
+            "delivery_period",
+            "delivery_year",
+        ],
+        "ng-vgp-transaction-volumes-se": ["is_txn_period", "start_date", "end_date"],
         "ng-tr-capacity-point": ["start_date", "end_date", "point_type"],
         "ng-tr-daily-transmission": ["start_date", "end_date"],
         "ng-tr-day-ahead": ["start_date", "end_date"],
@@ -243,7 +276,13 @@ def get_required_parameters(key):
         "ng-tr-reserved-exit-amount": ["start_date", "end_date"],
         "ng-tr-stock-amount": ["start_date", "end_date"],
         "ng-tr-bilateral-transfer": ["start_date", "end_date"],
+        "ng-tr-storage-facility-list": [],
     }
+
+    if return_mapping:
+        if mapping_only_keys:
+            return list(d.keys())
+        return d
 
     ## UPDATE: As a precaution every call should have an input parameter
     return d.get(key, [])

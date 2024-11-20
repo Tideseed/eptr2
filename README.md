@@ -60,6 +60,28 @@ available_calls = eptr.get_available_calls()
 print(available_calls)
 ```
 
+### Aliases
+
+Starting from `v0.7.0` you can create aliases for your calls. Just prepare an alias dictionary and add it to the `EPTR2` object. 
+
+```python
+custom_aliases = {"market-clearing-price": "mcp", "system-marginal-price": "smp"}
+
+eptr = EPTR2(
+    username=cred_d["username"], password=cred_d["password"], is_test=cred_d["is_test"], custom_aliases=custom_aliases
+)
+```
+
+As a warning aliases may overwrite the default keys and default aliases. For instance if your alias is "mcp" pointing to "smp", now default "mcp" call is overwritten with "mcp" alias pointing to "smp".
+
+Library will also have default aliases. You can check aliases with `eptr.get_aliases()` function. If you want to include custom aliases, you can get them with `include_custom_aliases` parameter. `eptr.get_available_calls()` function may also include aliases.
+
+```python
+eptr.get_aliases(include_custom_aliases = True)
+
+eptr.get_available_calls(include_aliases = True)
+```
+
 ## Notes
 
 Main object call has some parameters to control the behavior of the package. 

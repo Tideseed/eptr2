@@ -15,7 +15,7 @@ from eptr2.mapping import (
     get_alias_map,
 )
 from warnings import warn
-from eptr2.processing.preprocess.params import preprocess_parameter
+from eptr2.processing.preprocess import preprocess_parameter, process_special_calls
 from datetime import datetime, timedelta
 
 
@@ -44,7 +44,7 @@ class EPTR2:
         self.root_phrase = kwargs.get("root_phrase", root_phrase_default)
         self.skip_login_warning = kwargs.get("skip_login_warning", False)
         self.path_map_keys = get_path_map(just_call_keys=True)
-        self.extra_aliases = kwargs.get("extra_aliases", {})
+        self.custom_aliases = kwargs.get("custom_aliases", {})
 
         if tgt_d is not None:
             self.import_tgt_info(tgt_d)
@@ -57,14 +57,17 @@ class EPTR2:
 
     ## Ref: https://stackoverflow.com/a/62303969/3608936
     def __getattr__(self, __name: str) -> Any:
+
         def method(*args, **kwargs):
             key_raw = __name
             key = re.sub("_", "-", key_raw)
-            key = alias_to_path(alias=key, extra_aliases=self.extra_aliases)
+            key = alias_to_path(alias=key, custom_aliases=self.custom_aliases)
             if key not in self.path_map_keys:
                 raise Exception(
                     "This call is not yet defined. Call 'get_available_calls' method to see the available calls."
                 )
+            else:
+                warn("This method is deprecated. Use 'call' method instead.")
             # required_body_params = get_required_parameters(key)
             return getattr(self, "call")(key=key, **kwargs)
 
@@ -139,6 +142,9 @@ class EPTR2:
         )
 
     def export_tgt_info(self):
+        """
+        Exports TGT information to a dictionary. Contents are TGT itself, expiration timestamp (tgt_exp) and soft expiration (tgt_exp_0 i.e. expiration if not used) timestamp.
+        """
         return {
             "tgt": self.tgt,
             "tgt_exp": self.tgt_exp,
@@ -157,21 +163,39 @@ class EPTR2:
                 self.postprocess = False
 
     def get_available_calls(self, include_aliases: bool = False):
+        """
+        Gets all the available calls of eptr2 package. As a reminder, number of calls at eptr2 package might be lower than the actual calls. If include_aliases is set to True, it also includes the aliases.
+        """
 
         if include_aliases:
 
             return {
                 "keys": self.path_map_keys,
                 "default_aliases": get_alias_map(),
-                "extra_aliases": self.extra_aliases,
+                "custom_aliases": self.custom_aliases,
             }
 
         return self.path_map_keys
 
+    def get_aliases(self, include_custom_aliases: bool = False):
+        """
+        Gets only the aliases. If include_custom_aliases is set to True, it also includes the user defined aliases (custom_aliases).
+        """
+
+        alias_d = get_alias_map()
+        if include_custom_aliases:
+            alias_d.update(self.custom_aliases)
+
+        return alias_d
+
     def call(self, key: str, **kwargs):
+        """
+        Main call function for the API. This function is used to process parameters and make calls to EPIAS Transparency API.
+        """
+
         self.check_renew_tgt()
         raw_key = key
-        key = alias_to_path(alias=key, extra_aliases=self.extra_aliases)
+        key = alias_to_path(alias=key, custom_aliases=self.custom_aliases)
 
         if key not in self.path_map_keys:
             if raw_key == key:
@@ -188,19 +212,20 @@ class EPTR2:
         required_body_params = get_required_parameters(key)
         call_body_raw = kwargs.pop("call_body", kwargs)
 
-        ## Parameter change
-        if key in ["bpm-orders", "bpm-orders-w-avg"]:
-            if "date_time" in call_body_raw.keys():
-                raise Exception(
-                    f"date_time parameter is not supported for {key}. Use 'date' instead."
-                )
-                # warn(
-                #     f"date_time parameter name is deprecated for {key}. Use 'date' instead. Support will be removed starting from version 0.3.0.",
-                #     DeprecationWarning,
-                #     stacklevel=2,
-                # )
+        ### There are some calls requiring special handling, they have a special function to process them
+        call_body_raw = process_special_calls(key, call_body_raw)
 
-                # call_body_raw["date"] = call_body_raw.pop("date_time")
+        ## Parameter change
+        # if key in ["bpm-orders", "bpm-orders-w-avg"]:
+        #     if "date_time" in call_body_raw.keys():
+        #         raise Exception(
+        #             f"date_time parameter is not supported for {key}. Use 'date' instead."
+        #         )
+
+        # if key in ["ng-vgp-contract-price-summary-period"]:
+        #     call_body_raw["is_txn_period"] = False
+        # elif key in ["ng-vgp-contract-price-summary-se"]:
+        #     call_body_raw["is_txn_period"] = True
 
         optional_body_params = get_optional_parameters(key)
         all_params = required_body_params + optional_body_params
@@ -278,6 +303,10 @@ def transparency_call(
     tgt: str = None,
     **kwargs,
 ):
+    """
+    Core function to perform the calls and return results. This function is used by the EPTR2 class to make calls to EPIAS Transparency API.
+    """
+
     ## kwargs are
     ### secure: bool
     ### query_parameters: dict
@@ -311,9 +340,10 @@ def transparency_call(
     if tgt is not None:
         header_d["TGT"] = tgt
 
+    full_url = urljoin(call_phrase, "")
     res = http.request(
         method=call_method,
-        url=urljoin(call_phrase, ""),
+        url=full_url,
         body=json.dumps(call_body),
         headers=header_d,
         **kwargs.get("request_kwargs", {}),

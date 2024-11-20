@@ -8,12 +8,12 @@ def get_alias_map():
     return d
 
 
-def alias_to_path(alias: str, extra_aliases: dict = {}):
+def alias_to_path(alias: str, custom_aliases: dict = {}):
     """
     Add default aliases here to map them to the correct path
     """
     d = get_alias_map()
-    d = {**d, **extra_aliases}
+    d = {**d, **custom_aliases}
 
     return d.get(alias, alias)
 
@@ -825,24 +825,64 @@ def get_path_map(just_call_keys: bool = False):
             "ng-vgp-contract-price-summary": get_path_template(
                 "ng-vgp", "contract-price-summary"
             ),
+            # VGP Kontrat Fiyatları Özeti Listeleme Servisi (Period)
+            "ng-vgp-contract-price-summary-period": get_path_template(
+                "ng-vgp", "contract-price-summary"
+            ),
+            # VGP Kontrat Fiyatları Özeti Listeleme Servisi (Start End)
+            "ng-vgp-contract-price-summary-se": get_path_template(
+                "ng-vgp", "contract-price-summary"
+            ),
             ## VGP Teslimat Dönemi
             "ng-vgp-delivery-period": get_path_template("ng-vgp", "delivery-period"),
             ## VGP Teslimat Yılı
             "ng-vgp-delivery-year": get_path_template("ng-vgp", "delivery-year"),
             ## VGP Günlük Gösterge Fiyatı Listeleme Servisi
             "ng-vgp-ggf": get_path_template("ng-vgp", "ggf"),
+            ## VGP Günlük Gösterge Fiyatı Listeleme Servisi (Period)
+            "ng-vgp-ggf-period": get_path_template("ng-vgp", "ggf"),
+            ## VGP Günlük Gösterge Fiyatı Listeleme Servisi (Start End)
+            "ng-vgp-ggf-se": get_path_template("ng-vgp", "ggf"),
             ## VGP Piyasa Eşleşme Miktarı (1000.Sm³/gün) Listeleme Servisi
             "ng-vgp-matched-quantity": get_path_template("ng-vgp", "matching-quantity"),
+            ## VGP Piyasa Eşleşme Miktarı (1000.Sm³/gün) Listeleme Servisi (Period)
+            "ng-vgp-matched-quantity-period": get_path_template(
+                "ng-vgp", "matching-quantity"
+            ),
+            ## VGP Piyasa Eşleşme Miktarı (1000.Sm³/gün) Listeleme Servisi (Start End)
+            "ng-vgp-matched-quantity-se": get_path_template(
+                "ng-vgp", "matching-quantity"
+            ),
             ## VGP Açık Pozisyon Miktarı (1000.Sm³/gün) Listeleme Servisi
             "ng-vgp-open-positions": get_path_template("ng-vgp", "open-position"),
+            ## VGP Açık Pozisyon Miktarı (1000.Sm³/gün) Listeleme Servisi (Period)
+            "ng-vgp-open-positions-period": get_path_template(
+                "ng-vgp", "open-position"
+            ),
+            ## VGP Açık Pozisyon Miktarı (1000.Sm³/gün) Listeleme Servisi (Start End)
+            "ng-vgp-open-positions-se": get_path_template("ng-vgp", "open-position"),
             ## VGP Teklif Fiyatları Listeleme Servisi
             "ng-vgp-order-book": get_path_template("ng-vgp", "vgp-offer-price"),
             ## VGP İşlem Akışı Listeleme Servisi
             "ng-vgp-transaction-history": get_path_template(
                 "ng-vgp", "vgp-transaction-history"
             ),
+            ## VGP İşlem Akışı Listeleme Servisi (Period)
+            "ng-vgp-transaction-history-period": get_path_template(
+                "ng-vgp", "vgp-transaction-history"
+            ),
+            ## VGP İşlem Akışı Listeleme Servisi (Start End)
+            "ng-vgp-transaction-history-se": get_path_template(
+                "ng-vgp", "vgp-transaction-history"
+            ),
             ## VGP İşlem Hacmi Listeleme Servisi
             "ng-vgp-transaction-volumes": get_path_template("ng-vgp", "vgp-volume"),
+            ## VGP İşlem Hacmi Listeleme Servisi (Period)
+            "ng-vgp-transaction-volumes-period": get_path_template(
+                "ng-vgp", "vgp-volume"
+            ),
+            ## VGP İşlem Hacmi Listeleme Servisi (Start End)
+            "ng-vgp-transaction-volumes-se": get_path_template("ng-vgp", "vgp-volume"),
             ## Kapasite Nokta Servisi
             "ng-tr-capacity-point": get_path_template("ng-tr", "capacity-point"),
             ## Günlük Gerçekleşme Miktarı Listeleme Servisi

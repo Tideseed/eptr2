@@ -1793,6 +1793,30 @@ def get_help_d(key=None):
             },
             "url": "https://seffaflik.epias.com.tr/natural-gas/natural-gas-markets/gas-future-market-gfm/gfm-contract-price-summary",
         },
+        "ng-vgp-contract-price-summary-period": {
+            "category": "NG",
+            "title": {
+                "tr": "VGP Kontrat Fiyatları Özeti (Zorunlu Period Seçimi)",
+                "en": "GFM Contract Price Summary (Compulsory Period Selection)",
+            },
+            "desc": {
+                "tr": "Vadeli kontratların Eşleşme Fiyatı İstatistiklerini gösterir.",
+                "en": "It shows Match Price Statistics of futures contracts.",
+            },
+            "url": "https://seffaflik.epias.com.tr/natural-gas/natural-gas-markets/gas-future-market-gfm/gfm-contract-price-summary",
+        },
+        "ng-vgp-contract-price-summary-se": {
+            "category": "NG",
+            "title": {
+                "tr": "VGP Kontrat Fiyatları Özeti (Zorunlu Tarih Seçimi)",
+                "en": "GFM Contract Price Summary (Compulsory Date Selection)",
+            },
+            "desc": {
+                "tr": "Vadeli kontratların Eşleşme Fiyatı İstatistiklerini gösterir.",
+                "en": "It shows Match Price Statistics of futures contracts.",
+            },
+            "url": "https://seffaflik.epias.com.tr/natural-gas/natural-gas-markets/gas-future-market-gfm/gfm-contract-price-summary",
+        },
         "ng-vgp-delivery-period": {
             "category": "NG",
             "title": {
@@ -1829,11 +1853,59 @@ def get_help_d(key=None):
             },
             "url": "https://seffaflik.epias.com.tr/natural-gas/natural-gas-markets/gas-future-market-gfm/gfm-daily-index-price",
         },
+        "ng-vgp-ggf-period": {
+            "category": "NG",
+            "title": {
+                "tr": "VGP Günlük Gösterge Fiyatı (Zorunlu Period Seçimi)",
+                "en": "GFM Daily Index Price (Compulsory Period Selection)",
+            },
+            "desc": {
+                "tr": "Vadeli Doğal Gaz Piyasasında (VGP) gün öncesi ve gün içi eşleşmelerinin Ağırlıklı Ortalama Fiyatını gösterir.",
+                "en": "It shows Weighted Average Price of day-ahead and intraday pairings in the Futures Natural Gas Market (VGP).",
+            },
+            "url": "https://seffaflik.epias.com.tr/natural-gas/natural-gas-markets/gas-future-market-gfm/gfm-daily-index-price",
+        },
+        "ng-vgp-ggf-se": {
+            "category": "NG",
+            "title": {
+                "tr": "VGP Günlük Gösterge Fiyatı (Zorunlu Tarih Seçimi)",
+                "en": "GFM Daily Index Price (Compulsory Date Selection)",
+            },
+            "desc": {
+                "tr": "Vadeli Doğal Gaz Piyasasında (VGP) gün öncesi ve gün içi eşleşmelerinin Ağırlıklı Ortalama Fiyatını gösterir.",
+                "en": "It shows Weighted Average Price of day-ahead and intraday pairings in the Futures Natural Gas Market (VGP).",
+            },
+            "url": "https://seffaflik.epias.com.tr/natural-gas/natural-gas-markets/gas-future-market-gfm/gfm-daily-index-price",
+        },
         "ng-vgp-matched-quantity": {
             "category": "NG",
             "title": {
                 "tr": "VGP Piyasa Eşleşme Miktarı (1000.Sm3/gün)",
                 "en": "GFM Matching Amount (1000.Sm3/day)",
+            },
+            "desc": {
+                "tr": "Vadeli kontratların Teklif ve/veya Eşleşmelerinin Ağırlıklı Ortalama Fiyatlarını gösterir.",
+                "en": "It shows Weighted Average Prices of Bids and/or Matches of Futures Contracts.",
+            },
+            "url": "https://seffaflik.epias.com.tr/natural-gas/natural-gas-markets/gas-future-market-gfm/gfm-matching-amount-1000-sm-day",
+        },
+        "ng-vgp-matched-quantity-period": {
+            "category": "NG",
+            "title": {
+                "tr": "VGP Piyasa Eşleşme Miktarı (1000.Sm3/gün) (Zorunlu Period Seçimi)",
+                "en": "GFM Matching Amount (1000.Sm3/day) (Compulsory Period Selection)",
+            },
+            "desc": {
+                "tr": "Vadeli kontratların Teklif ve/veya Eşleşmelerinin Ağırlıklı Ortalama Fiyatlarını gösterir.",
+                "en": "It shows Weighted Average Prices of Bids and/or Matches of Futures Contracts.",
+            },
+            "url": "https://seffaflik.epias.com.tr/natural-gas/natural-gas-markets/gas-future-market-gfm/gfm-matching-amount-1000-sm-day",
+        },
+        "ng-vgp-matched-quantity-se": {
+            "category": "NG",
+            "title": {
+                "tr": "VGP Piyasa Eşleşme Miktarı (1000.Sm3/gün) (Zorunlu Tarih Seçimi)",
+                "en": "GFM Matching Amount (1000.Sm3/day) (Compulsory Date Selection)",
             },
             "desc": {
                 "tr": "Vadeli kontratların Teklif ve/veya Eşleşmelerinin Ağırlıklı Ortalama Fiyatlarını gösterir.",
