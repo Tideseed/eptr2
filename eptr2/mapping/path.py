@@ -45,6 +45,10 @@ def get_path_template(template: str, label: str):
             "prefix": "data",
             "prev": "retroactive-adjustment",
         },
+        "yek-g": {
+            "prefix": "data",
+            "prev": "markets",
+        },
     }
 
     d = template_map_d[template]
@@ -925,6 +929,31 @@ def get_path_map(just_call_keys: bool = False):
             ),
             ## Transfer Listeleme Servisi
             "ng-tr-bilateral-transfer": get_path_template("ng-tr", "transfer"),
+            ## Menu Tree
+            "menu": {
+                "prefix": "menu",
+                "prev": "electricity-service",
+                "label": "get-menu-tree",
+            },
+            "page-settings": {
+                "prefix": "menu",
+                "prev": "electricity-service",
+                "label": "get-page-settings",
+            },
+            ## YEK-G İkili Anlaşma Miktarları Listeleme Servisi
+            "yek-g-bilateral-contracts": get_path_template(
+                "yek-g", "bilateral-contract-list"
+            ),
+            ## YEK-G İtfa İşlem Miktarları Listeleme Servisi
+            "yek-g-redemptions": get_path_template("yek-g", "cancelation-quantity"),
+            ## İlga edilen YEK-G Belge Miktarı Listeleme Servisi
+            "yek-g-expirations": get_path_template("yek-g", "expiry-quantity"),
+            ## İhraç edilen YEK-G Belge Miktarı Listeleme Servisi
+            "yek-g-issued": get_path_template("yek-g", "exported-document-quantity"),
+            ## YEK-G Org. Piyasa Alış/Satış Teklif Miktarı
+            "yek-g-order-quantity": get_path_template(
+                "yek-g", "market-bid-ask-quantity"
+            ),
         },
         ## category
         "idm": {"prev": "markets"},
@@ -1012,6 +1041,7 @@ def get_call_method(key):
         "ng-vgp-delivery-period",
         "ng-vgp-delivery-year",
         "ng-tr-storage-facility-list",
+        "menu",
     ]
 
     if key in get_methods:

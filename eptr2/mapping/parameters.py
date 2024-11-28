@@ -48,6 +48,7 @@ def get_param_label(key):
         "point_type": {"label": "pointType"},
         "storage_facility_id": {"label": "storageFacilityId"},
         "point_id": {"label": "pointId"},
+        "menu_id": {"label": "menuId"},
     }
     return d.get(key, key)
 
@@ -277,6 +278,12 @@ def get_required_parameters(key, return_mapping=False, mapping_only_keys=False):
         "ng-tr-stock-amount": ["start_date", "end_date"],
         "ng-tr-bilateral-transfer": ["start_date", "end_date"],
         "ng-tr-storage-facility-list": [],
+        "menu": [],
+        "page-settings": ["menu_id"],
+        "yek-g-bilateral-contracts": ["start_date", "end_date"],
+        "yek-g-redemptions": ["start_date", "end_date"],
+        "yek-g-expirations": ["start_date", "end_date"],
+        "yek-g-issued": ["start_date", "end_date"],
     }
 
     if return_mapping:

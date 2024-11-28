@@ -185,6 +185,12 @@ def get_postprocess_function(key):
         "ng-tr-stock-amount",
         "ng-tr-storage-facility-list",
         "ng-tr-bilateral-transfer",
+        "menu",
+        "page-settings",
+        "yek-g-bilateral-contracts",
+        "yek-g-redemptions",
+        "yek-g-expirations",
+        "yek-g-issued",
     ]:
         return postprocess_items_to_df
 
