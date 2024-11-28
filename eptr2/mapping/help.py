@@ -2141,6 +2141,126 @@ def get_help_d(key=None):
             },
             "url": "https://seffaflik.epias.com.tr/natural-gas/natural-gas-transmission/virtual-trade/transfer",
         },
+        "yek-g-bilateral-contracts": {
+            "category": "YEK-G",
+            "title": {
+                "tr": "YEK-G İkili Anlaşma Miktarları",
+                "en": "YEK-G Bilateral Contract Amount",
+            },
+            "desc": {
+                "tr": "Seçilen tarihte hesaplar arası transfer edilen YEK-G Belgelerinin sayısı kaynak ve adet bazlı gösterilir.",
+                "en": "It displays the number of YEK-G documents transferred between accounts on the selected date.",
+            },
+            "url": "https://seffaflik.epias.com.tr/electricity/electricity-markets/yek-g/yek-g-bilateral-contract-amount",
+        },
+        "yek-g-redemptions": {
+            "category": "YEK-G",
+            "title": {
+                "tr": "YEK-G İtfa İşlem Miktarları",
+                "en": "Cancelation Quantity of YEK-G Documents",
+            },
+            "desc": {
+                "tr": "Seçilen tarihte YEK-G Belgesinin ifşa amacıyla kullanılmak üzere itfa edilme sayısını göstermektedir.",
+                "en": "Indicates the number of cancelation of the YEK-G Document to be used for disclosure on the selected date.",
+            },
+            "url": "https://seffaflik.epias.com.tr/electricity/electricity-markets/yek-g/cancelation-quantity-of-yek-g-documents",
+        },
+        "yek-g-expirations": {
+            "category": "YEK-G",
+            "title": {
+                "tr": "İlga edilen YEK-G Belge Miktarı",
+                "en": "YEK-G Expiry Quantity",
+            },
+            "desc": {
+                "tr": "Seçilen tarihte üretim tarihinden itibaren 12 ay geçmesine rağmen itfa edilmemiş olması sebebiyle İlga edilen YEK-G Belgelerinin sayısını kaynak ve adet bazlı gösterir.",
+                "en": "It displays the total number of YEK-G documents cancelled due to the fact that 12 months have passed since the production period.",
+            },
+            "url": "https://seffaflik.epias.com.tr/electricity/electricity-markets/yek-g/yek-g-expiry-quantity",
+        },
+        "yek-g-issued": {
+            "category": "YEK-G",
+            "title": {
+                "tr": "İhraç edilen YEK-G Belge Miktarı",
+                "en": "Issued Quantity of YEK-G Documents",
+            },
+            "desc": {
+                "tr": "Seçilen tarihte kaynak bazında kullanıcı hesaplarına ihraç edilen toplam YEK-G Belgesi sayısını gösterir.",
+                "en": "It displays the total number of YEK-G documents issued to user accounts on a resource basis on the selected date.",
+            },
+            "url": "https://seffaflik.epias.com.tr/electricity/electricity-markets/yek-g/issued-quantity-of-yek-g-documents",
+        },
+        "yek-g-order-quantity": {
+            "category": "YEK-G",
+            "title": {
+                "tr": "YEK-G Org. Piyasa Alış/Satış Teklif Miktarı",
+                "en": "YEK-G Organized Market Bid/Ask Quantity",
+            },
+            "desc": {
+                "tr": "Kaynak bazlı açılan her bir kontrata ilişkin verilmiş olan alış ve satış teklif miktarlarını göstermektedir.",
+                "en": "It displays resourse based bid and offer amounts given in Organized YEK-G Market",
+            },
+            "url": "https://seffaflik.epias.com.tr/electricity/electricity-markets/yek-g/yek-g-organized-market-bid-ask-quantity",
+        },
+        "yek-g-match-price-minmax": {
+            "category": "YEK-G",
+            "title": {
+                "tr": "YEK-G Min-Max Eşleşme Fiyatları",
+                "en": "YEK-G Min–Max Matching Price",
+            },
+            "desc": {
+                "tr": "Seçilen Tarihte YEK-G Belgelerinin kaynak bazında minimum ve maksimum eşleşme fiyatlarını gösterir.",
+                "en": "It displays the resource based minimum and maximum macthed YEK-G document prices in Organized YEK-G market sessions.",
+            },
+            "url": "https://seffaflik.epias.com.tr/electricity/electricity-markets/yek-g/yek-g-min-max-matching-price",
+        },
+        "yek-g-trade-volume": {
+            "category": "YEK-G",
+            "title": {
+                "tr": "YEK-G Org. Piyasa İşlem Hacmi",
+                "en": "YEK-G Organized Market Trading Volume",
+            },
+            "desc": {
+                "tr": "Her bir kaynakta açılan kontratlara verilmiş olan tekliflerin eşleşmesi ile oluşan işlem hacminin gösterilmesi",
+                "en": "It displays the trade volume of Organized YEK-G market in resource base.",
+            },
+            "url": "https://seffaflik.epias.com.tr/electricity/electricity-markets/yek-g/yek-g-organized-market-trading-volume",
+        },
+        "yek-g-wap": {
+            "category": "YEK-G",
+            "title": {
+                "tr": "Org. YEK-G Piyasa Ağırlıklı Ortalama Fiyat",
+                "en": "YEK-G Weighted Average Price",
+            },
+            "desc": {
+                "tr": "Seçilen Tarihte Organize YEK-G Piyasasında belirli bir enerji kaynağına ilişkin YEK-G Belgelesinin eşleştiği fiyatlara göre Ağırlıklı Ortalama Fiyat olarak gösterir.",
+                "en": "It displays resource based weighted average prices of Organized YEK-G Market.",
+            },
+            "url": "https://seffaflik.epias.com.tr/electricity/electricity-markets/yek-g/yek-g-weighted-average-price",
+        },
+        "yek-g-withdrawals": {
+            "category": "YEK-G",
+            "title": {
+                "tr": "İptal edilen YEK-G Belge Miktarı",
+                "en": "YEK-G Withdrawal Quantity",
+            },
+            "desc": {
+                "tr": "Seçilen tarihte ihraç ve transfer süresinde oluşabilecek hatalar sebebiyle iptal edilen YEK-G Belgelerinin sayısını kaynak ve adet bazlı gösterir. İkili Anlaşma Piyasası’nda veriler takip eden iş günü 15:00’dan sonra, Organize Piyasa’da ise sean sonrası sürecinden sonra yayımlanır.",
+                "en": "It displays the number of YEK-G documents cancelled due to system malfunction.",
+            },
+            "url": "https://seffaflik.epias.com.tr/electricity/electricity-markets/yek-g/yek-g-withdrowal-quantity",
+        },
+        "yek-g-match-quantity": {
+            "category": "YEK-G",
+            "title": {
+                "tr": "Org. YEK-G Piyasa Eşleşme Miktarları",
+                "en": "YEK-G Matching Quantity",
+            },
+            "desc": {
+                "tr": "Seçilen tarihte YEK-G Belgelerinin kaynak bazında gerçekleşen son eşleşme miktarı ve işlem miktarlarını gösterir.",
+                "en": "It displays resource based matched YEK-G documents between parties in Organized YEK-G market sessions.",
+            },
+            "url": "https://seffaflik.epias.com.tr/electricity/electricity-markets/yek-g/yek-g-matching-quantity",
+        },
     }
 
     if key is None:
