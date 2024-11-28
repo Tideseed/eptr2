@@ -186,11 +186,16 @@ def get_postprocess_function(key):
         "ng-tr-storage-facility-list",
         "ng-tr-bilateral-transfer",
         "menu",
-        "page-settings",
         "yek-g-bilateral-contracts",
         "yek-g-redemptions",
         "yek-g-expirations",
         "yek-g-issued",
+        "yek-g-match-price-minmax",
+        "yek-g-order-quantity",
+        "yek-g-trade-volume",
+        "yek-g-wap",
+        "yek-g-withdrawals",
+        "yek-g-match-quantity",
     ]:
         return postprocess_items_to_df
 
@@ -204,6 +209,7 @@ def get_postprocess_function(key):
         "basin-list",
         "dam-list",
         "ng-latest-settlement-date",
+        "page-settings",
     ]:
         return postprocess_direct_dict
 

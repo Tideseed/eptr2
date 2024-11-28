@@ -47,7 +47,7 @@ def get_path_template(template: str, label: str):
         },
         "yek-g": {
             "prefix": "data",
-            "prev": "markets",
+            "prev": "yek-g",
         },
     }
 
@@ -954,6 +954,20 @@ def get_path_map(just_call_keys: bool = False):
             "yek-g-order-quantity": get_path_template(
                 "yek-g", "market-bid-ask-quantity"
             ),
+            ## YEK-G Min-Max Eşleşme Fiyatları Listeleme
+            "yek-g-match-price-minmax": get_path_template(
+                "yek-g", "min-max-match-amount-list"
+            ),
+            ## YEK-G Org. Piyasa İşlem Hacmi Listeleme Servisi
+            "yek-g-trade-volume": get_path_template("yek-g", "trading-volume"),
+            ## YEK-G Ağırlıklı Ortalama Fiyat Listeleme Servisi
+            "yek-g-wap": get_path_template("yek-g", "weighted-average-price"),
+            ## İptal edilen YEK-G Belge Miktarı Listeleme Servisi
+            "yek-g-withdrawals": get_path_template("yek-g", "withdrawal-quantity"),
+            ## Org. YEK-G Piyasa Eşleşme Miktarları Listeleme Servisi
+            "yek-g-match-quantity": get_path_template(
+                "yek-g", "yekg-matching-quantity"
+            ),
         },
         ## category
         "idm": {"prev": "markets"},
@@ -961,6 +975,7 @@ def get_path_map(just_call_keys: bool = False):
         "bpm": {"prev": "markets"},
         "sgp": {"prev": "markets"},
         "vgp": {"prev": "markets"},
+        "yek-g": {"prev": "markets"},
         "bilateral-contracts": {"prev": "markets"},
         "general-data": {"prev": "markets"},
         "imbalance": {"prev": "markets"},

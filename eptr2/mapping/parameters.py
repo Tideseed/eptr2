@@ -284,6 +284,12 @@ def get_required_parameters(key, return_mapping=False, mapping_only_keys=False):
         "yek-g-redemptions": ["start_date", "end_date"],
         "yek-g-expirations": ["start_date", "end_date"],
         "yek-g-issued": ["start_date", "end_date"],
+        "yek-g-match-price-minmax": ["start_date", "end_date"],
+        "yek-g-order-quantity": ["start_date", "end_date"],
+        "yek-g-trade-volume": ["start_date", "end_date"],
+        "yek-g-wap": ["start_date", "end_date"],
+        "yek-g-withdrawals": ["start_date", "end_date"],
+        "yek-g-match-quantity": ["start_date", "end_date"],
     }
 
     if return_mapping:
