@@ -1063,3 +1063,28 @@ def get_call_method(key):
         return "GET"
     else:
         return "POST"
+
+
+def get_derived_calls():
+    """
+    These calls are specific versions with parameter combinations that are used in the API
+    """
+
+    l = [
+        "ng-vgp-contract-price-summary-period",
+        "ng-vgp-ggf-period",
+        "ng-vgp-matched-quantity-period",
+        "ng-vgp-open-positions-period",
+        "ng-vgp-transaction-history-period",
+        "ng-vgp-transaction-volumes-period",
+        "ng-vgp-contract-price-summary-se",
+        "ng-vgp-ggf-se",
+        "ng-vgp-matched-quantity-se",
+        "ng-vgp-open-positions-se",
+        "ng-vgp-transaction-history-se",
+        "ng-vgp-transaction-volumes-se",
+        "ra-meter-volumes-period",
+        "ra-meter-volumes-version",
+    ]
+
+    return l

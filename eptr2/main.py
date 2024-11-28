@@ -13,6 +13,7 @@ from eptr2.mapping import (
     get_optional_parameters,
     alias_to_path,
     get_alias_map,
+    get_derived_calls,
 )
 from warnings import warn
 from eptr2.processing.preprocess import preprocess_parameter, process_special_calls
@@ -176,6 +177,21 @@ class EPTR2:
             }
 
         return self.path_map_keys
+
+    def get_number_of_calls(self):
+        """
+        List the number of calls in the package. It also lists the number of derived calls and API calls (excluding derived calls).
+        """
+
+        d = {
+            "all_calls": self.path_map_keys,
+            "derived_calls": get_derived_calls(),
+        }
+        d["n_total_calls"] = len(d["all_calls"])
+        d["n_derived_calls"] = len(d["derived_calls"])
+        d["n_api_calls"] = len(d["all_calls"]) - len(d["derived_calls"])
+
+        return d
 
     def get_aliases(self, include_custom_aliases: bool = False):
         """
