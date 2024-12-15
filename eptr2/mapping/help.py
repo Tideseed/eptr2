@@ -2273,6 +2273,150 @@ def get_help_d(key=None):
             },
             "url": "https://seffaflik.epias.com.tr/electricity/electricity-markets/yek-g/yek-g-matching-quantity",
         },
+        "vep-contract-price-summary": {
+            "category": "VEP",
+            "title": {
+                "tr": "VEP Kontrat Fiyatları Özet",
+                "en": "PFM Contract Price Summary",
+            },
+            "desc": {
+                "tr": "Seçilen tarihte YEK-G Belgelerinin kaynak bazında gerçekleşen son eşleşme miktarı ve işlem miktarlarını gösterir.",
+                "en": "First, highest, lowest, last matching prices and DIP of the contracts that are open for trading at the filtered dates.",
+            },
+            "url": "https://seffaflik.epias.com.tr/electricity/electricity-markets/power-future-market-pfm/pfm-contract-price-summary",
+        },
+        "vep-delivery-period-list": {
+            "category": "VEP",
+            "title": {
+                "tr": "VEP Teslimat Dönemi Listeleme Servisi",
+                "en": "PFM Delivery Period Listing Service",
+            },
+            "desc": {
+                "tr": "VEP sayfaları için Teslimat Dönemi Listesi verir.",
+                "en": "Returns the Delivery Period List for PFM pages.",
+            },
+            "url": "https://seffaflik.epias.com.tr/electricity-service/technical/tr/index.html#_delivery-period-list",
+        },
+        "vep-delivery-year-list": {
+            "category": "VEP",
+            "title": {
+                "tr": "VEP Teslimat Yılı Listeleme Servisi",
+                "en": "PFM Delivery Year Listing Service",
+            },
+            "desc": {
+                "tr": "VEP sayfaları için Teslimat Yılı Listesi verir.",
+                "en": "Returns the Delivery Year List for PFM pages.",
+            },
+            "url": "https://seffaflik.epias.com.tr/electricity-service/technical/tr/index.html#_delivery-year-list-data",
+        },
+        "vep-ggf": {
+            "category": "VEP",
+            "title": {
+                "tr": "VEP Günlük Gösterge Fiyatı",
+                "en": "PFM Daily Index Price",
+            },
+            "desc": {
+                "tr": "Seçilen tarihte işleme açık kontratların Günlük Gösterge Fiyatını göstermektedir. Seansın açık olduğu her gün işleme açık kontratların ilgili gün için Günlük Gösterge fiyatı saat 16:45'te yayımlanır.",
+                "en": "The Daily Index Price of contracts that are open for trading at the filtered dates. Daily Index Price is published at 16:45 o'clock on business days for the contracts that are open for trading.",
+            },
+            "url": "https://seffaflik.epias.com.tr/electricity/electricity-markets/power-future-market-pfm/pfm-daily-index-price",
+        },
+        "vep-ggf-period": {
+            "category": "VEP",
+            "title": {
+                "tr": "VEP GGF Teslimat Dönemi Listeleme Servisi",
+                "en": "PFM DIP Delivery Period List",
+            },
+            "desc": {
+                "tr": "VEP GGF sayfaları için Teslimat Dönemi Listesi verir.",
+                "en": "Returns the Delivery Period List for PFM DIP pages.",
+            },
+            "url": "https://seffaflik.epias.com.tr/electricity-service/technical/tr/index.html#_ggf-delivery-period-list",
+        },
+        "vep-load-types": {
+            "category": "VEP",
+            "title": {
+                "tr": "VEP Yük Tipi Listeme Servisi",
+                "en": "PFM Load Type List",
+            },
+            "desc": {
+                "tr": "VEP sayfaları için Yük Tipi listesini verir.",
+                "en": "Returns the load type list for PFM pages.",
+            },
+            "url": "https://seffaflik.epias.com.tr/electricity-service/technical/tr/index.html#_load-type-list-data",
+        },
+        "vep-price-summaries": {
+            "category": "VEP",
+            "title": {
+                "tr": "VEP Teklif Fiyatları",
+                "en": "PFM Order Prices",
+            },
+            "desc": {
+                "tr": "VEP'teki her bir kontrata ait en iyi alış ve satış tekliflerine sait fiyat bilgisi, son eşleşme fiyatı ve bir önceki eşleşmeye göre değişimi.",
+                "en": "The price information of the best bid and sell orders of each contract in VEP, the price of the last match and its change according to the previous match.",
+            },
+            "url": "https://seffaflik.epias.com.tr/electricity/electricity-markets/power-future-market-pfm/pfm-order-prices",
+        },
+        "vep-open-positions": {
+            "category": "VEP",
+            "title": {
+                "tr": "VEP Açık Pozisyon",
+                "en": "PFM Open Position",
+            },
+            "desc": {
+                "tr": "Seçilen tarihte işleme açık + işlem yapılan kontratların açık pozisyon miktarını göstermektedir.",
+                "en": "Open Position of the contracts that are open for trading at the filtered dates.",
+            },
+            "url": "https://seffaflik.epias.com.tr/electricity/electricity-markets/power-future-market-pfm/pfm-open-position",
+        },
+        "vep-trade-volume": {
+            "category": "VEP",
+            "title": {
+                "tr": "VEP İşlem Hacmi",
+                "en": "PFM Trade Value",
+            },
+            "desc": {
+                "tr": "Seçilen tarihte işleme açık + işlem yapılan kontratların işlem hacmini göstermektedir.",
+                "en": "Trade value of the contracts that are open for trading at the filtered dates.",
+            },
+            "url": "https://seffaflik.epias.com.tr/electricity/electricity-markets/power-future-market-pfm/pfm-trade-value",
+        },
+        "vep-transaction-history": {
+            "category": "VEP",
+            "title": {
+                "tr": "VEP İşlem Akışı",
+                "en": "PFM Transaction History",
+            },
+            "desc": {
+                "tr": "Seçilen tarihte işleme açık + işlem yapılan kontratların işlem akışını göstermektedir.",
+                "en": "Transaction history of the contracts that are open for trading at the filtered dates.",
+            },
+            "url": "https://seffaflik.epias.com.tr/electricity/electricity-markets/power-future-market-pfm/pfm-transaction-history",
+        },
+        "vep-transaction-history-periods": {
+            "category": "VEP",
+            "title": {
+                "tr": "VEP İşlem Akışı Teslimat Dönemi Listesi",
+                "en": "PFM Transaction History Delivery Period List",
+            },
+            "desc": {
+                "tr": "VEP İşlem Akışı Teslimat Dönemi Listesi.",
+                "en": "PFM Transaction History Delivery Period List.",
+            },
+            "url": "https://seffaflik.epias.com.tr/electricity-service/technical/tr/index.html#_th-delivery-period-list",
+        },
+        "vep-matching-quantity": {
+            "category": "VEP",
+            "title": {
+                "tr": "VEP Eşleşme Miktarı",
+                "en": "PFM Matching Quantity",
+            },
+            "desc": {
+                "tr": "Seçilen tarihte işleme açık + işlem yapılan kontratların eşleşme miktarını göstermektedir.",
+                "en": "Matching quantity of the contracts that are open for trading at the filtered dates.",
+            },
+            "url": "https://seffaflik.epias.com.tr/electricity/electricity-markets/power-future-market-pfm/pfm-matching-quantity",
+        },
     }
 
     if key is None:
