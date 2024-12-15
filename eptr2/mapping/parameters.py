@@ -49,6 +49,7 @@ def get_param_label(key):
         "storage_facility_id": {"label": "storageFacilityId"},
         "point_id": {"label": "pointId"},
         "menu_id": {"label": "menuId"},
+        "load_type": {"label": "loadType"},
     }
     return d.get(key, key)
 
@@ -98,6 +99,7 @@ def get_required_parameters(key, return_mapping=False, mapping_only_keys=False):
         "market-participants": [],
         "market-participants-organization-list": [],
         "kgup": ["start_date", "end_date", "region"],
+        "kgup-v1": ["start_date", "end_date", "region"],
         "kudup": ["start_date", "end_date", "region"],
         "eak": ["start_date", "end_date", "region"],
         "gen-org": ["start_date", "end_date"],
@@ -290,6 +292,18 @@ def get_required_parameters(key, return_mapping=False, mapping_only_keys=False):
         "yek-g-wap": ["start_date", "end_date"],
         "yek-g-withdrawals": ["start_date", "end_date"],
         "yek-g-match-quantity": ["start_date", "end_date"],
+        "vep-contract-price-summary": ["start_date", "end_date"],
+        "vep-delivery-period-list": ["start_date", "end_date"],
+        "vep-delivery-year-list": ["start_date", "end_date"],
+        "vep-ggf": ["start_date", "end_date"],
+        "vep-ggf-period": ["start_date", "end_date"],
+        "vep-load-types": ["start_date", "end_date"],
+        "vep-price-summaries": [],
+        "vep-open-positions": ["start_date", "end_date"],
+        "vep-trade-volume": ["start_date", "end_date"],
+        "vep-transaction-history": ["start_date", "end_date"],
+        "vep-transaction-history-periods": ["start_date", "end_date"],
+        "vep-matching-quantity": ["start_date", "end_date"],
     }
 
     if return_mapping:
@@ -309,6 +323,7 @@ def get_optional_parameters(key):
         "imb-qty-g": ["imb_org_id"],
         "market-participants": ["org_id"],
         "kgup": ["org_id", "uevcb_id"],
+        "kgup-v1": ["org_id", "uevcb_id"],
         "kudup": ["org_id", "uevcb_id"],
         "eak": ["org_id", "uevcb_id"],
         "rt-gen": ["pp_id"],
@@ -375,6 +390,12 @@ def get_optional_parameters(key):
         "ng-tr-actual-exit-amount": ["point_id"],
         "ng-tr-reserved-entry-amount": ["point_id"],
         "ng-tr-reserved-exit-amount": ["point_id"],
+        "vep-contract-price-summary": ["load_type", "year", "delivery_period"],
+        "vep-ggf": ["load_type", "year", "delivery_period"],
+        "vep-open-positions": ["load_type", "year", "delivery_period"],
+        "vep-trade-volume": ["load_type", "year", "delivery_period"],
+        "vep-transaction-history": ["load_type", "year", "delivery_period"],
+        "vep-matching-quantity": ["load_type", "year", "delivery_period"],
     }
 
     return d.get(key, [])

@@ -49,6 +49,10 @@ def get_path_template(template: str, label: str):
             "prefix": "data",
             "prev": "yek-g",
         },
+        "vep": {
+            "prefix": "data",
+            "prev": "pfm",
+        },
     }
 
     d = template_map_d[template]
@@ -278,6 +282,12 @@ def get_path_map(just_call_keys: bool = False):
                 "prefix": "data",
                 "prev": "generation",
                 "label": "dpp",
+            },
+            ## KGÜP - İlk Versiyon
+            "kgup-v1": {
+                "prefix": "data",
+                "prev": "generation",
+                "label": "dpp-first-version",
             },
             ## KUDUP
             "kudup": {
@@ -968,6 +978,38 @@ def get_path_map(just_call_keys: bool = False):
             "yek-g-match-quantity": get_path_template(
                 "yek-g", "yekg-matching-quantity"
             ),
+            ## VEP Kontrat Fiyatları Özet Listeleme Servisi
+            "vep-contract-price-summary": get_path_template(
+                "vep", "contract-price-summary"
+            ),
+            ## VEP Teslimat Dönemi Listeleme Servisi
+            "vep-delivery-period-list": get_path_template(
+                "vep", "delivery-period-list"
+            ),
+            ## VEP Teslimat Yılı Listeme Servisi
+            "vep-delivery-year-list": get_path_template("vep", "delivery-year-list"),
+            ## VEP Günlük Gösterge Fiyatı Listeleme Servisi
+            "vep-ggf": get_path_template("vep", "ggf"),
+            ## VEP GGF Teslimat Dönemi Listesi
+            "vep-ggf-period": get_path_template("vep", "ggf-delivery-period-list"),
+            ## VEP Yük Tipi Listeleme Servisi
+            "vep-load-types": get_path_template("vep", "load-type-list"),
+            ## VEP Teklif Fiyatları Listeleme Servisi
+            "vep-price-summaries": get_path_template("vep", "offer-price"),
+            ## VEP Açık Pozisyon Listeleme Servisi
+            "vep-open-positions": get_path_template("vep", "open-position"),
+            ## VEP İşlem Hacmi Listeleme Servisi
+            "vep-trade-volume": get_path_template("vep", "pfm-trade-value"),
+            ## VEP İşlem Akışı Listeleme Servisi
+            "vep-transaction-history": get_path_template(
+                "vep", "pfm-transaction-history"
+            ),
+            ## VEP İşlem Akışı Teslimat Dönemi Listesi
+            "vep-transaction-history-periods": get_path_template(
+                "vep", "th-delivery-period-list"
+            ),
+            ## VEP Eşleşme Miktarı Listeleme Servisi
+            "vep-matching-quantity": get_path_template("vep", "vep-matching-quantity"),
         },
         ## category
         "idm": {"prev": "markets"},
@@ -976,6 +1018,7 @@ def get_path_map(just_call_keys: bool = False):
         "sgp": {"prev": "markets"},
         "vgp": {"prev": "markets"},
         "yek-g": {"prev": "markets"},
+        "pfm": {"prev": "markets"},
         "bilateral-contracts": {"prev": "markets"},
         "general-data": {"prev": "markets"},
         "imbalance": {"prev": "markets"},

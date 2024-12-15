@@ -59,4 +59,9 @@ def preprocess_parameter(key, value):
                 "Order type must be either UP_REGULATION, DOWN_REGULATION or BOTH_REGULATIONS"
             )
 
+    elif key in ["load_type"]:
+        value = "Baz" if value is None else value
+        if value not in ["Baz", "Puant", "Puant Dışı"]:
+            raise Exception("Load type must be either Baz, Puant or Puant Dışı")
+
     return value

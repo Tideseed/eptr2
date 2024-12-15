@@ -479,15 +479,15 @@ def get_help_d(key=None):
             },
             "url": "https://seffaflik.epias.com.tr/electricity/electricity-market-reports/idm-order-list",
         },
-        "idm-contract-list": {
+        "idm-order-list": {
             "category": "Elektrik Piyasası Raporları",
             "title": {
                 "tr": "GİP Teklif Listesi",
                 "en": "IDM Order List",
             },
             "desc": {
-                "tr": "(Açıklama Yok)",
-                "en": "(No description)",
+                "tr": "Gün İçi Piyasasına verilerin Tekliflerin listesini gösteren veri setidir",
+                "en": "It is the data set that shows the list of bids/offer in the Intraday Market.",
             },
             "url": "https://seffaflik.epias.com.tr/electricity/electricity-market-reports/idm-order-list",
         },
@@ -658,6 +658,18 @@ def get_help_d(key=None):
                 "en": "Final day-ahead generation/consumption schedule (FDGS): The generation or consumption values which a settlement feed in-feed out unit anticipates to realize in the following day and notifies the System Operator at the opening of the balancing power market, depending on the obligations of the balancing responsible unit that it is a member of and the result of day-ahead balancing.",
             },
             "url": "https://seffaflik.epias.com.tr/electricity/electricity-generation/planning/final-daily-production-program-fdpp",
+        },
+        "kgup-v1": {
+            "category": "Üretim Planlama",
+            "title": {
+                "tr": "Kesinleşmiş Günlük Üretim Planı (KGÜP) – İlk Versiyon",
+                "en": "Final Daily Production Program (FDPP) - First Version",
+            },
+            "desc": {
+                "tr": "Kesinleşmiş Gün Öncesi Üretim Programı, katılımcının bir sonraki güne ilişkin gerçekleştirmeyi öngördüğü ve sistem işletmecisine dengeleme güç piyasasının başlangıcında bildirdiği üretim değeridir.",
+                "en": "Final day-ahead generation/consumption schedule (FDGS): The generation or consumption values which a settlement feed in-feed out unit anticipates to realize in the following day and notifies the System Operator at the opening of the balancing power market, depending on the obligations of the balancing responsible unit that it is a member of and the result of day-ahead balancing.",
+            },
+            "url": "https://seffaflik.epias.com.tr/electricity/electricity-generation/planning/final-daily-production-program-fdpp-first-version",
         },
         "kudup": {
             "category": "Üretim Planlama",

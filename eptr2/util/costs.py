@@ -137,6 +137,7 @@ def calculate_kupst_cost_list(
     tol: float | None = None,
     source: str | None = None,
     kupst_multiplier: float = 0.03,
+    min_kupst: float = 0.0,
 ):
     """
     Calculates production plan difference (KUPST) costs.
@@ -151,6 +152,7 @@ def calculate_kupst_cost_list(
 
     for x, y, m, s in zip(forecast_values, actual_values, mcp, smp):
         cost = max(abs(x - y) - tol * x, 0) * max(m, s) * kupst_multiplier
+        cost = max(cost, min_kupst)
 
         kupst_cost_list.append(cost)
 
@@ -198,6 +200,7 @@ def calculate_diff_costs_list(
     source: str | None = None,
     kupst_multiplier: float = 0.03,
     imbalance_discount: float = 0,
+    min_kupst: float = 0.0,
 ):
     """
     Wrapper function to calculate all costs related to the difference between actual and forecasted values..
@@ -233,6 +236,7 @@ def calculate_diff_costs_list(
             tol=tol,
             source=source,
             kupst_multiplier=kupst_multiplier,
+            min_kupst=min_kupst,
         )
 
     return res_d

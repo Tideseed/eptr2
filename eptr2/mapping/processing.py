@@ -51,6 +51,7 @@ def get_postprocess_function(key):
         "market-participants-organization-list",
         "participant-count-based-upon-license-type",
         "kgup",
+        "kgup-v1",
         "kudup",
         "eak",
         "gen-org",
@@ -196,6 +197,18 @@ def get_postprocess_function(key):
         "yek-g-wap",
         "yek-g-withdrawals",
         "yek-g-match-quantity",
+        "vep-contract-price-summary",
+        "vep-delivery-period-list",
+        "vep-delivery-year-list",
+        "vep-ggf",
+        "vep-ggf-period",
+        "vep-load-types",
+        "vep-price-summaries",
+        "vep-open-positions",
+        "vep-trade-volume",
+        "vep-transaction-history",
+        "vep-transaction-history-periods",
+        "vep-matching-quantity",
     ]:
         return postprocess_items_to_df
 
