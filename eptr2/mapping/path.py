@@ -1015,7 +1015,7 @@ def get_path_map(just_call_keys: bool = False):
             ## VEP Eşleşme Miktarı Listeleme Servisi
             "vep-matching-quantity": get_path_template("vep", "vep-matching-quantity"),
             ## İl, İlçe ST Adedi Listeleme Servisi
-            "eligible-consumer-count": get_path_template(
+            "eligible-consumer-count-detail": get_path_template(
                 "cons", "eligible-consumer-count"
             ),
             ## Serbest Tüketici Tüketim Miktarı Listeleme
@@ -1057,7 +1057,7 @@ def get_path_map(just_call_keys: bool = False):
                 "cons", "profile-subscription-group-list"
             ),
             ## Serbest Tüketici Adedi Listeleme Servisi
-            "eligible-consumers-quantity": get_path_template("cons", "st-adedi"),
+            "eligible-consumer-count": get_path_template("cons", "st-adedi"),
             ## Plansız Kesinti Bilgisi Listeleme Servisi
             "unplanned-outages": get_path_template(
                 "cons", "unplanned-power-outage-info"

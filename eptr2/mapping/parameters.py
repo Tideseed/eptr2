@@ -311,8 +311,7 @@ def get_required_parameters(key, return_mapping=False, mapping_only_keys=False):
         "vep-transaction-history": ["start_date", "end_date"],
         "vep-transaction-history-periods": ["start_date", "end_date"],
         "vep-matching-quantity": ["start_date", "end_date"],
-        "eligible-consumer-count": ["period"],
-        "eligible-consumer-quantity": [],
+        "eligible-consumer-count-detail": ["period"],
         "get-distribution-companies": [],
         "main-tariff-group-list": [],
         "monthly-index": ["start_date", "end_date", "tariff_group_id"],
@@ -328,7 +327,7 @@ def get_required_parameters(key, return_mapping=False, mapping_only_keys=False):
         "percentage-consumption-info": ["period", "province_id"],
         "planned-outages": ["period"],
         "elig-profile-groups": ["period"],
-        "eligible-consumers-quantity": ["start_date", "end_date"],
+        "eligible-consumer-count": ["start_date", "end_date"],
         "unplanned-outages": ["period"],
     }
 

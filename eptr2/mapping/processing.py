@@ -209,6 +209,14 @@ def get_postprocess_function(key):
         "vep-transaction-history",
         "vep-transaction-history-periods",
         "vep-matching-quantity",
+        "eligible-consumer-count-detail",
+        "eligible-consumer-quantity",
+        "monthly-index",
+        "multiple-factor",
+        "percentage-consumption-info",
+        "planned-outages",
+        "eligible-consumer-count",
+        "unplanned-outages",
     ]:
         return postprocess_items_to_df
 
@@ -226,7 +234,18 @@ def get_postprocess_function(key):
     ]:
         return postprocess_direct_dict
 
-    elif key in ["profile-group-list", "province-list", "district-list", "ren-pp-list"]:
+    elif key in [
+        "profile-group-list",
+        "province-list",
+        "district-list",
+        "ren-pp-list",
+        "get-distribution-companies",
+        "main-tariff-group-list",
+        "mf-distribution",
+        "mf-meter-reading-type",
+        "mf-profile-group",
+        "elig-profile-groups",
+    ]:
         return postprocess_direct_dict_to_df
 
     elif key in ["ren-capacity"]:
