@@ -53,6 +53,10 @@ def get_path_template(template: str, label: str):
             "prefix": "data",
             "prev": "pfm",
         },
+        "cons": {
+            "prefix": "data",
+            "prev": "consumption",
+        },
     }
 
     d = template_map_d[template]
@@ -1010,6 +1014,54 @@ def get_path_map(just_call_keys: bool = False):
             ),
             ## VEP Eşleşme Miktarı Listeleme Servisi
             "vep-matching-quantity": get_path_template("vep", "vep-matching-quantity"),
+            ## İl, İlçe ST Adedi Listeleme Servisi
+            "eligible-consumer-count": get_path_template(
+                "cons", "eligible-consumer-count"
+            ),
+            ## Serbest Tüketici Tüketim Miktarı Listeleme
+            "eligible-consumer-quantity": get_path_template(
+                "cons", "eligible-consumer-quantity"
+            ),
+            ## Dağıtım Şirketlerinin Alındığı Servis
+            "get-distribution-companies": get_path_template(
+                "cons", "get-distribution-companies"
+            ),
+            ## Ana Tarife Grubu
+            "main-tariff-group-list": get_path_template(
+                "cons", "main-tariff-group-list"
+            ),
+            ## Aylık Endeks Listeleme Servisi
+            "monthly-index": get_path_template("cons", "monthly-index"),
+            ## Çarpan Değeri Listeleme Servisi
+            "multiple-factor": get_path_template("cons", "multiple-factor"),
+            ## Dağıtım Firmaları Listeleme Servisi
+            "mf-distribution": get_path_template(
+                "cons", "multiple-factor-distribution"
+            ),
+            ## Sayaç Okuma Tipi Listeleme Servisi
+            "mf-meter-reading-type": get_path_template(
+                "cons", "multiple-factor-meter-reading-type"
+            ),
+            ## Profil Abone Grubu Listeleme Servisi
+            "mf-profile-group": get_path_template(
+                "cons", "multiple-factor-profile-group"
+            ),
+            ## Yüzdesel Tüketim Bilgileri Listeleme Servisi
+            "percentage-consumption-info": get_path_template(
+                "cons", "percentage-consumption-info"
+            ),
+            ## Planlı Kesinti Bilgisi Listeleme Servisi
+            "planned-outages": get_path_template("cons", "planned-power-outage-info"),
+            ## (İl, İlçe ST Adedi) Profil Abone Grubu Listeleme Servisi
+            "elig-profile-groups": get_path_template(
+                "cons", "profile-subscription-group-list"
+            ),
+            ## Serbest Tüketici Adedi Listeleme Servisi
+            "eligible-consumers-quantity": get_path_template("cons", "st-adedi"),
+            ## Plansız Kesinti Bilgisi Listeleme Servisi
+            "unplanned-outages": get_path_template(
+                "cons", "unplanned-power-outage-info"
+            ),
         },
         ## category
         "idm": {"prev": "markets"},
@@ -1100,6 +1152,9 @@ def get_call_method(key):
         "ng-vgp-delivery-year",
         "ng-tr-storage-facility-list",
         "menu",
+        "get-distribution-companies",
+        "main-tariff-group-list",
+        "mf-meter-reading-type",
     ]
 
     if key in get_methods:

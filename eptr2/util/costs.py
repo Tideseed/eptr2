@@ -39,8 +39,6 @@ def calculate_imbalance_cost(
 
     unit_cost_d = calculate_unit_imbalance_cost(mcp=mcp, smp=smp)
 
-    d = {}
-
     diff = forecast - actual
     if is_producer:
         cost = abs(diff) * unit_cost_d["neg" if diff > 0 else "pos"]
@@ -137,7 +135,7 @@ def calculate_kupst_cost_list(
     tol: float | None = None,
     source: str | None = None,
     kupst_multiplier: float = 0.03,
-    min_kupst: float = 0.0,
+    min_kupst: float = 750.0,
 ):
     """
     Calculates production plan difference (KUPST) costs.

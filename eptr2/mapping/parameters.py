@@ -50,6 +50,13 @@ def get_param_label(key):
         "point_id": {"label": "pointId"},
         "menu_id": {"label": "menuId"},
         "load_type": {"label": "loadType"},
+        "tariff_group_id": {"label": "groupId"},
+        "mr_type": {"label": "meterReadingType"},
+        "subscriber_pg": {"label": "subscriberProfileGroup"},
+        "province_id": {"label": "provinceId"},
+        "dist_company_id": {"label": "distributionCompanyId"},
+        "district_name": {"label": "districtName"},
+        "pg_name": {"label": "profileGroupName"},
     }
     return d.get(key, key)
 
@@ -304,6 +311,25 @@ def get_required_parameters(key, return_mapping=False, mapping_only_keys=False):
         "vep-transaction-history": ["start_date", "end_date"],
         "vep-transaction-history-periods": ["start_date", "end_date"],
         "vep-matching-quantity": ["start_date", "end_date"],
+        "eligible-consumer-count": ["period"],
+        "eligible-consumer-quantity": [],
+        "get-distribution-companies": [],
+        "main-tariff-group-list": [],
+        "monthly-index": ["start_date", "end_date", "tariff_group_id"],
+        "multiple-factor": [
+            "period",
+            "mr_type",
+            "distribution_id",
+            "subscriber_pg",
+        ],
+        "mf-distribution": ["period"],
+        "mf-meter-reading-type": [],
+        "mf-profile-group": ["period", "distribution_id"],
+        "percentage-consumption-info": ["period", "province_id"],
+        "planned-outages": ["period"],
+        "elig-profile-groups": ["period"],
+        "eligible-consumers-quantity": ["start_date", "end_date"],
+        "unplanned-outages": ["period"],
     }
 
     if return_mapping:
@@ -396,6 +422,11 @@ def get_optional_parameters(key):
         "vep-trade-volume": ["load_type", "year", "delivery_period"],
         "vep-transaction-history": ["load_type", "year", "delivery_period"],
         "vep-matching-quantity": ["load_type", "year", "delivery_period"],
+        "percentage-consumption-info": ["province_id"],
+        "planned-outages": ["province_id", "dist_company_id"],
+        "elig-profile-groups": ["district_name", "province_id"],
+        "unplanned-outages": ["province_id", "dist_company_id"],
+        "eligible-consumer-count": ["district_name", "pg_name", "province_id"],
     }
 
     return d.get(key, [])
