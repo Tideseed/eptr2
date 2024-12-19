@@ -2417,6 +2417,174 @@ def get_help_d(key=None):
             },
             "url": "https://seffaflik.epias.com.tr/electricity/electricity-markets/power-future-market-pfm/pfm-matching-quantity",
         },
+        "eligible-consumer-count-detail": {
+            "category": "Serbest Tüketici",
+            "title": {
+                "tr": "İl, İlçe ST Adedi",
+                "en": "City, District Eligible Customer Number",
+            },
+            "desc": {
+                "tr": "Sayaç kullanım tipi serbest tüketici olan sayaçların ilçe ve profil abone grubu bazındaki sayısıdır.",
+                "en": "The number of meters with eligible costumer usage type based on district and profile subscriber group",
+            },
+            "url": "https://seffaflik.epias.com.tr/electricity/electricity-consumption/eligible-consumer/city-district-eligible-customer-number",
+        },
+        "eligible-consumer-quantity": {
+            "category": "Serbest Tüketici",
+            "title": {
+                "tr": "Serbest Tüketici Tüketim Miktarı",
+                "en": "Eligible Customer Quantity",
+            },
+            "desc": {
+                "tr": "Sayaç kullanım tipi serbest tüketici olan sayaçların uzlaştırmaya esas çekiş miktarı toplamıdır.",
+                "en": "The number of meters with eligible costumer usage type based on district and profile subscriber group",
+            },
+            "url": "https://seffaflik.epias.com.tr/electricity/electricity-consumption/eligible-consumer/eligible-customer-quantity",
+        },
+        "get-distribution-companies": {
+            "category": "Servis",
+            "title": {
+                "tr": "Dağıtım Şirketlerinin Alındığı Servis",
+                "en": "Distribution Company Listing Service",
+            },
+            "desc": {
+                "tr": "Dağıtım Şirketlerinin Alındığı Servis",
+                "en": "Distribution Company Listing Service",
+            },
+            "url": "https://seffaflik.epias.com.tr/electricity-service/technical/tr/index.html#_distribution-company-data",
+        },
+        "main-tariff-group-list": {
+            "category": "Servis",
+            "title": {
+                "tr": "Ana Tarife Grubu",
+                "en": "Main Tariff Group",
+            },
+            "desc": {
+                "tr": "Ana Tarife gruplarını dönen servis",
+                "en": "Main Tariff Group Service",
+            },
+            "url": "https://seffaflik.epias.com.tr/electricity-service/technical/tr/index.html#_main-tariff-group-list",
+        },
+        "monthly-index": {
+            "category": "Tedarik Fiyat Endeksi",
+            "title": {
+                "tr": "Aylık Endeks",
+                "en": "Monthly Index",
+            },
+            "desc": {
+                "tr": "Piyasa Takas Fiyatı (PTF), Negatif Sistem Dengesizlik Fiyatı, YEKDEM Birim Fiyat, Ulusal Tarife Birim Fiyatları ve Piyasa Yönetim Sistemine kayıtlı tüketicilere ait uzlaştırma dönemi bazındaki çekiş miktarları kullanılarak hesaplanan değere ilişkin veri seti.",
+                "en": "The data set regarding the value calculated by using Market Clearing Price (MCP), Negative System Imbalance Price, Renewable Energy Support Mechanism Unit Cost, National Tariff Unit Cost, Withdrawal Quantities on the basis of settlement period for customers registered in the Market Management System.",
+            },
+            "url": "https://seffaflik.epias.com.tr/electricity/electricity-consumption/supply-price-index/monthly-index",
+        },
+        "multiple-factor": {
+            "category": "Profil Katsaıları",
+            "title": {
+                "tr": "Çarpan Değeri",
+                "en": "Multiple Factor",
+            },
+            "desc": {
+                "tr": "Uzlaştırma dönemi bazında ölçüm yapılamayan sayaçlar için uygulanan profilleme işleminde kullanılan değerlere ilişkin veri seti.",
+                "en": "The data set regarding the value used for profiling of meters that cannot be read on a settlement period basis.",
+            },
+            "url": "https://seffaflik.epias.com.tr/electricity/electricity-consumption/profile-coefficients/multiple-factor",
+        },
+        "mf-distribution": {
+            "category": "Servis",
+            "title": {
+                "tr": "Çarpan Değeri - Dağıtım Firmaları Listeleme Servisi",
+                "en": "Multiple Factor - Distribution Companies Listing Service",
+            },
+            "desc": {
+                "tr": "Çarpan Değeri - Dağıtım Firmaları Listeleme Servisi",
+                "en": "Multiple Factor - Distribution Companies Listing Service",
+            },
+            "url": "https://seffaflik.epias.com.tr/electricity-service/technical/tr/index.html#_multiple-factor-distribution",
+        },
+        "mf-meter-reading-type": {
+            "category": "Servis",
+            "title": {
+                "tr": "Çarpan Değeri - Sayaç Okuma Tipi Listeleme Servisi",
+                "en": "Multiple Factor - Meter Reading Type Listing Service",
+            },
+            "desc": {
+                "tr": "Çarpan Değeri - Sayaç Okuma Tipi Listeleme Servisi",
+                "en": "Multiple Factor - Meter Reading Type Listing Service",
+            },
+            "url": "https://seffaflik.epias.com.tr/electricity-service/technical/tr/index.html#_multiple-factor-meter-reading-type",
+        },
+        "mf-profile-group": {
+            "category": "Servis",
+            "title": {
+                "tr": "Çarpan Değeri - Profil Abone Grubu Listeleme Servisi",
+                "en": "Multiple Factor - Profile Subscriber Group Listing Service",
+            },
+            "desc": {
+                "tr": "Profil Abone Grubu Listeleme Servisi,distributionId alanı verilirse verilen dönemdeki ilgili dağıtım firma/organizasyon id bilgisine göre ilgili dönemdeki geçerli abone grupları,boş gönderilirse tüm abone grupları listelenmektedir.",
+                "en": "If the distributionId field is provided, it will list the valid Profile Group according to the distribution company/organization ID information for the relevant period, if left empty, it will list all Profile Group.",
+            },
+            "url": "https://seffaflik.epias.com.tr/electricity-service/technical/tr/index.html#_multiple-factor-profile-group",
+        },
+        "percentage-consumption-info": {
+            "category": "Gerçekleşen Tüketim",
+            "title": {
+                "tr": "Yüzdesel Tüketim Bilgileri",
+                "en": "Percentage of Consumption Information",
+            },
+            "desc": {
+                "tr": "Fiili tüketimin il bazında ve profil abone grubu bazında yüzdesel kırılımına ilişkin veri seti.",
+                "en": "The data set regarding the percentage of actual consumption by city and customer profile group.",
+            },
+            "url": "https://seffaflik.epias.com.tr/electricity/electricity-consumption/ex-post-consumption/percentage-of-consumption-information",
+        },
+        "planned-outages": {
+            "category": "Kesinti Bilgisi",
+            "title": {
+                "tr": "Planlı Kesinti Bilgisi",
+                "en": "Planned Failure Information",
+            },
+            "desc": {
+                "tr": "Yapılması planlanan kesinti bilgilerinin sunulduğu ekrandır.",
+                "en": "This is the screen where information about the planned outage is presented.",
+            },
+            "url": "https://seffaflik.epias.com.tr/electricity/electricity-consumption/failure-information/planned-failure-information",
+        },
+        "elig-profile-groups": {
+            "category": "Servis",
+            "title": {
+                "tr": "İl, İlçe ST Listeleme - Profil Abone Grubu Listeleme Servisi",
+                "en": "City, District EC Listing - Customer Profile Group Service",
+            },
+            "desc": {
+                "tr": "İl ilçe st adedi sayfası için profil abone grubu listesi döner",
+                "en": "City, District EC Listing - Customer Profile Group Service",
+            },
+            "url": "https://seffaflik.epias.com.tr/electricity-service/technical/tr/index.html#_profile-subscription-group-list",
+        },
+        "eligible-consumer-count": {
+            "category": "Serbest Tüketici",
+            "title": {
+                "tr": "Serbest Tüketici Adedi",
+                "en": "Eligible Customer Count",
+            },
+            "desc": {
+                "tr": "Sayaç kullanım tipi serbest tüketici olan sayaçların sayısıdır",
+                "en": "The number of meters with eligible costumer usage type",
+            },
+            "url": "https://seffaflik.epias.com.tr/electricity/electricity-consumption/eligible-consumer/eligible-customer-count",
+        },
+        "unplanned-outages": {
+            "category": "Kesinti Bilgisi",
+            "title": {
+                "tr": "Plansız Kesinti Bilgisi",
+                "en": "Unplanned Failure Information",
+            },
+            "desc": {
+                "tr": "Plansız kesintilerin sunulduğu ekrandır.",
+                "en": "This is the screen where unplanned outage are presented.",
+            },
+            "url": "https://seffaflik.epias.com.tr/electricity/electricity-consumption/failure-information/unplanned-failure-information",
+        },
     }
 
     if key is None:
