@@ -1,6 +1,7 @@
 from typing import Any
 import urllib3
 import re
+import os
 import json
 from urllib.parse import urljoin
 import copy
@@ -36,16 +37,13 @@ class EPTR2:
         self.ssl_verify = kwargs.get("ssl_verify", True)
         self.check_postprocess(postprocess=kwargs.get("postprocess", True))
         self.get_raw_response = kwargs.get("get_raw_response", False)
+
+        ### Credentials and Login
         self.username = username
         self.password = password
-        self.is_test = kwargs.get("is_test", False)
-        self.skip_credentials = kwargs.get("skip_credentials", False)
-        root_phrase_test = "-prp" if self.is_test else ""
-        root_phrase_default = f"https://seffaflik{root_phrase_test}.epias.com.tr"
-        self.root_phrase = kwargs.get("root_phrase", root_phrase_default)
-        self.skip_login_warning = kwargs.get("skip_login_warning", False)
-        self.path_map_keys = get_path_map(just_call_keys=True)
-        self.custom_aliases = kwargs.get("custom_aliases", {})
+        self.is_test = kwargs.get("is_test", False)  ## Currently not used
+        self.credentials_file_path = kwargs.get("credentials_file_path", None)
+        self.login(custom_root_phrase=kwargs.get("root_phrase", None))
 
         if tgt_d is not None:
             self.import_tgt_info(tgt_d)
@@ -55,6 +53,31 @@ class EPTR2:
             self.tgt_exp_0 = 0
 
         self.check_renew_tgt()
+
+        ## Path map keys and custom aliases
+        self.path_map_keys = get_path_map(just_call_keys=True)
+        self.custom_aliases = kwargs.get("custom_aliases", {})
+
+    def login(self, custom_root_phrase: str | None = None):
+        if self.username is None or self.password is None:
+            if self.credentials_file_path is not None:
+                with open(self.credentials_file_path, "r") as f:
+                    credentials_d = json.load(f)
+                    self.username = credentials_d["EPTR_USERNAME"]
+                    self.password = credentials_d["EPTR_PASSWORD"]
+            else:
+                self.username = os.environ.get("EPTR_USERNAME", None)
+                self.password = os.environ.get("EPTR_PASSWORD", None)
+
+        if self.username is None or self.password is None:
+            raise Exception(
+                "Username and password must be provided for login. If you do not have the necessary credentials, you can get them from EPIAS Transparency Platform website."
+            )
+
+        if not custom_root_phrase:
+            root_phrase_test = "-prp" if self.is_test else ""
+            root_phrase_default = f"https://seffaflik{root_phrase_test}.epias.com.tr"
+            self.root_phrase = root_phrase_default
 
     ## Ref: https://stackoverflow.com/a/62303969/3608936
     def __getattr__(self, __name: str) -> Any:
@@ -85,21 +108,7 @@ class EPTR2:
 
     def get_tgt(self, **kwargs):
         if self.username is None or self.password is None:
-            if self.skip_credentials:
-                if not self.skip_login_warning:
-                    print(
-                        "Warning: You chose to skip the credentials and your calls may fail due to authentication requirements. Username and password will be required in the EPIAS Transparency API after August 26 (check EPIAS Transparency website for the latest and detailed information). This warning is shown once per session. If you want to disable it set 'skip_login_warning' parameter to True when calling EPTR2 class."
-                    )
-                    self.skip_login_warning = True
-
-                self.tgt = None
-                self.tgt_exp = 0
-                self.tgt_exp_0 = 0
-                return None
-            else:
-                raise Exception(
-                    "Username and password must be provided for tgt renewal."
-                )
+            raise Exception("Username and password must be provided for tgt renewal.")
 
         test_suffix = "-prp" if self.is_test else ""
         login_url = f"""https://giris{test_suffix}.epias.com.tr/cas/v1/tickets"""
@@ -230,18 +239,6 @@ class EPTR2:
 
         ### There are some calls requiring special handling, they have a special function to process them
         call_body_raw = process_special_calls(key, call_body_raw)
-
-        ## Parameter change
-        # if key in ["bpm-orders", "bpm-orders-w-avg"]:
-        #     if "date_time" in call_body_raw.keys():
-        #         raise Exception(
-        #             f"date_time parameter is not supported for {key}. Use 'date' instead."
-        #         )
-
-        # if key in ["ng-vgp-contract-price-summary-period"]:
-        #     call_body_raw["is_txn_period"] = False
-        # elif key in ["ng-vgp-contract-price-summary-se"]:
-        #     call_body_raw["is_txn_period"] = True
 
         optional_body_params = get_optional_parameters(key)
         all_params = required_body_params + optional_body_params

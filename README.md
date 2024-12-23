@@ -1,13 +1,54 @@
 ![PyPI - Version](https://img.shields.io/pypi/v/eptr2) ![PyPI - Downloads](https://img.shields.io/pypi/dm/eptr2) 
 
-> [!IMPORTANT]  
-> 🇬🇧 You will need username and password credentials from EPIAS to access Transparency Platform data. Register through [EPIAS Registration Platform](https://kayit.epias.com.tr/home) and get your username (your email) and password. English version is available. `eptr2` is still in active development. Breaking changes can be expected. Fill an [issue](https://github.com/tideseed/eptr2/issues) if you encounter any problem.
+# Quickstart
 
-> [!ÖNEMLİ]  
-> 🇹🇷 Şeffaflık Platformu verilerine erişmek için EPİAŞ üzerinden kayıt yaparak kullanıcı adı ve şifre almanız gerekmektedir. [EPİAŞ Kayıt Platformu](https://kayit.epias.com.tr/home) üzerinden kullanıcı adınızı (kayıt e-postası) ve şifrenizi alabilirsiniz. `eptr2` hala aktif olarak geliştirilmektedir. Büyük değişiklikler beklenebilir. Herhangi bir sorunda, [issue](https://github.com/tideseed/eptr2) kısmından istek açabilirsiniz.
+This document is a quickstart guide for `eptr2` package. It is a Python client for [EPIAS Transparency Platform v2.0](https://seffaflik.epias.com.tr/home) API. It is an unofficial package with Apache License 2.0.
 
+## Installation
 
-# EPIAS Transparency Platform v2.0 Python client by Robokami Data
+You can easily install it from PyPI with the following commmand.
+
+```bash
+pip install eptr2
+```
+
+If you want to the additional features, it is recommended to install it with the extras. Extras currently include `pandas` and `streamlit`. You can install the package with the following command.
+
+```bash
+pip install "eptr2[allextras]"
+```
+
+## Usage
+
+You can simply use `EPTR2` class to call services with convenience methods. You need to [register](https://kayit.epias.com.tr/epias-transparency-platform-registration-form) with the [EPIAS Transparency Platform](https://seffaflik.epias.com.tr/) to get your username (i.e. registration email) and password. The platform also accommodates an English version.
+
+Below is an example of getting Market Clearing Price (MCP) / Piyasa Takas Fiyatı (PTF). All services use the same pattern.
+
+```python
+from eptr2 import EPTR2
+
+eptr = EPTR2(
+    username="YOUR_USERNAME", password="YOUR_PASSWORD"
+)
+
+res = eptr.call("mcp", start_date="2024-07-29", end_date="2024-07-29")
+```
+
+There are more than 213 calls available. You can search for available calls with `eptr.get_available_calls()` function. This is almost an exhaustive list of available calls in the platform currently. 
+
+### Live Tutorial
+
+Starting from version 1.0.0, `eptr2` package includes a live tutorial feature as a Streamlit app (p.s. You need to have Streamlit installed). You can run the following code to start the tutorial. Its functionality is almost the same as [eptr2demo app](https://eptr2demo.streamlit.app/).
+
+```python
+from eptr2.tutorials import run_demo_app
+
+run_demo_app(username="YOUR_USERNAME",password="YOUR_PASSWORD")
+```
+
+_More tutorials are expected to be added in the future._
+
+# About EPIAS Transparency Platform v2.0 Python client by Robokami Data
 
 🇬🇧 `eptr2` (**EP**IAS **Tr**ansparency **2**.0) package is a thin wrapper around [EPIAS Transparency Platform v2.0](https://seffaflik.epias.com.tr/home) API brought to you by [Robokami](https://robokami.com). It is an unofficial package with Apache License 2.0 (free and permissable use for commercial applications, [see details](https://www.tldrlegal.com/license/apache-license-2-0-apache-2-0)). `eptr2` accesses currently more than 213 services with convenience methods.
 
@@ -15,61 +56,22 @@
 🇹🇷 `eptr2` (**EP**İAŞ **Tr**ansparency **2**.0) paketi [Robokami](https://robokami.com) tarafından [EPİAŞ Şeffaflık Platformu 2.0](https://seffaflik.epias.com.tr/home) API'si üzerine geliştirilmiş bir Python paketidir. Apache License 2.0 ile lisanslanmıştır ([ücretsiz ve büyük ölçüde serbest kullanım](https://www.tldrlegal.com/license/apache-license-2-0-apache-2-0)). `eptr2` 213'ten fazla veri servisine erişim sağlar.
 
 
-## Installation
-
-You can simply use PyPI to install `eptr2` package or directly through GitHub. See [eptr2demo](https://eptr2demo.streamlit.app) page for available calls and examples.
-
-```bash
-pip install eptr2
-```
-
-NOTE: Starting from v0.4.0, data frame returns will be optional. If pandas is not installed, data frames will not be returned. You can install "dataframe" version with the following command. _(Not implemented yet)_
-
-```bash
-pip install "eptr2[dataframe]"
-```
-
-```bash
-pip install git+https://github.com/Tideseed/eptr2.git
-```
-
-## Usage
-
-You can simply use `EPTR2` class to call services with convenience methods. 
-
-```python
-from eptr2 import EPTR2
-
-cred_d = {
-    "username": "YOUR_USERNAME",
-    "password": "YOUR_PASSWORD",
-    "is_test": False, ## (optional) Default: False. Set only to True for transparency test servers.
-}
-
-eptr = EPTR2(
-    username=cred_d["username"], password=cred_d["password"], is_test=cred_d["is_test"]
-)
-
-res = eptr.call("mcp", start_date="2024-07-29", end_date="2024-07-29")
-```
-
-You can search for available calls with `eptr.get_available_calls()` function. We plan to include all transparency services in the future.
-
-```python
-available_calls = eptr.get_available_calls()
-print(available_calls)
-```
+## Advanced Topics
 
 ### Aliases
 
-Starting from `v0.7.0` you can create aliases for your calls. Just prepare an alias dictionary and add it to the `EPTR2` object. 
+There are default aliases for the calls. For instance, "ptf" is an alias for "mcp". You can use aliases to call services. 
+
+```python
+res = eptr.call("ptf", start_date="2024-07-29", end_date="2024-07-29")
+```
+
+You can also create aliases for your calls. Just prepare an alias dictionary and add it to the `EPTR2` object. 
 
 ```python
 custom_aliases = {"market-clearing-price": "mcp", "system-marginal-price": "smp"}
 
-eptr = EPTR2(
-    username=cred_d["username"], password=cred_d["password"], is_test=cred_d["is_test"], custom_aliases=custom_aliases
-)
+eptr = EPTR2(username="YOUR_USERNAME",password="YOUR_PASSWORD", custom_aliases=custom_aliases)
 ```
 
 As a warning aliases may overwrite the default keys and default aliases. For instance if your alias is "mcp" pointing to "smp", now default "mcp" call is overwritten with "mcp" alias pointing to "smp".
@@ -82,10 +84,19 @@ eptr.get_aliases(include_custom_aliases = True)
 eptr.get_available_calls(include_aliases = True)
 ```
 
-## Notes
+### Composite Functions
 
-Main object call has some parameters to control the behavior of the package. 
+_New feature in version 1.0.0_
 
-+ You can set `ssl_verify` to `False` if you have SSL verification problems. 
-+ You can set `postprocess` to `False` if you don't want to get data frames as response. 
-+ You can set `get_raw_response` to `True` if you want to get raw urllib3 response object.
+Composite functions are combinations of multiple calls under a single table for a purpose. That purpose might be to gather reporting data or training data for forecast models. You can create your own composite functions with `eptr2` package or use already available ones. 
+
+Our first composite function is `get_hourly_consumption_and_forecast_data`. It returns a data frame with a combination of Load Plan, UECM and Real Time Consumption.
+
+```python
+from eptr2 import EPTR2
+from eptr2.composite import get_hourly_consumption_and_forecast_data
+
+eptr = EPTR2(username="YOUR_USERNAME",password="YOUR_PASSWORD")
+df = get_hourly_consumption_and_forecast_data(eptr, start_date="2024-07-29", end_date="2024-07-29")
+print(df)
+```

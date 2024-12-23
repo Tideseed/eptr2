@@ -1,0 +1,1 @@
+from eptr2.composite.consumption import get_hourly_consumption_and_forecast_data
