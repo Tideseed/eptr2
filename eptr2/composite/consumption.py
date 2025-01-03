@@ -12,7 +12,7 @@ def get_hourly_consumption_and_forecast_data(
     if verbose:
         print("Loading load plan...")
 
-    lp_df = eptr.call("load-plan", start_date=start_date, end_date=start_date)
+    lp_df = eptr.call("load-plan", start_date=start_date, end_date=end_date)
 
     df = lp_df[["date", "lep"]].rename(columns={"lep": "load_plan", "date": "dt"})
 
@@ -45,13 +45,3 @@ def get_hourly_consumption_and_forecast_data(
     )
 
     return df
-
-
-if __name__ == "__main__":
-    eptr = EPTR2(credentials_file_path="creds/eptr_credentials.json")
-
-    df = get_hourly_consumption_and_forecast_data(
-        eptr=eptr, start_date="2024-01-01", end_date="2024-12-23", verbose=True
-    )
-
-    print("End")
