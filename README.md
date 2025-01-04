@@ -86,9 +86,13 @@ eptr.get_available_calls(include_aliases = True)
 
 ### Composite Functions
 
-_New feature in version 1.0.0_
+_New feature from version 1.0.0_
 
 Composite functions are combinations of multiple calls under a single table for a purpose. That purpose might be to gather reporting data or training data for forecast models. You can create your own composite functions with `eptr2` package or use already available ones. 
+
+An side note: We process and manipulate data in composite functions so it is not just the merged data frames of base eptr2 calls.
+
+#### Hourly Consumption and Forecast Data
 
 Our first composite function is `get_hourly_consumption_and_forecast_data`. It returns a data frame with a combination of Load Plan, UECM and Real Time Consumption.
 
@@ -99,4 +103,22 @@ from eptr2.composite import get_hourly_consumption_and_forecast_data
 eptr = EPTR2(username="YOUR_USERNAME",password="YOUR_PASSWORD")
 df = get_hourly_consumption_and_forecast_data(eptr, start_date="2024-07-29", end_date="2024-07-29")
 print(df)
+```
+
+#### Price and Cost
+
+Our second set of composite functions is about prices and costs. 
+
++ `get_price_and_cost`: It returns a data frame with a combination of MCP, SMP, WAP (optional) and associated imbalance and KUPST (optional) costs.
++ `get_imbalance_data`: It returns a data frame with a combination of Imbalance Prices, Imbalance Volumes and Imbalance Costs (optional).
+
+```python
+from eptr2 import EPTR2
+from eptr2.composite import get_price_and_cost, get_imbalance_data
+
+eptr = EPTR2(username="YOUR_USERNAME",password="YOUR_PASSWORD")
+df_cost = get_price_and_cost(eptr, start_date="2024-07-29", end_date="2024-07-29")
+print(df_cost)
+df_imbalance = get_imbalance_data(eptr, start_date="2024-07-29", end_date="2024-07-29")
+print(df_imbalance)
 ```
