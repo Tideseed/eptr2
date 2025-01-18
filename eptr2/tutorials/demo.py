@@ -20,8 +20,7 @@ def run_app(username: str, password: str, port: int | None = None):
         subprocess.run(run_l, check=True)
     except FileNotFoundError:
         raise RuntimeError(
-            "Streamlit is not installed or not found in the PATH. "
-            "Please ensure Streamlit is installed in your environment."
+            "Streamlit is not installed or not found in the PATH. Please ensure Streamlit is installed in your environment."
         )
     except subprocess.CalledProcessError as e:
         raise RuntimeError(f"Failed to run the Streamlit app: {e}")
