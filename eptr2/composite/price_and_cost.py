@@ -127,6 +127,12 @@ def get_hourly_imbalance_data(
     imb_vol_df = eptr.call(
         "imb-vol", start_date=start_date, end_date=end_date, verbose=verbose
     )
+
+    if imb_vol_df.empty:
+        raise ValueError(
+            "Imbalance data returns empty. Settlement data is published after the 15th of the next month (e.g. May data is published at June 15 earliest) or in the first following working day normally. Check the date range."
+        )
+
     imb_vol_df.drop(columns=["hour"], inplace=True)
     imb_vol_df.rename(
         columns={
