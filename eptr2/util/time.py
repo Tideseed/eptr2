@@ -1,4 +1,5 @@
 from datetime import datetime, timedelta, timezone
+import pytz
 
 
 def check_iso_format(
@@ -33,7 +34,7 @@ def check_iso_format(
 
 
 def get_utc3_now():
-    return datetime.utcnow() + timedelta(hours=3)
+    return datetime.now(tz=pytz.timezone("Europe/Istanbul"))
 
 
 def get_today_utc3():
@@ -74,8 +75,9 @@ def datetime_to_contract(
         return "PB" + c_raw + "-" + str(100 + block_hours)[1:]
 
 
-def contract_to_datetime(contract, timestamp=False):
+def contract_to_datetime(contract, timestamp: bool = False, localize: bool = True):
     dt_obj = datetime.strptime(contract[2:10] + ":00:00+03:00", "%y%m%d%H:%M:%S%z")
+
     if timestamp:
         dt_obj = dt_obj.timestamp()
     return dt_obj
