@@ -46,6 +46,17 @@ from eptr2.tutorials import run_demo_app
 run_demo_app(username="YOUR_USERNAME",password="YOUR_PASSWORD")
 ```
 
+### Calculator Tutorial
+
+With version 1.0.2 you can get a calculator tutorial to get imbalance and KÜPST cost estimates for any date and hour with custom actual and forecast values.
+
+```python
+from eptr2.tutorials import run_calc_app
+
+run_calc_app(username="YOUR_USERNAME",password="YOUR_PASSWORD")
+```
+
+
 _More tutorials are expected to be added in the future._
 
 # About EPIAS Transparency Platform v2.0 Python client by Robokami Data
@@ -121,4 +132,40 @@ df_cost = get_price_and_cost(eptr, start_date="2024-07-29", end_date="2024-07-29
 print(df_cost)
 df_imbalance = get_imbalance_data(eptr, start_date="2024-07-29", end_date="2024-07-29")
 print(df_imbalance)
+```
+
+#### Production
+
+With v1.0.2, you can get production and production plan data as well with composite functions. If you know the necessary ids, you can get the specific production values (omit the parameters to get totals).
+
+There are three composite functions. One for getting actual production data (real time, UEVM), one for getting plan data (KGUP v1, KGUP, KUDUP), and one to get both and merge into a single table. Each column except date/time/hour get their own suffix from the data source (e.g. "wind_uevm").
+
+```python
+from eptr2 import EPTR2
+from eptr2.composite import get_price_and_cost, get_imbalance_data
+
+eptr = EPTR2(username="YOUR_USERNAME",password="YOUR_PASSWORD")
+
+actual_df = get_hourly_production_data(
+    eptr=eptr,
+    start_date="2024-11-01",
+    end_date="2024-11-01",
+    rt_pp_id=641,  ## ATATÜRK HES
+    uevm_pp_id=142,  ## ATATÜRK HES
+    verbose=True,
+)
+
+
+plan_df = get_hourly_production_plan_data(
+    eptr=eptr,
+    start_date="2024-11-01",
+    end_date="2024-11-01",
+    org_id=195, ## EÜAŞ
+    uevcb_id=3525325, ## ATATÜRK HES
+    verbose=True,
+)
+
+wrap_df = wrapper_hourly_production_plan_and_realized(
+        eptr=eptr, start_date="2024-11-01", end_date="2024-11-01", verbose=True
+    )
 ```
