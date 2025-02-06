@@ -1,9 +1,14 @@
 from eptr2 import EPTR2
 import pandas as pd
+from eptr2.util.time import datetime_to_contract
 
 
 def get_hourly_consumption_and_forecast_data(
-    eptr: EPTR2, start_date: str, end_date: str, verbose: bool = False
+    eptr: EPTR2,
+    start_date: str,
+    end_date: str,
+    verbose: bool = False,
+    include_contract_symbol: bool = False,
 ):
     """
     This composite function gets load plan, UECM (settlement consumption), real time and consumption data. If end date is after the last settlement data, UECM is filled with real time consumption under consumption column.
@@ -43,5 +48,11 @@ def get_hourly_consumption_and_forecast_data(
     df["consumption"] = df.apply(
         lambda x: x["rt_cons"] if pd.isnull(x["uecm"]) else x["uecm"], axis=1
     )
+
+    if include_contract_symbol:
+        try:
+            df["contract"] = df["date"].apply(lambda x: datetime_to_contract(x))
+        except Exception as e:
+            print("Contract information could not be added. Error:", e)
 
     return df

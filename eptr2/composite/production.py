@@ -1,5 +1,6 @@
 from eptr2 import EPTR2
 import pandas as pd
+from eptr2.util.time import datetime_to_contract
 
 
 def get_hourly_production_data(
@@ -9,6 +10,7 @@ def get_hourly_production_data(
     rt_pp_id: str | int | None = None,
     uevm_pp_id: str | int | None = None,
     verbose: bool = False,
+    include_contract_symbol: bool = False,
 ):
     """
     This composite function gets production data (Gerçek Zamanlı Üretim, UEVM) and merges them.
@@ -65,6 +67,14 @@ def get_hourly_production_data(
 
     merged_df = rt_gen_df.merge(uevm_df, how="left", on=["date"])
 
+    if include_contract_symbol:
+        try:
+            merged_df["contract"] = merged_df["date"].apply(
+                lambda x: datetime_to_contract(x)
+            )
+        except Exception as e:
+            print("Contract information could not be added. Error:", e)
+
     return merged_df
 
 
@@ -75,6 +85,7 @@ def get_hourly_production_plan_data(
     org_id: str | None = None,
     uevcb_id: str | None = None,
     verbose: bool = False,
+    include_contract_symbol: bool = False,
 ):
     """
     This composite function gets KGUP v1, KGUP and KUDUP data and merges them.
@@ -104,7 +115,7 @@ def get_hourly_production_plan_data(
         raise ValueError("No data (KGUP v1) is available for this date range.")
 
     kgupv1_df.columns = [
-        x + "_v1" if x not in ["date", "time"] else x for x in kgupv1_df.columns
+        x + "_kgup_v1" if x not in ["date", "time"] else x for x in kgupv1_df.columns
     ]
 
     if verbose:
@@ -117,6 +128,10 @@ def get_hourly_production_plan_data(
         org_id=org_id,
         uevcb_id=uevcb_id,
     )
+
+    kgup_df.columns = [
+        x + "_kgup" if x not in ["date", "time"] else x for x in kudup_df.columns
+    ]
 
     if verbose:
         print("Loading KUDUP...")
@@ -147,6 +162,14 @@ def get_hourly_production_plan_data(
         first_cols + [x for x in merged_df.columns if x not in first_cols]
     ]
 
+    if include_contract_symbol:
+        try:
+            merged_df["contract"] = merged_df["date"].apply(
+                lambda x: datetime_to_contract(x)
+            )
+        except Exception as e:
+            print("Contract information could not be added. Error:", e)
+
     return merged_df
 
 
@@ -159,6 +182,7 @@ def wrapper_hourly_production_plan_and_realized(
     rt_pp_id: str | None = None,
     uevm_pp_id: str | None = None,
     verbose: bool = False,
+    include_contract_symbol: bool = False,
 ):
 
     if verbose:
@@ -171,6 +195,7 @@ def wrapper_hourly_production_plan_and_realized(
         org_id=org_id,
         uevcb_id=uevcb_id,
         verbose=verbose,
+        include_contract_symbol=include_contract_symbol,
     )
 
     if verbose:
@@ -183,6 +208,7 @@ def wrapper_hourly_production_plan_and_realized(
         rt_pp_id=rt_pp_id,
         uevm_pp_id=uevm_pp_id,
         verbose=verbose,
+        include_contract_symbol=False,
     )
 
     merged_df = plan_df.merge(realized_df, how="outer", on=["date"])

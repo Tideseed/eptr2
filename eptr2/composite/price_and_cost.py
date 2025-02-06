@@ -1,5 +1,6 @@
 from eptr2 import EPTR2
 from eptr2.util.costs import calculate_unit_kupst_cost
+from eptr2.util.time import datetime_to_contract
 import pandas as pd
 
 
@@ -10,6 +11,7 @@ def get_hourly_price_and_cost_data(
     include_wap: bool = True,
     add_kupst_cost: bool = True,
     verbose: bool = False,
+    include_contract_symbol: bool = False,
 ):
     """
     This composite function gets price and imbalance (kupst included) cost data.
@@ -69,9 +71,18 @@ def get_hourly_price_and_cost_data(
             lambda x: calculate_unit_kupst_cost(mcp=x["mcp"], smp=x["smp"]), axis=1
         )
 
+    if include_contract_symbol:
+        try:
+            price_df["contract"] = price_df["date"].apply(
+                lambda x: datetime_to_contract(x)
+            )
+        except Exception as e:
+            print("Contract information could not be added. Error:", e)
+
     ### Column ordering
     columns_order = [
         "date",
+        "contract",
         "pos_imb_vol",
         "neg_imb_vol",
         "pos_imb_mwh",
@@ -103,6 +114,7 @@ def get_hourly_imbalance_data(
     include_wap: bool = True,
     add_kupst_cost: bool = True,
     verbose: bool = False,
+    include_contract_symbol=False,
 ):
     """
     This composite function gets imbalance volume, imbalance quantity and imbalance cost data.
@@ -161,6 +173,14 @@ def get_hourly_imbalance_data(
 
     merged_df = imb_vol_df.merge(imb_qty_df, on="date", how="outer")
 
+    if include_contract_symbol:
+        try:
+            merged_df["contract"] = merged_df["date"].apply(
+                lambda x: datetime_to_contract(x)
+            )
+        except Exception as e:
+            print("Contract information could not be added. Error:", e)
+
     if not include_price_and_cost_data:
         return merged_df
 
@@ -171,6 +191,7 @@ def get_hourly_imbalance_data(
         include_wap=include_wap,
         add_kupst_cost=add_kupst_cost,
         verbose=verbose,
+        include_contract_symbol=False,
     )
 
     merged_df = merged_df.merge(price_df, on="date", how="outer")

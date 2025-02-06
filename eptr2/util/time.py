@@ -150,16 +150,47 @@ def ts_to_day_of_week_utc3(ts):
     """
     0: Sunday
     """
-    return (datetime.utcfromtimestamp(ts) + timedelta(hours=3)).strftime("%w")
+    return ts_to_format_utc3(ts=ts, format="%w")
+
+
+def ts_to_format_utc3(ts, format="%Y-%m-%d"):
+    return (datetime.fromtimestamp(ts, tz=pytz.timezone("Europe/Istanbul"))).strftime(
+        format
+    )
 
 
 def ts_to_date_utc3(ts):
-    return (datetime.utcfromtimestamp(ts) + timedelta(hours=3)).strftime("%Y-%m-%d")
+    """
+    Convert timestamp to UTC3 - date
+    """
+    return ts_to_format_utc3(ts, format="%Y-%m-%d")
 
 
 def ts_to_day_utc3(ts):
-    return (datetime.utcfromtimestamp(ts) + timedelta(hours=3)).strftime("%d")
+    """
+    Convert timestamp to UTC3 and get the day
+    """
+    return ts_to_format_utc3(ts, format="%d")
 
 
 def ts_to_hour_utc3(ts):
-    return (datetime.utcfromtimestamp(ts) + timedelta(hours=3)).strftime("%H")
+    """
+    Convert timestamp to UTC3 and get the hour
+    """
+    return ts_to_format_utc3(ts, format="%H")
+
+
+def calculate_active_contracts():
+
+    now_dt = get_utc3_now()
+    sod = now_dt.replace(minute=0, second=0, microsecond=0) + timedelta(hours=2)
+    eod = now_dt.replace(hour=23, minute=0, second=0, microsecond=0)
+    if now_dt.hour >= 18:
+        eod += timedelta(days=1)
+
+    l = [
+        datetime_to_contract(sod + timedelta(hours=i))
+        for i in range(int((eod - sod).total_seconds() // 3600) + 1)
+    ]
+
+    return l
