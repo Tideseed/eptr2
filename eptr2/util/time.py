@@ -34,10 +34,16 @@ def check_iso_format(
 
 
 def get_utc3_now():
+    """
+    Gets Turkey time (UTC +3)
+    """
     return datetime.now(tz=pytz.timezone("Europe/Istanbul"))
 
 
 def get_today_utc3():
+    """
+    Gets Turkey today (UTC +3)
+    """
     return get_utc3_now().strftime("%Y-%m-%d")
 
 

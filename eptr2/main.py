@@ -143,7 +143,7 @@ class EPTR2:
             tgt_start_time = datetime.now()
 
         ## Hard timeout
-        self.tgt_exp = (tgt_start_time + timedelta(hours=6)).timestamp()
+        self.tgt_exp = (tgt_start_time + timedelta(hours=1, minutes=45)).timestamp()
 
         ## Soft timeout
         self.tgt_exp_0 = min(
