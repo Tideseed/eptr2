@@ -1,6 +1,6 @@
 from eptr2 import EPTR2
 import pandas as pd
-from eptr2.util.time import datetime_to_contract
+from eptr2.util.time import iso_to_contract
 
 
 def get_hourly_production_data(
@@ -65,7 +65,10 @@ def get_hourly_production_data(
     if verbose:
         print("Merging data...")
 
-    merged_df = rt_gen_df.merge(uevm_df, how="left", on=["date"])
+    if uevm_df.empty:
+        merged_df = rt_gen_df.copy()
+    else:
+        merged_df = rt_gen_df.merge(uevm_df, how="left", on=["date"])
 
     if include_contract_symbol:
         try:
@@ -74,6 +77,8 @@ def get_hourly_production_data(
             )
         except Exception as e:
             print("Contract information could not be added. Error:", e)
+
+    merged_df = merged_df.rename(columns={"date": "dt"})
 
     return merged_df
 
@@ -130,7 +135,7 @@ def get_hourly_production_plan_data(
     )
 
     kgup_df.columns = [
-        x + "_kgup" if x not in ["date", "time"] else x for x in kudup_df.columns
+        x + "_kgup" if x not in ["date", "time"] else x for x in kgup_df.columns
     ]
 
     if verbose:
@@ -165,10 +170,18 @@ def get_hourly_production_plan_data(
     if include_contract_symbol:
         try:
             merged_df["contract"] = merged_df["date"].apply(
-                lambda x: datetime_to_contract(x)
+                lambda x: iso_to_contract(x)
             )
         except Exception as e:
             print("Contract information could not be added. Error:", e)
+
+    merged_df = merged_df.rename(columns={"date": "dt"})
+
+    col_order = ["dt"] + ["contract"] if include_contract_symbol else []
+
+    merged_df = merged_df[
+        col_order + [x for x in merged_df.columns if x not in col_order]
+    ]
 
     return merged_df
 
@@ -211,6 +224,6 @@ def wrapper_hourly_production_plan_and_realized(
         include_contract_symbol=False,
     )
 
-    merged_df = plan_df.merge(realized_df, how="outer", on=["date"])
+    merged_df = plan_df.merge(realized_df, how="outer", on=["dt"])
 
     return merged_df

@@ -81,8 +81,19 @@ def datetime_to_contract(
         return "PB" + c_raw + "-" + str(100 + block_hours)[1:]
 
 
-def contract_to_datetime(contract, timestamp: bool = False, localize: bool = True):
-    dt_obj = datetime.strptime(contract[2:10] + ":00:00+03:00", "%y%m%d%H:%M:%S%z")
+def iso_to_contract(dt):
+    return datetime_to_contract(check_iso_format(dt, convert_to_hour_format=True))
+
+
+def contract_to_datetime(
+    contract, timestamp: bool = False, localize: bool = True, to_str: bool = False
+):
+    dt_obj = datetime.strptime(
+        contract[2:10] + ":00:00" + ("+03:00" if localize else ""), "%y%m%d%H:%M:%S%z"
+    )
+
+    if to_str:
+        return dt_obj.isoformat(timespec="seconds")
 
     if timestamp:
         dt_obj = dt_obj.timestamp()

@@ -1,6 +1,6 @@
 from eptr2 import EPTR2
 from eptr2.util.costs import calculate_unit_kupst_cost
-from eptr2.util.time import datetime_to_contract
+from eptr2.util.time import iso_to_contract
 import pandas as pd
 
 
@@ -73,9 +73,7 @@ def get_hourly_price_and_cost_data(
 
     if include_contract_symbol:
         try:
-            price_df["contract"] = price_df["date"].apply(
-                lambda x: datetime_to_contract(x)
-            )
+            price_df["contract"] = price_df["date"].apply(lambda x: iso_to_contract(x))
         except Exception as e:
             print("Contract information could not be added. Error:", e)
 

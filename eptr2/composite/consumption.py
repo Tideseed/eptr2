@@ -24,13 +24,18 @@ def get_hourly_consumption_and_forecast_data(
     if verbose:
         print("Loading UECM...")
 
-    uecm_df = eptr.call("uecm", start_date=start_date, end_date=end_date)
+    uecm_df: pd.DataFrame = eptr.call("uecm", start_date=start_date, end_date=end_date)
 
-    df = df.merge(
-        uecm_df[["period", "swv"]].rename(columns={"period": "dt", "swv": "uecm"}),
-        on="dt",
-        how="outer",
-    )
+    if not uecm_df.empty:
+        uecm_df = uecm_df[["period", "swv"]].rename(
+            columns={"period": "dt", "swv": "uecm"}
+        )
+
+        df = df.merge(
+            uecm_df,
+            on="dt",
+            how="outer",
+        )
 
     if verbose:
         print("Loading real time consumption...")
@@ -45,9 +50,12 @@ def get_hourly_consumption_and_forecast_data(
         how="outer",
     )
 
-    df["consumption"] = df.apply(
-        lambda x: x["rt_cons"] if pd.isnull(x["uecm"]) else x["uecm"], axis=1
-    )
+    if not uecm_df.empty:
+        df["consumption"] = df.apply(
+            lambda x: x["rt_cons"] if pd.isnull(x["uecm"]) else x["uecm"], axis=1
+        )
+    else:
+        df["consumption"] = df["rt_cons"].copy()
 
     if include_contract_symbol:
         try:
