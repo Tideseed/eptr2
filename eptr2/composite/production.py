@@ -1,6 +1,6 @@
 from eptr2 import EPTR2
 import pandas as pd
-from eptr2.util.time import iso_to_contract
+from eptr2.util.time import iso_to_contract, datetime_to_contract
 
 
 def get_hourly_production_data(
