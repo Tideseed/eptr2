@@ -31,6 +31,8 @@ def check_iso_format(
         return dt
     except ValueError:
         return None
+    except AttributeError:
+        return None
 
 
 def get_utc3_now():
@@ -64,6 +66,9 @@ def parse_dt_transparency_1(dt):
 def datetime_to_contract(
     dt, is_ts=False, root_only=False, block_hours: int | None = None
 ):
+    if dt is None:
+        return None
+
     if isinstance(dt, str):
         dt = datetime.strptime(dt, "%Y-%m-%d %H:%M:%S")
 

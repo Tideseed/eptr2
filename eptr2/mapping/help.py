@@ -1254,8 +1254,8 @@ def get_help_d(key=None):
         "mms": {
             "category": "PMS",
             "title": {
-                "tr": "PİYASA MESAJ SİSTEMİ",
-                "en": "MARKET MESSAGE SYSTEM",
+                "tr": "Piyasa Mesaj Sistemi",
+                "en": "Market Message System",
             },
             "desc": {
                 "tr": "İlgili santralin arıza veya bakım bilgileridir.",

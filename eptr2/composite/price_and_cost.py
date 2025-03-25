@@ -140,7 +140,7 @@ def get_hourly_imbalance_data(
 
     if imb_vol_df.empty:
         raise ValueError(
-            "Imbalance data returns empty. Settlement data is published after the 15th of the next month (e.g. May data is published at June 15 earliest) or in the first following working day normally. Check the date range."
+            "Imbalance data returns empty. Settlement data is published after the 15th of the next month (e.g. May data is published at June 15 earliest) or in the first following working day normally. It is also possible for the imbalance data to be released later than settlement. Check the date range."
         )
 
     imb_vol_df.drop(columns=["hour"], inplace=True)
@@ -154,10 +154,16 @@ def get_hourly_imbalance_data(
 
     imb_vol_df["neg_imb_vol"] = -imb_vol_df["neg_imb_vol"]
 
+    ## TEMP FIX for API quirk (i.e. it does not return data unless start date is the first day of the month)
+    start_date_temp = pd.to_datetime(start_date).replace(day=1).strftime("%Y-%m-%d")
+
     imb_qty_df = eptr.call(
-        "imb-qty", start_date=start_date, end_date=end_date, verbose=verbose
+        "imb-qty", start_date=start_date_temp, end_date=end_date, verbose=verbose
     )
-    imb_qty_df.drop(columns=["hour"], inplace=True)
+
+    imb_qty_df = imb_qty_df[imb_qty_df["date"] >= start_date]
+
+    # imb_qty_df.drop(columns=["hour"], inplace=True)
 
     imb_qty_df.rename(
         columns={
@@ -174,7 +180,7 @@ def get_hourly_imbalance_data(
     if include_contract_symbol:
         try:
             merged_df["contract"] = merged_df["date"].apply(
-                lambda x: datetime_to_contract(x)
+                lambda x: iso_to_contract(x)
             )
         except Exception as e:
             print("Contract information could not be added. Error:", e)

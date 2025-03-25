@@ -1,6 +1,6 @@
 from eptr2 import EPTR2
 import pandas as pd
-from eptr2.util.time import datetime_to_contract
+from eptr2.util.time import iso_to_contract
 
 
 def get_hourly_consumption_and_forecast_data(
@@ -59,7 +59,7 @@ def get_hourly_consumption_and_forecast_data(
 
     if include_contract_symbol:
         try:
-            df["contract"] = df["date"].apply(lambda x: datetime_to_contract(x))
+            df["contract"] = df["dt"].apply(lambda x: iso_to_contract(x))
         except Exception as e:
             print("Contract information could not be added. Error:", e)
 
