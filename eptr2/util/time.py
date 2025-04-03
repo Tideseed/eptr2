@@ -216,3 +216,36 @@ def calculate_active_contracts():
     ]
 
     return l
+
+
+def contract_close_time(c, to_timestamp=False, delta=3600):
+    """
+    Get the close time of a contract with the format PHyyMMDDHH or PByyMMDDHH-BB
+    """
+    dt = contract_to_datetime(c) - timedelta(seconds=delta)
+
+    if to_timestamp:
+        ts = dt.timestamp()
+        return ts
+
+    return dt
+
+
+def time_to_contract_close(c, dt_then: datetime | str = None):
+    """
+    Get the time to close of a contract with the format PHyyMMDDHH or PByyMMDDHH-BB
+    """
+    dt_close = contract_close_time(c, to_timestamp=True)
+
+    if dt_then is None:
+        now_ts = get_utc3_now().timestamp()
+    elif isinstance(dt_then, datetime):
+        now_ts = dt_then.timestamp()
+    elif isinstance(dt_then, str):
+        try:
+            now_ts = datetime.fromisoformat(dt_then).timestamp()
+        except ValueError:
+            print("Invalid datetime string format. ISO format expected.")
+            return None
+
+    return dt_close - now_ts
