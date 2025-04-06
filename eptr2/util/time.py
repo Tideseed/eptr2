@@ -249,3 +249,86 @@ def time_to_contract_close(c, dt_then: datetime | str = None):
             return None
 
     return dt_close - now_ts
+
+
+def get_time_min_max_price_map():
+
+    map_l = [
+        {
+            "date": "2025-04-05",
+            "min": 0,
+            "max": 3400.0,
+            "idm_min": 0,
+            "idm_max": 3502.0,
+        },
+        {
+            "date": "2024-06-01",
+            "min": 0,
+            "max": 3000.0,
+            "idm_min": 0,
+            "idm_max": 3090.0,
+        },
+        {
+            "date": "2023-07-04",
+            "min": 0,
+            "max": 2700.0,
+            "idm_min": 0,
+            "idm_max": 2781.0,
+        },
+        {
+            "date": "2023-04-01",
+            "min": 0,
+            "max": 2600.0,
+            "idm_min": 0,
+            "idm_max": 2678.0,
+        },
+        {
+            "date": "2023-03-01",
+            "min": 0,
+            "max": 3050.0,
+            "idm_min": 0,
+            "idm_max": 3141.5,
+        },
+        {
+            "date": "2023-02-01",
+            "min": 0,
+            "max": 3650.0,
+            "idm_min": 0,
+            "idm_max": 3759.5,
+        },
+        {
+            "date": "2023-01-01",
+            "min": 0,
+            "max": 4200.0,
+            "idm_min": 0,
+            "idm_max": 4326.0,
+        },
+        {
+            "date": "2022-09-02",
+            "min": 0,
+            "max": 4800.0,
+            "idm_min": 0,
+            "idm_max": 4944.0,
+        },
+    ]
+
+    ## Sort the map by date
+
+    map_l = sorted(map_l, key=lambda x: x["date"], reverse=True)
+
+    return map_l
+
+
+### WARNING: NOT FINISHED
+def contract_to_min_max_prices(c):
+    """
+    Given a contract return the min and max prices
+    """
+
+    the_date = contract_to_datetime(c).date()
+    mm_map = get_time_min_max_price_map()
+    for x in mm_map:
+        if the_date >= datetime.strptime(x["date"], "%Y-%m-%d").date():
+            return x
+
+    return None
