@@ -231,13 +231,14 @@ def contract_close_time(c, to_timestamp=False, delta=3600):
     return dt
 
 
-def time_to_contract_close(c, dt_then: datetime | str = None):
+def time_to_contract_close(c, dt_then: datetime | str = None, ts_then: float = None):
     """
     Get the time to close of a contract with the format PHyyMMDDHH or PByyMMDDHH-BB
     """
     dt_close = contract_close_time(c, to_timestamp=True)
-
-    if dt_then is None:
+    if ts_then is not None:
+        now_ts = ts_then
+    elif dt_then is None:
         now_ts = get_utc3_now().timestamp()
     elif isinstance(dt_then, datetime):
         now_ts = dt_then.timestamp()
@@ -320,7 +321,7 @@ def get_time_min_max_price_map():
 
 
 ### WARNING: NOT FINISHED
-def contract_to_min_max_prices(c):
+def contract_to_floor_ceil_prices(c):
     """
     Given a contract return the min and max prices
     """
