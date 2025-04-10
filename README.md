@@ -120,15 +120,15 @@ print(df)
 
 Our second set of composite functions is about prices and costs. 
 
-+ `get_price_and_cost`: It returns a data frame with a combination of MCP, SMP, WAP (optional) and associated imbalance and KUPST (optional) costs.
++ `get_hourly_price_and_cost_data`: It returns a data frame with a combination of MCP, SMP, WAP (optional) and associated imbalance and KUPST (optional) costs.
 + `get_imbalance_data`: It returns a data frame with a combination of Imbalance Prices, Imbalance Volumes and Imbalance Costs (optional).
 
 ```python
 from eptr2 import EPTR2
-from eptr2.composite import get_price_and_cost, get_imbalance_data
+from eptr2.composite import get_hourly_price_and_cost_data, get_imbalance_data
 
 eptr = EPTR2(username="YOUR_USERNAME",password="YOUR_PASSWORD")
-df_cost = get_price_and_cost(eptr, start_date="2024-07-29", end_date="2024-07-29")
+df_cost = get_hourly_price_and_cost_data(eptr, start_date="2024-07-29", end_date="2024-07-29")
 print(df_cost)
 df_imbalance = get_imbalance_data(eptr, start_date="2024-07-29", end_date="2024-07-29")
 print(df_imbalance)
@@ -142,7 +142,7 @@ There are three composite functions. One for getting actual production data (rea
 
 ```python
 from eptr2 import EPTR2
-from eptr2.composite import get_price_and_cost, get_imbalance_data
+from eptr2.composite import get_hourly_price_and_cost_data, get_imbalance_data
 
 eptr = EPTR2(username="YOUR_USERNAME",password="YOUR_PASSWORD")
 
