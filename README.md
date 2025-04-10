@@ -142,7 +142,7 @@ There are three composite functions. One for getting actual production data (rea
 
 ```python
 from eptr2 import EPTR2
-from eptr2.composite import get_hourly_price_and_cost_data, get_imbalance_data
+from eptr2.composite import wrapper_hourly_production_plan_and_realized, get_hourly_production_data, get_hourly_production_plan_data
 
 eptr = EPTR2(username="YOUR_USERNAME",password="YOUR_PASSWORD")
 
