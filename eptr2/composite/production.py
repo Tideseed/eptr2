@@ -1,6 +1,10 @@
 from eptr2 import EPTR2
 import pandas as pd
-from eptr2.util.time import iso_to_contract, datetime_to_contract
+from eptr2.util.time import (
+    iso_to_contract,
+    datetime_to_contract,
+    check_date_for_settlement,
+)
 
 
 def get_hourly_production_data(
@@ -57,6 +61,9 @@ def get_hourly_production_data(
     try:
         rt_gen_df.drop("hour", axis=1, inplace=True)
     except Exception as e:
+        within_settlement = check_date_for_settlement(x=end_date)
+        if not within_settlement:
+            print("Warning: The end date may not be within the settlement period.")
         if verbose:
             print(e)
 

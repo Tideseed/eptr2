@@ -27,6 +27,7 @@ class EPTR2:
         username: str = None,
         password: str = None,
         tgt_d: dict | None = None,
+        credentials_file_path: str | None = None,
         **kwargs,
     ) -> None:
         ## kwargs are
@@ -42,7 +43,8 @@ class EPTR2:
         self.username = username
         self.password = password
         self.is_test = kwargs.get("is_test", False)  ## Currently not used
-        self.credentials_file_path = kwargs.get("credentials_file_path", None)
+        self.credentials_file_path = credentials_file_path
+        # self.credentials_file_path = kwargs.get("credentials_file_path", None)
         self.login(custom_root_phrase=kwargs.get("root_phrase", None))
 
         if tgt_d is not None:

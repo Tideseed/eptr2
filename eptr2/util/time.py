@@ -320,7 +320,6 @@ def get_time_min_max_price_map():
     return map_l
 
 
-### WARNING: NOT FINISHED
 def contract_to_floor_ceil_prices(c):
     """
     Given a contract return the min and max prices
@@ -333,3 +332,44 @@ def contract_to_floor_ceil_prices(c):
             return x
 
     return None
+
+
+def get_probable_settlement_date(x: str | None = None, settlement_day=15):
+    """
+    This function calculates the next probable settlement date based on certain criteria.
+    """
+
+    now_dt = get_utc3_now()
+
+    if x is None:
+        x = now_dt
+
+    elif isinstance(x, str):
+        x: datetime = datetime.strptime(x, "%Y-%m-%d")
+
+    probable_settlement_date = x.replace(
+        month=x.month + 1,
+        day=settlement_day,
+        hour=0,
+        minute=0,
+        second=0,
+        microsecond=0,
+    )
+
+    return probable_settlement_date
+
+
+def check_date_for_settlement(x: str | datetime, settlement_day=15):
+    """
+    Check if the settlement date for a given date has already occured.
+    """
+
+    now_dt = get_utc3_now()
+    probable_settlement_date = get_probable_settlement_date(
+        x=x, settlement_day=settlement_day
+    )
+
+    if now_dt >= probable_settlement_date:
+        return True
+
+    return False
