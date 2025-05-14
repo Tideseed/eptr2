@@ -1,6 +1,8 @@
 def get_kupst_tolerance(source: str):
+    alias_map = {"sun": "solar"}
+
     tol_source_map = {"wind": 0.17, "solar": 0.10}
-    return tol_source_map.get(source, 0.05)
+    return tol_source_map.get(alias_map.get(source, source), 0.05)
 
 
 def calculate_unit_imbalance_price(

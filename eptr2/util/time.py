@@ -168,6 +168,24 @@ def contract_to_date_info(c, include_c=False):
     return d
 
 
+def contract_to_day_ahead_time(
+    c: str, da_hour: int = 11, da_minutes: int = 0, as_ts=True
+):
+    """
+    Get the day ahead decision time from a contract with the format PHyyMMDDHH or PByyMMDDHH-BB
+    """
+    c_dt = contract_to_datetime(c, timestamp=False)
+    da_dt = c_dt.replace(
+        hour=da_hour, minute=da_minutes, second=0, microsecond=0
+    ) - timedelta(days=1)
+
+    if as_ts:
+        da_ts = da_dt.timestamp()
+        return da_ts
+
+    return da_dt
+
+
 def ts_to_day_of_week_utc3(ts):
     """
     0: Sunday
@@ -369,7 +387,7 @@ def check_date_for_settlement(x: str | datetime, settlement_day=15):
         x=x, settlement_day=settlement_day
     )
 
-    if now_dt >= probable_settlement_date:
+    if now_dt.timestamp() >= probable_settlement_date.timestamp():
         return True
 
     return False
