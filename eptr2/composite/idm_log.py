@@ -38,7 +38,7 @@ def idm_log_longer(
         )
 
     period_start_dt = start_dt
-    period_end_dt = period_start_dt + timedelta(days=days_interval)
+    period_end_dt = min(period_start_dt + timedelta(days=days_interval), end_dt)
 
     main_df = pd.DataFrame()
     while period_start_dt <= end_dt:
