@@ -80,7 +80,7 @@ def get_hourly_production_data(
     if include_contract_symbol:
         try:
             merged_df["contract"] = merged_df["date"].apply(
-                lambda x: datetime_to_contract(x)
+                lambda x: iso_to_contract(x)
             )
         except Exception as e:
             print("Contract information could not be added. Error:", e)

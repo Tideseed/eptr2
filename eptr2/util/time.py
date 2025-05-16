@@ -70,7 +70,9 @@ def datetime_to_contract(
         return None
 
     if isinstance(dt, str):
-        dt = datetime.strptime(dt, "%Y-%m-%d %H:%M:%S")
+        dt = check_iso_format(val=dt)
+        if dt is None:
+            dt = datetime.strptime(dt, "%Y-%m-%d %H:%M:%S")
 
     if is_ts:
         dt = datetime.utcfromtimestamp(dt) + timedelta(hours=3)
