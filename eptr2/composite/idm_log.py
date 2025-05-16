@@ -110,13 +110,3 @@ def idm_log_period(eptr: EPTR2, period: str, **kwargs):
         end_date=end_date,
         **kwargs,
     )
-
-
-if __name__ == "__main__":
-    eptr = EPTR2(credentials_file_path="creds/eptr_credentials.json")
-
-    df = idm_log_longer(
-        eptr=eptr, start_date="2025-05-01", end_date="2025-05-15", verbose=True
-    )
-
-    print("End")
