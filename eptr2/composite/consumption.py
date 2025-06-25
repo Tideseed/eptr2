@@ -17,14 +17,21 @@ def get_hourly_consumption_and_forecast_data(
     if verbose:
         print("Loading load plan...")
 
-    lp_df = eptr.call("load-plan", start_date=start_date, end_date=end_date)
+    lp_df = eptr.call(
+        "load-plan",
+        start_date=start_date,
+        end_date=end_date,
+        request_kwargs={"timeout": 5},
+    )
 
     df = lp_df[["date", "lep"]].rename(columns={"lep": "load_plan", "date": "dt"})
 
     if verbose:
         print("Loading UECM...")
 
-    uecm_df: pd.DataFrame = eptr.call("uecm", start_date=start_date, end_date=end_date)
+    uecm_df: pd.DataFrame = eptr.call(
+        "uecm", start_date=start_date, end_date=end_date, request_kwargs={"timeout": 5}
+    )
 
     if not uecm_df.empty:
         uecm_df = uecm_df[["period", "swv"]].rename(
@@ -40,7 +47,12 @@ def get_hourly_consumption_and_forecast_data(
     if verbose:
         print("Loading real time consumption...")
 
-    rt_cons = eptr.call("rt-cons", start_date=start_date, end_date=end_date)
+    rt_cons = eptr.call(
+        "rt-cons",
+        start_date=start_date,
+        end_date=end_date,
+        request_kwargs={"timeout": 5},
+    )
 
     df = df.merge(
         rt_cons[["date", "consumption"]].rename(

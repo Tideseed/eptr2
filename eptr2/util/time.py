@@ -367,8 +367,14 @@ def get_probable_settlement_date(x: str | None = None, settlement_day=15):
     elif isinstance(x, str):
         x: datetime = datetime.strptime(x, "%Y-%m-%d")
 
+    if x.month == 12:
+        # If the month is December, we set the next month to January of the next year
+        x = x.replace(year=x.year + 1, month=1)
+    else:
+        # Otherwise, we just increment the month by 1
+        x = x.replace(month=x.month + 1)
+
     probable_settlement_date = x.replace(
-        month=x.month + 1,
         day=settlement_day,
         hour=0,
         minute=0,
