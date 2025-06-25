@@ -12,6 +12,7 @@ def get_hourly_price_and_cost_data(
     add_kupst_cost: bool = True,
     verbose: bool = False,
     include_contract_symbol: bool = False,
+    timeout: int = 10,
 ):
     """
     This composite function gets price and imbalance (kupst included) cost data.
@@ -33,7 +34,12 @@ def get_hourly_price_and_cost_data(
     if verbose:
         print("Getting MCP, SMP and imbalance price data...")
 
-    price_df = eptr.call("mcp-smp-imb", start_date=start_date, end_date=end_date)
+    price_df = eptr.call(
+        "mcp-smp-imb",
+        start_date=start_date,
+        end_date=end_date,
+        request_kwargs={"timeout": timeout},
+    )
 
     price_df.drop(columns=["time"], inplace=True)
 
@@ -58,7 +64,12 @@ def get_hourly_price_and_cost_data(
     if include_wap:
         if verbose:
             print("Getting WAP data...")
-        wap_df = eptr.call("wap", start_date=start_date, end_date=end_date)
+        wap_df = eptr.call(
+            "wap",
+            start_date=start_date,
+            end_date=end_date,
+            request_kwargs={"timeout": timeout},
+        )
         wap_df.drop(columns=["hour"], inplace=True)
 
         price_df = price_df.merge(wap_df, on="date", how="outer")
@@ -113,6 +124,7 @@ def get_hourly_imbalance_data(
     add_kupst_cost: bool = True,
     verbose: bool = False,
     include_contract_symbol=False,
+    timeout: int = 10,
 ):
     """
     This composite function gets imbalance volume, imbalance quantity and imbalance cost data.
@@ -135,7 +147,11 @@ def get_hourly_imbalance_data(
     """
 
     imb_vol_df = eptr.call(
-        "imb-vol", start_date=start_date, end_date=end_date, verbose=verbose
+        "imb-vol",
+        start_date=start_date,
+        end_date=end_date,
+        verbose=verbose,
+        request_kwargs={"timeout": timeout},
     )
 
     if imb_vol_df.empty:
@@ -158,7 +174,11 @@ def get_hourly_imbalance_data(
     start_date_temp = pd.to_datetime(start_date).replace(day=1).strftime("%Y-%m-%d")
 
     imb_qty_df = eptr.call(
-        "imb-qty", start_date=start_date_temp, end_date=end_date, verbose=verbose
+        "imb-qty",
+        start_date=start_date_temp,
+        end_date=end_date,
+        verbose=verbose,
+        request_kwargs={"timeout": timeout},
     )
 
     imb_qty_df = imb_qty_df[imb_qty_df["date"] >= start_date]
@@ -196,6 +216,7 @@ def get_hourly_imbalance_data(
         add_kupst_cost=add_kupst_cost,
         verbose=verbose,
         include_contract_symbol=False,
+        timeout=timeout,
     )
 
     merged_df = merged_df.merge(price_df, on="date", how="outer")
