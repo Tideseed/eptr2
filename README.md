@@ -169,3 +169,39 @@ wrap_df = wrapper_hourly_production_plan_and_realized(
         eptr=eptr, start_date="2024-11-01", end_date="2024-11-01", verbose=True
     )
 ```
+
+#### Day Ahead and Bilateral Trade Data
+
+```python
+from eptr2 import EPTR2
+from eptr2.composite import get_day_ahead_and_bilateral_matches, get_day_ahead_detail_info
+
+eptr = EPTR2(credentials_file_path="creds/eptr_credentials.json")
+
+df = get_day_ahead_and_bilateral_matches(eptr=eptr,start_date="2023-01-01", end_date="2023-01-31", verbose=True, include_contract_symbol=True)
+
+df2 = get_day_ahead_detail_info(
+    eptr=eptr, start_date="2023-01-01", end_date="2023-01-31", verbose=True
+)
+
+```
+
+
+#### Balancing Power Market Data
+
+```python
+from eptr2 import EPTR2
+from eptr2.composite import get_bpm_period, get_bpm_range
+
+eptr = EPTR2(credentials_file_path="creds/eptr_credentials.json")
+start_date = "2025-05-01"
+end_date = "2025-05-31"
+df1 = get_bpm_range(
+    eptr=eptr, start_date=start_date, end_date=end_date, verbose=True
+)
+
+period = "2025-05-01"  # Example period
+df2 = get_bpm_period(
+    period=period, eptr=eptr, max_lives=2, verbose=True, strict=True
+)
+```
