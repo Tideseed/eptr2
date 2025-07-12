@@ -36,6 +36,37 @@ res = eptr.call("mcp", start_date="2024-07-29", end_date="2024-07-29")
 
 There are more than 213 calls available. You can search for available calls with `eptr.get_available_calls()` function. This is almost an exhaustive list of available calls in the platform currently. 
 
+### New Login Method
+
+From eptr2 version 1.1.0, you can use a new login method that automatically handles TGT (Ticket Granting Ticket) management. This way, TGT is automatically renewed when it expires, and credentials are loaded from a file or environment variables. You need a credentials file (e.g. `creds/eptr_credentials.json`) with the following structure:
+
+```json
+{
+    "username": "YOUR_USERNAME",
+    "password": "YOUR_PASSWORD"
+}
+```
+
+Or, you can generate the credentials file with the following code (ps. you can change the `cred_path` to your desired path, default is `creds/eptr_credentials.json`):
+
+```python
+from eptr2 import generate_eptr2_credentials_file
+
+generate_eptr2_credentials_file(
+    username="YOUR_USERNAME",
+    password="YOUR_PASSWORD"
+)
+```
+
+You can use the following code to create an `EPTR2` object with the new login method (ps. you can change the `cred_path` to your desired path, default is `creds/eptr_credentials.json`):
+
+```python
+from eptr2 import eptr_w_tgt_wrapper
+
+eptr = eptr_w_tgt_wrapper()
+```
+
+
 ### Live Tutorial
 
 Starting from version 1.0.0, `eptr2` package includes a live tutorial feature as a Streamlit app (p.s. You need to have Streamlit installed). You can run the following code to start the tutorial. Its functionality is almost the same as [eptr2demo app](https://eptr2demo.streamlit.app/).
@@ -170,6 +201,20 @@ wrap_df = wrapper_hourly_production_plan_and_realized(
     )
 ```
 
+#### Intraday Market (IDM) Logs
+
+You can get the Intraday Market (IDM) logs with the following composite function. It returns a data frame with a combination of IDM logs and their details.
+
+```python
+from eptr2 import EPTR2
+from eptr2.composite import idm_log_longer, idm_log_period
+
+eptr = EPTR2(credentials_file_path="creds/eptr_credentials.json")
+
+idm_log_longer(eptr=eptr, start_date="2023-01-01", end_date="2023-01-31", verbose=True)
+idm_log_period(eptr=eptr, period="2023-01-01", verbose=True)
+```
+
 #### Day Ahead and Bilateral Trade Data
 
 ```python
@@ -205,3 +250,4 @@ df2 = get_bpm_period(
     period=period, eptr=eptr, max_lives=2, verbose=True, strict=True
 )
 ```
+

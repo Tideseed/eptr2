@@ -372,3 +372,131 @@ def transparency_call(
             + res.data.decode("utf-8")
         )
     return res
+
+
+def set_eptr_credentials_to_env(cred_path: str = "creds/eptr_credentials.json"):
+    """Set EPTR credentials to environment variables from a JSON file."""
+
+    if not os.path.exists(cred_path):
+        raise FileNotFoundError(
+            f"Credentials file not found at {cred_path}. Please provide a valid path or put your eptr_credentials.json file there."
+        )
+
+    try:
+        with open(cred_path, "r") as f:
+            cred_d: dict = json.load(f)
+
+        os.environ["EPTR_USERNAME"] = cred_d["EPTR_USERNAME"]
+        os.environ["EPTR_PASSWORD"] = cred_d["EPTR_PASSWORD"]
+        if "tgt_d" in cred_d.keys():
+            os.environ["tgt_d"] = json.dumps(cred_d["tgt_d"])
+    except Exception as e:
+        raise ValueError(
+            f"Error while reading the credentials file from path {cred_path}. Please check the file format and content. Error: {e}"
+        ) from e
+
+
+def eptr_w_tgt_wrapper(
+    cred_path: str = "creds/eptr_credentials.json", **kwargs
+) -> EPTR2:
+    """This function is a wrapper for the EPTR2 class to handle TGT (Ticket Granting Ticket) management and credentials loading. This way TGT is automatically renewed when it expires, and credentials are loaded from a file or environment variables."""
+
+    ### Initially you can define EPTR_USERNAME and EPTR_PASSWORD in the keyword arguments (strictly optional) and even tgt_d optional parameter. It is not a conventional use of this function.
+    username = kwargs.get("EPTR_USERNAME", None)
+    password = kwargs.get("EPTR_PASSWORD", None)
+    tgt_d = None
+
+    ### If username and password are not defined in the keyword arguments, try to get them from the environment variables.
+    if username is not None:
+        os.environ["EPTR_USERNAME"] = username
+    else:
+        username = os.getenv("EPTR_USERNAME", None)
+    if password is not None:
+        os.environ["EPTR_PASSWORD"] = password
+    else:
+        password = os.getenv("EPTR_PASSWORD", None)
+
+    ### Check for EPTR_USERNAME and EPTR_PASSWORD in the environment variables. If they are not set, try to get them from the credentials file.
+    if any([k is None for k in [username, password]]):
+        set_eptr_credentials_to_env(cred_path)
+        username = os.getenv("EPTR_USERNAME", None)
+        password = os.getenv("EPTR_PASSWORD", None)
+        tgt_d = os.getenv("tgt_d", None)
+        if tgt_d is not None:
+            tgt_d = json.loads(tgt_d)
+    else:
+        tgt_d = kwargs.get("tgt_d", None)
+        if tgt_d is not None:
+            os.environ["tgt_d"] = json.dumps(tgt_d)
+
+        if tgt_d is None:
+            tgt_d = os.getenv("tgt_d", None)
+            if tgt_d is not None:
+                tgt_d = json.loads(tgt_d)
+
+    ### Check for EPTR_USERNAME and EPTR_PASSWORD in the environment variables. If they are not set, raise an error. (Sanity check)
+
+    if any([k is None for k in [username, password]]):
+        raise ValueError(
+            "EPTR_USERNAME and/or EPTR_PASSWORD is not set in the environment variables. They are also not acquired from the credentials file."
+        )
+
+    eptr = EPTR2(
+        username=username,
+        password=password,
+        tgt_d=tgt_d,
+    )
+
+    if kwargs.get("skip_tgt_update", False):
+        return eptr
+
+    ### Export the tgt information and check with the existing one. If they are different, update the environment variables and the credentials file.
+    tgt_d2 = eptr.export_tgt_info()
+
+    if tgt_d != tgt_d2:
+        os.environ["tgt_d"] = json.dumps(tgt_d2)
+
+        if all([x in os.environ.keys() for x in ["EPTR_USERNAME", "EPTR_PASSWORD"]]):
+            with open(cred_path, "w") as f:
+                json.dump(
+                    {
+                        "EPTR_USERNAME": os.getenv("EPTR_USERNAME", None),
+                        "EPTR_PASSWORD": os.getenv("EPTR_PASSWORD", None),
+                        "tgt_d": tgt_d2,
+                    },
+                    f,
+                )
+        else:
+            print(
+                "EPTR_USERNAME and/or EPTR_PASSWORD are not set in the environment variables. Credentials file is not updated."
+            )
+
+    return eptr
+
+
+def generate_eptr2_credentials_file(
+    username: str = "YOUR_USERNAME",
+    password: str = "YOUR_PASSWORD",
+    cred_path: str = "creds/eptr_credentials.json",
+    overwrite: bool = False,
+):
+    """Generate a credentials file for EPTR2 class. It creates a JSON file with EPTR_USERNAME and EPTR_PASSWORD."""
+
+    if not overwrite and os.path.exists(cred_path):
+        print(
+            f"Credentials file already exists at {cred_path}. Use overwrite=True to overwrite."
+        )
+        return
+
+    if not os.path.exists(os.path.dirname(cred_path)):
+        os.makedirs(os.path.dirname(cred_path))
+
+    cred_d = {
+        "EPTR_USERNAME": username,
+        "EPTR_PASSWORD": password,
+    }
+
+    with open(cred_path, "w") as f:
+        json.dump(cred_d, f)
+
+    print(f"Credentials file created at {cred_path}.")
