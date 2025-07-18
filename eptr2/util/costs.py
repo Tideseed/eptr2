@@ -24,8 +24,13 @@ def calculate_unit_imbalance_cost(mcp: float, smp: float, penalty_margin: float 
     return d
 
 
-def calculate_unit_kupst_cost(mcp: float, smp: float, kupst_multiplier: float = 0.03):
-    return max(mcp, smp) * kupst_multiplier
+def calculate_unit_kupst_cost(
+    mcp: float,
+    smp: float,
+    kupst_multiplier: float = 0.03,
+    kupst_floor_price: float = 750.0,
+):
+    return max(mcp, smp, kupst_floor_price) * kupst_multiplier
 
 
 def calculate_imbalance_amounts(
@@ -115,28 +120,6 @@ def calculate_imb_cost(
         return total_imb_cost
 
 
-def calculate_imbalance_cost_deprecated(
-    actual: float,
-    forecast: float,
-    mcp: float,
-    smp: float,
-    is_producer: bool,
-    imbalance_discount: float = 0.0,
-):
-    if imbalance_discount > 1 or imbalance_discount < 0:
-        raise ValueError("Imbalance dampening rate must be between 0 and 1")
-
-    unit_cost_d = calculate_unit_imbalance_cost(mcp=mcp, smp=smp)
-
-    diff = forecast - actual
-    if is_producer:
-        cost = abs(diff) * unit_cost_d["neg" if diff > 0 else "pos"]
-    else:
-        cost = abs(diff) * unit_cost_d["pos" if diff > 0 else "neg"]
-
-    return cost * (1 - imbalance_discount)
-
-
 def calculate_kupst_cost(
     actual: float,
     forecast: float,
@@ -145,6 +128,7 @@ def calculate_kupst_cost(
     tol: float | None = None,
     source: str | None = None,
     kupst_multiplier: float = 0.03,
+    kupst_floor_price: float = 750.0,
     return_detail: bool = False,
 ):
     if tol is None:
@@ -154,7 +138,12 @@ def calculate_kupst_cost(
 
     tol_val = forecast * tol
     kupsm = max(0, abs(actual - forecast) - tol_val)
-    unit_kupst = calculate_unit_kupst_cost(mcp, smp, kupst_multiplier)
+    unit_kupst = calculate_unit_kupst_cost(
+        mcp=mcp,
+        smp=smp,
+        kupst_multiplier=kupst_multiplier,
+        kupst_floor_price=kupst_floor_price,
+    )
     kupst_cost = kupsm * unit_kupst
     if return_detail:
         return {
@@ -202,47 +191,13 @@ def calculate_diff_cost(
             source=prod_source,
             tol=kwargs.get("kupst_tol", None),
             kupst_multiplier=kwargs.get("kupst_multiplier", 0.03),
+            kupst_floor_price=kwargs.get("kupst_floor_price", 750.0),
             return_detail=kwargs.get("return_detail", True),
         )
 
         res_d["kupst"] = kupst_d
 
     return res_d
-
-
-def calculate_diff_cost_deprecated(
-    actual: float,
-    forecast: float,
-    mcp: float,
-    smp: float,
-    tol: float | None = None,
-    kupst_multiplier: float = 0.03,
-    is_producer: bool = True,
-    source: str | None = None,
-    imbalance_discount: float = 0.0,
-):
-    imbalance = calculate_imbalance_cost_deprecated(
-        actual=actual,
-        forecast=forecast,
-        mcp=mcp,
-        smp=smp,
-        is_producer=is_producer,
-        imbalance_discount=imbalance_discount,
-    )
-
-    kupst = calculate_kupst_cost(
-        actual=actual,
-        forecast=forecast,
-        mcp=mcp,
-        smp=smp,
-        tol=tol,
-        source=source,
-        kupst_multiplier=kupst_multiplier,
-    )
-
-    total = imbalance + kupst
-
-    return {"imbalance": imbalance, "kupst": kupst, "total": total}
 
 
 def calculate_imbalance_prices_list(mcp: list, smp: list):
@@ -276,7 +231,7 @@ def calculate_kupst_cost_list(
     tol: float | None = None,
     source: str | None = None,
     kupst_multiplier: float = 0.03,
-    min_kupst: float = 750.0,
+    kupst_floor_price: float = 750.0,
 ):
     """
     Calculates production plan difference (KUPST) costs.
@@ -290,8 +245,11 @@ def calculate_kupst_cost_list(
     kupst_cost_list = []
 
     for x, y, m, s in zip(forecast_values, actual_values, mcp, smp):
-        cost = max(abs(x - y) - tol * x, 0) * max(m, s) * kupst_multiplier
-        cost = max(cost, min_kupst)
+        cost = (
+            max(abs(x - y) - tol * x, 0)
+            * max(m, s, kupst_floor_price)
+            * kupst_multiplier
+        )
 
         kupst_cost_list.append(cost)
 
@@ -338,6 +296,7 @@ def calculate_diff_costs_list(
     tol: float | None = None,
     source: str | None = None,
     kupst_multiplier: float = 0.03,
+    kupst_floor_price: float = 750.0,
     imbalance_discount: float = 0,
     min_kupst: float = 0.0,
 ):
@@ -375,7 +334,7 @@ def calculate_diff_costs_list(
             tol=tol,
             source=source,
             kupst_multiplier=kupst_multiplier,
-            min_kupst=min_kupst,
+            kupst_floor_price=kupst_floor_price,
         )
 
     return res_d
