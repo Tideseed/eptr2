@@ -24,13 +24,13 @@ def process_idm_data(
                 org_id=org_id,
                 request_kwargs={"timeout": 5},
             )
+            break
         except Exception as e:
             print("Error fetching IDM data:", e)
             lives -= 1
             if lives <= 0:
                 raise Exception("Max lives reached. Exiting.")
             continue
-        break
 
     ### Due to naming confusion by EPIAS, ask is mapped to buy and bid is mapped to sell.
 
@@ -77,6 +77,7 @@ def get_day_ahead_and_bilateral_matches(
                 org_id=org_id,
                 request_kwargs={"timeout": 5},
             )
+            break
         except Exception as e:
             print("Error fetching day ahead matches:", e)
             lives -= 1
@@ -84,7 +85,6 @@ def get_day_ahead_and_bilateral_matches(
                 raise Exception("Max lives reached. Exiting.")
 
             continue
-        break
 
     df = df_da.rename(
         {"matchedBids": "da_long", "matchedOffers": "da_short"}, axis=1
@@ -106,20 +106,19 @@ def get_day_ahead_and_bilateral_matches(
                 )
 
                 df = df.merge(
-                    df_bi.copy()
-                    .rename({"quantity": cc.replace("-", "_")}, axis=1)
-                    .drop("hour", axis=1),
+                    df_bi.rename({"quantity": cc.replace("-", "_")}, axis=1).drop(
+                        "hour", axis=1
+                    ),
                     on="date",
                     how="left",
                 )
-
+                break
             except Exception as e:
                 print("Error fetching bilateral long matches:", e)
                 lives -= 1
                 if lives <= 0:
                     raise Exception("Max lives reached. Exiting.")
                 continue
-        break
 
     # if verbose:
     #     print("Getting bilateral short matches...")
@@ -155,7 +154,7 @@ def get_day_ahead_and_bilateral_matches(
         df_idm = process_idm_data(eptr, start_date, end_date, org_id)
         df = (
             df.merge(df_idm, on=["contract"], how="left")
-            .fillna(0)
+            .fillna(0.0)
             .infer_objects(copy=False)
         )
         df["idm_net"] = df["idm_long"] - df["idm_short"]
@@ -296,8 +295,6 @@ def get_day_ahead_detail_info(
                 continue
 
         items = [item for item in items if item not in df_d or df_d[item].empty]
-
-    # df.fillna(0, inplace=True)
 
     if include_contract_symbol:
         try:
