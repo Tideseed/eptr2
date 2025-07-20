@@ -89,13 +89,7 @@ def get_day_ahead_and_bilateral_matches(
     df["dabi_net"] = df["da_long"] - df["da_short"] + df["bi_long"] - df["bi_short"]
 
     if include_idm_data:
-        if org_id is None:
-            print(
-                "You need to provide an org_id to include IDM data. Skipping IDM data."
-            )
-            include_idm_data = False
-        else:
-            include_contract_symbol = True
+        include_contract_symbol = True
 
     if include_contract_symbol:
         try:
@@ -110,6 +104,7 @@ def get_day_ahead_and_bilateral_matches(
         df = df.merge(df_idm, on=["contract"], how="left").fillna(0)
         df["idm_net"] = df["idm_long"] - df["idm_short"]
         df["dabi_idm_net"] = df["dabi_net"] + df["idm_net"]
+        df["dabi_idm_net"] = df["dabi_idm_net"].round(2)
 
     if include_org_id and org_id is not None:
         df["org_id"] = org_id
