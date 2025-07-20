@@ -1,5 +1,6 @@
 from datetime import datetime, timedelta, timezone
 import pytz
+from typing import Literal
 
 
 def check_iso_format(
@@ -49,11 +50,16 @@ def get_today_utc3():
     return get_utc3_now().strftime("%Y-%m-%d")
 
 
-def get_date_from_key(key):
+def get_date_from_key(key: Literal["today", "start_of_month", "end_of_month"]):
     if key == "today":
         res = get_today_utc3()
     elif key == "start_of_month":
         res = get_utc3_now().strftime("%Y-%m-01")
+    elif key == "end_of_month":
+        res = (
+            (get_utc3_now().replace(day=1) + timedelta(days=31)).replace(day=1)
+            - timedelta(days=1)
+        ).strftime("%Y-%m-%d")
 
     return res
 
@@ -399,3 +405,51 @@ def check_date_for_settlement(x: str | datetime, settlement_day=15):
         return True
 
     return False
+
+
+def date_str_to_datetime(date_str: str, fmt: str = "%Y-%m-%d"):
+    """
+    Convert a date string to a datetime object.
+    """
+    try:
+        return pytz.timezone("Europe/Istanbul").localize(
+            datetime.strptime(date_str, fmt)
+        )
+    except ValueError:
+        print(f"Invalid date format: {date_str}. Expected format: {fmt}.")
+        return None
+
+
+def offset_date_by_n_days(date_str: str, fmt: str = "%Y-%m-%d", n: int = 1):
+    """
+    Get the previous day from a given date string.
+    """
+    dt = date_str_to_datetime(date_str, fmt)
+    if dt:
+        offset_day = dt + timedelta(days=n)
+        return offset_day.strftime(fmt)
+    return None
+
+
+def get_previous_day(date_str: str, fmt: str = "%Y-%m-%d"):
+    """
+    Get the previous day from a given date string. Useful for IDM queries.
+    """
+    return offset_date_by_n_days(date_str, fmt, n=-1)
+
+
+def get_start_end_dates_period(period: str):
+    """
+    Get the start and end dates for a given period.
+    """
+
+    dt = pytz.timezone("Europe/Istanbul").localize(
+        datetime.strptime(period, "%Y-%m-%d")
+    )
+
+    start_date = dt.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+    end_date = (start_date + timedelta(days=31)).replace(day=1) - timedelta(days=1)
+    start_date = start_date.strftime("%Y-%m-%d")
+    end_date = end_date.strftime("%Y-%m-%d")
+
+    return start_date, end_date

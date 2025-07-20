@@ -1,18 +1,52 @@
 from eptr2 import EPTR2
 import pandas as pd
-from eptr2.util.time import iso_to_contract
+from eptr2.util.time import (
+    iso_to_contract,
+    get_previous_day,
+    get_start_end_dates_period,
+)
+
+
+def process_idm_data(
+    eptr: EPTR2, start_date: str, end_date: str, org_id: str
+) -> pd.DataFrame:
+    """
+    This function processes IDM data and includes it in the DataFrame.
+    It fetches day ahead and bilateral matches, and merges them with IDM data.
+    """
+
+    df = eptr.call(
+        "idm-qty",
+        start_date=get_previous_day(start_date),
+        end_date=end_date,
+        org_id=org_id,
+    )
+
+    ### Due to naming confusion by EPIAS, ask is mapped to buy and bid is mapped to sell.
+    df = df.drop("kontratTuru", axis=1).rename(
+        {
+            "kontratAdi": "contract",
+            "clearingQuantityAsk": "idm_long",
+            "clearingQuantityBid": "idm_short",
+        },
+        axis=1,
+    )
+
+    return df
 
 
 def get_day_ahead_and_bilateral_matches(
     eptr: EPTR2,
     start_date: str,
     end_date: str,
-    verbose: bool = False,
     include_contract_symbol: bool = False,
     org_id: str = None,
+    include_idm_data: bool = False,
+    include_org_id: bool = False,
+    verbose: bool = False,
 ):
     """
-    This composite function gets day ahead and bilateral matches for the whole market or for a single organization.
+    This composite function gets day ahead and bilateral matches for the whole market or for a single organization. You can also include IDM data if you provide an org_id.
     """
 
     if verbose:
@@ -52,13 +86,80 @@ def get_day_ahead_and_bilateral_matches(
         how="left",
     )
 
+    df["dabi_net"] = df["da_long"] - df["da_short"] + df["bi_long"] - df["bi_short"]
+
+    if include_idm_data:
+        if org_id is None:
+            print(
+                "You need to provide an org_id to include IDM data. Skipping IDM data."
+            )
+            include_idm_data = False
+        else:
+            include_contract_symbol = True
+
     if include_contract_symbol:
         try:
             df["contract"] = df["date"].apply(lambda x: iso_to_contract(x))
         except Exception as e:
             print("Contract information could not be added. Error:", e)
 
+    if include_idm_data:
+        if verbose:
+            print("Getting IDM data...")
+        df_idm = process_idm_data(eptr, start_date, end_date, org_id)
+        df = df.merge(df_idm, on=["contract"], how="left").fillna(0)
+        df["idm_net"] = df["idm_long"] - df["idm_short"]
+        df["dabi_idm_net"] = df["dabi_net"] + df["idm_net"]
+
+    if include_org_id and org_id is not None:
+        df["org_id"] = org_id
+
     return df
+
+
+def get_dabi_idm_data(
+    eptr: EPTR2,
+    start_date: str,
+    end_date: str,
+    org_id: str | None = None,
+    verbose: bool = False,
+):
+    """
+    This function retrieves DABI IDM data for a specific organization. It is a wrapper around the `process_idm_data` function.
+    """
+
+    return get_day_ahead_and_bilateral_matches(
+        eptr=eptr,
+        start_date=start_date,
+        end_date=end_date,
+        org_id=org_id,
+        include_idm_data=True,
+        include_contract_symbol=True,
+        include_org_id=True,
+        verbose=verbose,
+    )
+
+
+def get_dabi_idm_data_period(
+    eptr: EPTR2,
+    period: str,
+    org_id: str | None = None,
+    verbose: bool = False,
+):
+    """
+    This function retrieves DABI IDM data for a specific organization over a period.
+    It is a wrapper around the `get_dabi_idm_data` function.
+    """
+
+    start_date, end_date = get_start_end_dates_period(period=period)
+
+    return get_dabi_idm_data(
+        eptr=eptr,
+        start_date=start_date,
+        end_date=end_date,
+        org_id=org_id,
+        verbose=verbose,
+    )
 
 
 def get_day_ahead_detail_info(
