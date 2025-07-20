@@ -8,29 +8,43 @@ from eptr2.util.time import (
 
 
 def process_idm_data(
-    eptr: EPTR2, start_date: str, end_date: str, org_id: str
+    eptr: EPTR2, start_date: str, end_date: str, org_id: str, **kwargs
 ) -> pd.DataFrame:
     """
     This function processes IDM data and includes it in the DataFrame.
     It fetches day ahead and bilateral matches, and merges them with IDM data.
     """
-
-    df = eptr.call(
-        "idm-qty",
-        start_date=get_previous_day(start_date),
-        end_date=end_date,
-        org_id=org_id,
-    )
+    lives = kwargs.get("lives", 2)
+    while lives > 0:
+        try:
+            df = eptr.call(
+                "idm-qty",
+                start_date=get_previous_day(start_date),
+                end_date=end_date,
+                org_id=org_id,
+                request_kwargs={"timeout": 5},
+            )
+        except Exception as e:
+            print("Error fetching IDM data:", e)
+            lives -= 1
+            if lives <= 0:
+                raise Exception("Max lives reached. Exiting.")
+            continue
+        break
 
     ### Due to naming confusion by EPIAS, ask is mapped to buy and bid is mapped to sell.
-    df = df.drop("kontratTuru", axis=1).rename(
-        {
-            "kontratAdi": "contract",
-            "clearingQuantityAsk": "idm_long",
-            "clearingQuantityBid": "idm_short",
-        },
-        axis=1,
-    )
+
+    if df.empty:
+        df = pd.DataFrame(columns=["contract", "idm_long", "idm_short"])
+    else:
+        df = df.drop("kontratTuru", axis=1).rename(
+            {
+                "kontratAdi": "contract",
+                "clearingQuantityAsk": "idm_long",
+                "clearingQuantityBid": "idm_short",
+            },
+            axis=1,
+        )
 
     return df
 
@@ -44,6 +58,7 @@ def get_day_ahead_and_bilateral_matches(
     include_idm_data: bool = False,
     include_org_id: bool = False,
     verbose: bool = False,
+    **kwargs,
 ):
     """
     This composite function gets day ahead and bilateral matches for the whole market or for a single organization. You can also include IDM data if you provide an org_id.
@@ -52,39 +67,76 @@ def get_day_ahead_and_bilateral_matches(
     if verbose:
         print("Getting day ahead matches...")
 
-    df_da = eptr.call(
-        "dam-clearing", start_date=start_date, end_date=end_date, org_id=org_id
-    )
+    lives = kwargs.get("lives", 2)
+    while lives > 0:
+        try:
+            df_da = eptr.call(
+                "dam-clearing",
+                start_date=start_date,
+                end_date=end_date,
+                org_id=org_id,
+                request_kwargs={"timeout": 5},
+            )
+        except Exception as e:
+            print("Error fetching day ahead matches:", e)
+            lives -= 1
+            if lives <= 0:
+                raise Exception("Max lives reached. Exiting.")
+
+            continue
+        break
 
     df = df_da.rename(
         {"matchedBids": "da_long", "matchedOffers": "da_short"}, axis=1
     ).drop("hour", axis=1)
 
-    if verbose:
-        print("Getting bilateral long matches...")
+    for cc in ["bi-long", "bi-short"]:
+        if verbose:
+            print(f"Getting bilateral {cc} matches...")
 
-    df_bi_long = eptr.call(
-        "bi-long", start_date=start_date, end_date=end_date, org_id=org_id
-    )
+        lives = kwargs.get("lives", 2)
+        while lives > 0:
+            try:
+                df_bi = eptr.call(
+                    cc,
+                    start_date=start_date,
+                    end_date=end_date,
+                    org_id=org_id,
+                    request_kwargs={"timeout": 5},
+                )
 
-    df = df.merge(
-        df_bi_long.rename({"quantity": "bi_long"}, axis=1).drop("hour", axis=1),
-        on="date",
-        how="left",
-    )
+                df = df.merge(
+                    df_bi.copy()
+                    .rename({"quantity": cc.replace("-", "_")}, axis=1)
+                    .drop("hour", axis=1),
+                    on="date",
+                    how="left",
+                )
 
-    if verbose:
-        print("Getting bilateral short matches...")
+            except Exception as e:
+                print("Error fetching bilateral long matches:", e)
+                lives -= 1
+                if lives <= 0:
+                    raise Exception("Max lives reached. Exiting.")
+                continue
+        break
 
-    df_bi_short = eptr.call(
-        "bi-short", start_date=start_date, end_date=end_date, org_id=org_id
-    )
+    # if verbose:
+    #     print("Getting bilateral short matches...")
 
-    df = df.merge(
-        df_bi_short.rename({"quantity": "bi_short"}, axis=1).drop("hour", axis=1),
-        on="date",
-        how="left",
-    )
+    # df_bi_short = eptr.call(
+    #     "bi-short",
+    #     start_date=start_date,
+    #     end_date=end_date,
+    #     org_id=org_id,
+    #     request_kwargs={"timeout": 5},
+    # )
+
+    # df = df.merge(
+    #     df_bi_short.rename({"quantity": "bi_short"}, axis=1).drop("hour", axis=1),
+    #     on="date",
+    #     how="left",
+    # )
 
     df["dabi_net"] = df["da_long"] - df["da_short"] + df["bi_long"] - df["bi_short"]
 
@@ -101,7 +153,11 @@ def get_day_ahead_and_bilateral_matches(
         if verbose:
             print("Getting IDM data...")
         df_idm = process_idm_data(eptr, start_date, end_date, org_id)
-        df = df.merge(df_idm, on=["contract"], how="left").fillna(0)
+        df = (
+            df.merge(df_idm, on=["contract"], how="left")
+            .fillna(0)
+            .infer_objects(copy=False)
+        )
         df["idm_net"] = df["idm_long"] - df["idm_short"]
         df["dabi_idm_net"] = df["dabi_net"] + df["idm_net"]
         df["dabi_idm_net"] = df["dabi_idm_net"].round(2)
