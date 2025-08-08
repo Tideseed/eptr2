@@ -37,7 +37,6 @@ def composite_main():
     st.markdown(
         """
     EPTR2 kompozit fonksiyonlar arayüzüne hoşgeldiniz. Bu arayüz size kompozit fonksiyonları kullanmak konusunda rehberlik edecektir. Hem çalışan bir arayüz kullanacaksınız hem de ilgili Python fonksiyonları hakkında bilgi edineceksiniz. Hazırsanız başlayalım!
-
     """
     )
 
@@ -71,6 +70,18 @@ def composite_main():
             st.form_submit_button("Giriş Yap", on_click=assign_eptr)
 
         st.stop()
+
+    st.divider()
+    st.page_link(
+        "pages/1_🔮_Pozisyonlar.py", label="**GİP İA GÖP Pozisyonları**", icon="🔮"
+    )
+    st.markdown(
+        """
+            Bu sayfa, istediğiniz organizasyon ve istediğiniz dönem aralığı için GÖP, İA ve GİP pozisyonlarını bir arada çekmenizi sağlayan kompozit fonksiyonu çalıştırır."""
+    )
+
+    st.markdown("Diğer kompozit fonksiyonlar da yakında burada...")
+    st.divider()
 
 
 if __name__ == "__main__":
