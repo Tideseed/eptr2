@@ -2,15 +2,22 @@ import os
 import subprocess
 
 
-def run_app(username: str, password: str, script_path: str, port: int | None = None):
+def run_app(
+    script_path: str,
+    username: str | None = None,
+    password: str | None = None,
+    port: int | None = None,
+):
     """
     Launch the Streamlit app programmatically.
     """
     # Get the absolute path of this script
     # script_path = os.path.abspath(__file__)
 
-    os.environ["EPTR_USERNAME"] = username
-    os.environ["EPTR_PASSWORD"] = password
+    if username is not None:
+        os.environ["EPTR_USERNAME"] = username
+    if password is not None:
+        os.environ["EPTR_PASSWORD"] = password
 
     # Run Streamlit CLI command to start the app
     run_l = ["streamlit", "run", script_path]

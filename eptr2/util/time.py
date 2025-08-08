@@ -431,11 +431,15 @@ def offset_date_by_n_days(date_str: str, fmt: str = "%Y-%m-%d", n: int = 1):
     return None
 
 
-def get_previous_day(date_str: str, fmt: str = "%Y-%m-%d"):
+def get_previous_day(date_str: str | None = None, fmt: str = "%Y-%m-%d"):
     """
     Get the previous day from a given date string. Useful for IDM queries.
     """
-    return offset_date_by_n_days(date_str, fmt, n=-1)
+
+    if date_str is None:
+        date_str = get_today_utc3()
+
+    return offset_date_by_n_days(str(date_str), fmt, n=-1)
 
 
 def get_start_end_dates_period(period: str):
