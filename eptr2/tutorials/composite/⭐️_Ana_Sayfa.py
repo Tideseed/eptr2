@@ -73,7 +73,14 @@ def composite_main():
 
     st.divider()
     st.page_link(
-        "pages/1_🔮_Pozisyonlar.py", label="**GİP İA GÖP Pozisyonları**", icon="🔮"
+        "pages/1_👩‍💻_Demo.py",
+        label="**EPTR2 Kullanım Demosu**",
+        icon="👩‍💻",
+    )
+    st.page_link(
+        "pages/2_🔮_Pozisyonlar.py",
+        label="**GİP İA GÖP Pozisyonları**",
+        icon="🔮",
     )
     st.markdown(
         """
