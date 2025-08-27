@@ -77,6 +77,11 @@ def composite_main():
         label="**EPTR2 Kullanım Demosu**",
         icon="👩‍💻",
     )
+    st.markdown(
+        """
+            Bu sayfa, eptr2 kütüphanesinin Python kodlarının nasıl kullanılabileceğini örnekleri ile gösterir."""
+    )
+    st.divider()
     st.page_link(
         "pages/2_🔮_Pozisyonlar.py",
         label="**GİP İA GÖP Pozisyonları**",
@@ -86,9 +91,19 @@ def composite_main():
         """
             Bu sayfa, istediğiniz organizasyon ve istediğiniz dönem aralığı için GÖP, İA ve GİP pozisyonlarını bir arada çekmenizi sağlayan kompozit fonksiyonu çalıştırır."""
     )
-
-    st.markdown("Diğer kompozit fonksiyonlar da yakında burada...")
     st.divider()
+    st.page_link(
+        "pages/3_⚡️_Üretim_Planlama.py",
+        label="**Üretim Planlama**",
+        icon="⚡️",
+    )
+    st.markdown(
+        """
+            Bu sayfa, istediğiniz organizasyon, istediğiniz UEVÇB ve istediğiniz dönem aralığı için KGÜP ve KUDÜP verilerini bir arada çekmenizi sağlayan kompozit fonksiyonu çalıştırır."""
+    )
+
+    st.divider()
+    st.markdown("Diğer kompozit fonksiyonlar da yakında burada...")
 
 
 if __name__ == "__main__":

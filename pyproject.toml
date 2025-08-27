@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "eptr2"
-version = "1.1.3.dev0"
+version = "1.1.3.dev2"
 description = "EPIAS Transparency Platform v2.0 Python client by Robokami Data"
 authors = ["Tideseed <info@tideseed.com>"]
 license = "Apache License 2.0"
