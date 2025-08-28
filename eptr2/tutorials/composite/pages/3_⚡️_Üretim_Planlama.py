@@ -133,6 +133,7 @@ def production_plan_main():
         eptr: EPTR2 = ss["eptr"]
 
     sidebar_common()
+    tomorrow_str = offset_date_by_n_days(str(get_today_utc3()), n=1)
 
     date_cols = st.columns([2, 2, 3, 1])
     with date_cols[0]:
@@ -140,15 +141,30 @@ def production_plan_main():
             "Başlangıç Tarihi",
             value=get_previous_day(),
             key="production_plan_start_date",
+            max_value=tomorrow_str,
         )
 
     with date_cols[1]:
         end_date = st.date_input(
             "Bitiş Tarihi",
-            value=get_previous_day(),
+            value=min(
+                tomorrow_str,
+                max(
+                    str(start_date),
+                    (
+                        str(ss["production_plan_end_date"])
+                        if ss.get("production_plan_end_date", "") != ""
+                        else get_previous_day()
+                    ),
+                ),
+            ),
             key="production_plan_end_date",
             min_value=start_date,
+            max_value=tomorrow_str,
         )
+
+    if "gen_orgs" not in ss:
+        load_gen_orgs()
 
     with date_cols[2]:
         if "gen_orgs" in ss:
@@ -156,16 +172,13 @@ def production_plan_main():
 
             st.button("🏛️ Organizasyonları Güncelle", on_click=load_gen_orgs)
 
-    if "gen_orgs" not in ss:
-        load_gen_orgs()
-
     if "gen_uevcbs" not in ss:
         load_gen_uevcbs()
 
         # st.badge("Henüz organizasyon listesi bağlı değil.", color="orange", icon="⚠️")
         # st.button("Organizasyonları Yükle", on_click=load_gen_orgs)
 
-    else:
+    if "gen_orgs" in ss:
         st.selectbox(
             "Organizasyon Seçin",
             options=ss["gen_orgs"].to_dict(orient="records"),
@@ -206,7 +219,7 @@ if __name__ == "__main__":
     import streamlit as st
     from eptr2 import EPTR2
     from eptr2.composite import get_hourly_production_plan_data
-    from eptr2.util.time import get_previous_day
+    from eptr2.util.time import get_previous_day, get_today_utc3, offset_date_by_n_days
     import re
     import pandas as pd
     from eptr2.tutorials.composite.common import sidebar_common
