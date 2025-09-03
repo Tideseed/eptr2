@@ -3,6 +3,25 @@ import pytz
 from typing import Literal
 
 
+def contract_duration(
+    contract: str, return_type: Literal["hours", "minutes", "seconds"] = "seconds"
+) -> float:
+    close_dt = contract_close_time(contract)
+    open_dt = close_dt.replace(hour=18) - timedelta(days=1)
+    duration = close_dt - open_dt
+    seconds = duration.total_seconds()
+    if return_type == "seconds":
+        return seconds
+    elif return_type == "minutes":
+        return seconds / 60
+    elif return_type == "hours":
+        return seconds / 3600
+    else:
+        raise ValueError(
+            f"Invalid return type {return_type}. Use one of ['seconds', 'minutes', 'hours']"
+        )
+
+
 def check_iso_format(
     val: str | datetime,
     strict_hour_format: bool = False,
