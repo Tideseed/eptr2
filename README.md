@@ -4,6 +4,8 @@
 
 This document is a quickstart guide for `eptr2` package. It is a Python client for [EPIAS Transparency Platform v2.0](https://seffaflik.epias.com.tr/home) API. It is an unofficial package with Apache License 2.0.
 
+For live demo, please visit <https://eptr2demo.streamlit.app/>
+
 ## Installation
 
 You can easily install it from PyPI with the following commmand.
