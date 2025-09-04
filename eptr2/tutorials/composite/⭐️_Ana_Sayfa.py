@@ -101,7 +101,16 @@ def composite_main():
         """
             Bu sayfa, istediğiniz organizasyon, istediğiniz UEVÇB ve istediğiniz dönem aralığı için KGÜP ve KUDÜP verilerini bir arada çekmenizi sağlayan kompozit fonksiyonu çalıştırır."""
     )
-
+    st.divider()
+    st.page_link(
+        "pages/4_💰_Fiyat_ve_Maliyetler.py",
+        label="**Fiyat ve Maliyetler**",
+        icon="💰",
+    )
+    st.markdown(
+        """
+            Bu sayfa, istediğiniz tarih aralığı için PTF, SMF, AOF verilerini ve ilgili hesaplamaları (dengesizlik fiyat ve maliyetleri, KÜPST) bir arada çekmenizi sağlayan kompozit fonksiyonu çalıştırır."""
+    )
     st.divider()
     st.markdown("Diğer kompozit fonksiyonlar da yakında burada...")
 
@@ -113,6 +122,8 @@ if __name__ == "__main__":
     import os
     from eptr2.tutorials.composite.common import sidebar_common
 
+    streamlit_cloud_warning = False
+
     st.set_page_config(
         page_title="eptr2 Kompozit Fonksiyonlar",
         page_icon="👩‍💻",
@@ -121,4 +132,8 @@ if __name__ == "__main__":
         menu_items=None,
     )
 
+    if streamlit_cloud_warning:
+        st.warning(
+            "Bu site dış bir platform olan [Streamlit Community Cloud](https://share.streamlit.io/) üzerinde çalışmaktadır ve sadece demo amaçlıdır. Erişim bilgilerinizi paylaşırken dikkatli olmanızı ve sık sık güncellemenizi tavsiye ederiz."
+        )
     composite_main()

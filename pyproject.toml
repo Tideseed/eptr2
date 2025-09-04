@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "eptr2"
-version = "1.1.4.dev2"
+version = "1.1.4.dev3"
 description = "EPIAS Transparency Platform v2.0 Python client by Robokami Data"
 authors = ["Tideseed <info@tideseed.com>"]
 license = "Apache License 2.0"
@@ -28,3 +28,6 @@ allextras = ["pandas", "streamlit","tornado","requests"]
 [build-system]
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
+
+[tool.poetry.scripts]
+eptr2demo = "eptr2.tutorials:run_composite_app"
