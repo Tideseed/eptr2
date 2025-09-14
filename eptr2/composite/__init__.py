@@ -5,3 +5,4 @@ from eptr2.composite.dabi_idm import *
 from eptr2.composite.bpm import *
 from eptr2.composite.idm_log import *
 from eptr2.composite.mms import *
+from eptr2.composite.plant_costs import *

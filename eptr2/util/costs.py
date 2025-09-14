@@ -1,3 +1,6 @@
+import pandas as pd
+
+
 def get_kupst_tolerance(source: str):
     alias_map = {"sun": "solar"}
 
@@ -120,6 +123,19 @@ def calculate_imb_cost(
         return total_imb_cost
 
 
+def calculate_kupsm(actual: float, forecast: float, tol: float):
+    tol_val = forecast * tol
+    kupsm = max(0, abs(forecast - actual) - tol_val)
+    return kupsm
+
+
+def calculate_kupsm_list(actual_values: list, forecast_values: list, tol: float):
+    kupsm_list = []
+    for a, f in zip(actual_values, forecast_values):
+        kupsm_list.append(calculate_kupsm(a, f, tol))
+    return kupsm_list
+
+
 def calculate_kupst_cost(
     actual: float,
     forecast: float,
@@ -164,7 +180,7 @@ def calculate_diff_cost(
     smp: float,
     prod_source: str | None = None,
     imb_tol: float = 0.1,
-    **kwargs
+    **kwargs,
 ):
     is_producer = prod_source is not None
 
