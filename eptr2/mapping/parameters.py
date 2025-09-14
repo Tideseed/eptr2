@@ -121,6 +121,7 @@ def get_required_parameters(key, return_mapping=False, mapping_only_keys=False):
         "load-plan": ["start_date", "end_date"],
         "rt-cons": ["start_date", "end_date"],
         "pp-list": [],
+        "pp-list-for-date-range": ["start_date", "end_date"],
         "uevm-pp-list": [],
         "ren-pp-list": ["period"],
         "ren-rt-gen": ["start_date", "end_date"],

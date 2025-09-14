@@ -59,6 +59,7 @@ def composite_main():
                 value="",
                 key="eptr_username",
                 placeholder="EPİAŞ Şeffaflık Platformu kullanıcısı e-posta adresiniz",
+                autocomplete="eptr_username",
             )
             st.text_input(
                 "Şifre",
@@ -66,6 +67,7 @@ def composite_main():
                 key="eptr_password",
                 type="password",
                 placeholder="EPİAŞ Şeffaflık Platformu kullanıcısı şifreniz",
+                autocomplete="eptr_password",
             )
             st.form_submit_button("Giriş Yap", on_click=assign_eptr)
 
@@ -110,6 +112,16 @@ def composite_main():
     st.markdown(
         """
             Bu sayfa, istediğiniz tarih aralığı için PTF, SMF, AOF verilerini ve ilgili hesaplamaları (dengesizlik fiyat ve maliyetleri, KÜPST) bir arada çekmenizi sağlayan kompozit fonksiyonu çalıştırır."""
+    )
+    st.divider()
+    st.page_link(
+        "pages/5_💸_Santral_Dengesizlik.py",
+        label="**Santral Dengesizlik Maliyetleri**",
+        icon="💸",
+    )
+    st.markdown(
+        """
+            Bu sayfa, istediğiniz tarih aralığı için bir santralin dengesizlik maliyetlerini hesaplamanızı sağlayan kompozit fonksiyonu çalıştırır."""
     )
     st.divider()
     st.markdown("Diğer kompozit fonksiyonlar da yakında burada...")

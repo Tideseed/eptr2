@@ -743,6 +743,18 @@ def get_help_d(key=None):
             },
             "url": "https://seffaflik.epias.com.tr/electricity/electricity-generation/ex-post-generation/real-time-generation",
         },
+        "pp-list-for-date-range": {
+            "category": "Listeleme",
+            "title": {
+                "tr": "Santral Listeleme (Tarih Aralığı ile)",
+                "en": "Powerplant listing (with Date Range)",
+            },
+            "desc": {
+                "tr": "Santral Listeleme (Tarih Aralığı ile)",
+                "en": "Powerplant listing (with Date Range)",
+            },
+            "url": "https://seffaflik.epias.com.tr/electricity/electricity-generation/ex-post-generation/real-time-generation",
+        },
         "gen-org": {
             "category": "Listeleme",
             "title": {

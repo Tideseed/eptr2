@@ -58,6 +58,7 @@ def get_postprocess_function(key):
         "gen-uevcb",
         "rt-gen",
         "pp-list",
+        "pp-list-for-date-range",
         "uevm-pp-list",
         "lic-pp-list",
         "load-plan",

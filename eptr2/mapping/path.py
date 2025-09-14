@@ -323,6 +323,12 @@ def get_path_map(just_call_keys: bool = False):
                 "prev": "generation",
                 "label": "powerplant-list",
             },
+            ##Tarih Araligina Gore Santral Listeleme Servisi
+            "pp-list-for-date-range": {
+                "prefix": "data",
+                "prev": "generation",
+                "label": "powerplant-list-for-date-range",
+            },
             ## Santral Listeleme
             "uevm-pp-list": {
                 "prefix": "data",
@@ -1132,6 +1138,7 @@ def get_call_method(key):
         "interim-mcp-status",
         "market-participants-organization-list",
         "pp-list",
+        # "pp-list-for-date-range", ## POST method
         "uevm-pp-list",
         "region-list",
         "mms-message-type-list",
