@@ -1,33 +1,42 @@
-[tool.poetry]
+[project]
 name = "eptr2"
 version = "1.2.0.dev0"
 description = "EPIAS Transparency Platform v2.0 Python client by Robokami Data"
-authors = ["Tideseed <info@tideseed.com>"]
-license = "Apache License 2.0"
+authors = [
+    {name = "Tideseed", email = "info@tideseed.com"}
+]
+license = {text = "Apache License 2.0"}
 readme = "README.md"
-exclude = ["runs", "data", "helpdocs", "creds"]
+requires-python = ">=3.9.6,!=3.9.7"
+dependencies = [
+    "urllib3==2.5.0",
+    "pytz>=2024.1",
+]
 
+[project.optional-dependencies]
+dataframe = ["pandas>=2.1.3"]
+allextras = [
+    "pandas>=2.1.3",
+    "streamlit>=1.48.0",
+    "tornado>=6.5.0",
+    "requests>=2.32.4"
+]
+dev = [
+    "pytest>=7.4.0",
+    "python-dotenv>=0.19.1",
+]
 
-[tool.poetry.dependencies]
-python = ">=3.9.6,<3.9.7 || >3.9.7"
-pandas = { version = ">=2.1.3", optional = true }
-streamlit = { version = ">=1.48.0", optional = true }
-tornado = { version = ">=6.5.0", optional = true }
-requests = { version = ">=2.32.4", optional = true }
-urllib3 = "2.5.0"
-pytz = ">=2024.1"
-
-[tool.poetry.group.dev.dependencies]
-pytest = "^7.4.0"
-python-dotenv = "^0.19.1"
-
-[tool.poetry.extras]
-dataframe = ["pandas"]
-allextras = ["pandas", "streamlit","tornado","requests"]
+[project.scripts]
+eptr2demo = "eptr2.tutorials:run_composite_app"
 
 [build-system]
-requires = ["poetry-core"]
-build-backend = "poetry.core.masonry.api"
+requires = ["hatchling"]
+build-backend = "hatchling.build"
 
-[tool.poetry.scripts]
-eptr2demo = "eptr2.tutorials:run_composite_app"
+[tool.uv]
+dev-dependencies = [
+    "pytest>=7.4.0",
+    "python-dotenv>=0.19.1",
+]
+
+## source .env && uv publish
