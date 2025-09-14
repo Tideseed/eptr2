@@ -158,6 +158,7 @@ def plant_costs_code():
         forecast_source="{forecast_source}",
         actual_source="{actual_source}",
         verbose=False,
+        postprocess=True,
     )
 
     ## Organizasyon kodlarını öğrenmek için
@@ -216,9 +217,9 @@ def load_plant_costs_data():
             st.stop()
         input_params["pp_id"] = pp_id.get("id", None)
 
-        st.json(input_params)
+        # st.json(input_params)
 
-        input_params["postprocess"] = ss["plant_costs_show_details"]
+        input_params["postprocess"] = True
         res: pd.DataFrame | dict = gather_and_calculate_plant_costs(
             eptr=eptr,
             **input_params,
@@ -247,10 +248,7 @@ def load_plant_costs_data():
 
     # df.drop(columns=["org_id"], inplace=True, errors="ignore")
 
-    if ss["plant_costs_show_details"]:
-        ss["plant_costs_data"] = copy.deepcopy(res)
-    else:
-        ss["plant_costs_data"] = res.copy()
+    ss["plant_costs_data"] = copy.deepcopy(res)
 
 
 def plant_costs_call_check():
@@ -408,8 +406,6 @@ def plant_costs_main():
 
         if not ss["can_call"]:
             st.caption("⚠️ 👆 Seçimleriniz menüsünden uyarıları kontrol edin.")
-        else:
-            st.checkbox("Detay Göster", key="plant_costs_show_details", value=False)
 
         st.button(
             "⚡️ Veriyi Yükle",
@@ -456,7 +452,7 @@ def plant_costs_main():
                 )
                 st.dataframe(
                     df,
-                    use_container_width=True,
+                    width="stretch",
                     height=800,
                     hide_index=True,
                 )

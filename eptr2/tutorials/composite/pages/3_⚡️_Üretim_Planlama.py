@@ -206,9 +206,7 @@ def production_plan_main():
 
             st.subheader(ss["production_plan_data_title"])
             st.caption("Not: Bu tabloyu sağ üst köşeden csv olarak indirebilirsiniz.")
-            st.dataframe(
-                ss["production_plan_data"], use_container_width=True, height=800
-            )
+            st.dataframe(ss["production_plan_data"], width="stretch", height=800)
 
             st.markdown("Python kodu")
             st.code(production_planning_code(), language="python")

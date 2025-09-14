@@ -124,7 +124,7 @@ if __name__ == "__main__":
             "✉️ İletişim" if ss["lang"] == "tr" else "✉️ Contact",
             "https://robokami.com/#iletisim",
             type="primary",
-            use_container_width=True,
+            width="stretch",
         )
     with col2:
         try:
@@ -138,19 +138,19 @@ if __name__ == "__main__":
             "⚡️ EPİAŞ Şeffaflık" if ss["lang"] == "tr" else "⚡️ EPIAS TP",
             url=seffaflik_url,
             type="secondary",
-            use_container_width=True,
+            width="stretch",
         )
     with col3:
         st.link_button(
             "🔎 Github",
             "https://www.github.com/Tideseed/eptr2",
-            use_container_width=True,
+            width="stretch",
         )
     with col4:
         st.link_button(
             "🐍 PyPI",
             "https://www.pypi.org/project/eptr2",
-            use_container_width=True,
+            width="stretch",
         )
 
     st.selectbox(

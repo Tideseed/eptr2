@@ -120,7 +120,7 @@ def dabi_positions_main():
 
             st.subheader(ss["dabi_data_title"])
             st.caption("Not: Bu tabloyu sağ üst köşeden csv olarak indirebilirsiniz.")
-            st.dataframe(ss["dabi_idm_data"], use_container_width=True, height=800)
+            st.dataframe(ss["dabi_idm_data"], width="stretch", height=800)
 
             st.markdown("Python kodu")
             st.code(dabi_idm_code(), language="python")

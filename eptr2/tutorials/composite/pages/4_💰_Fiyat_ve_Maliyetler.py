@@ -119,9 +119,7 @@ def price_and_cost_main():
         st.subheader("Fiyat ve Maliyetler")
         st.caption("Not: Bu tabloyu sağ üst köşeden csv olarak indirebilirsiniz.")
 
-        st.dataframe(
-            ss["price_and_cost_data"], use_container_width=True, hide_index=True
-        )
+        st.dataframe(ss["price_and_cost_data"], width="stretch", hide_index=True)
         price_and_cost_code()
 
 
