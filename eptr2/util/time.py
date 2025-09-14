@@ -365,13 +365,20 @@ def get_time_min_max_price_map():
     return map_l
 
 
-def contract_to_floor_ceil_prices(c):
+def contract_to_floor_ceil_prices(c: str | None = None):
     """
     Given a contract return the min and max prices
     """
 
-    the_date = contract_to_datetime(c).date()
+    ### Min max price map is always sorted by date descending
     mm_map = get_time_min_max_price_map()
+
+    ### If contract is not given return the latest
+    if c is None:
+        return mm_map[0]
+
+    the_date = contract_to_datetime(c).date()
+
     for x in mm_map:
         if the_date >= datetime.strptime(x["date"], "%Y-%m-%d").date():
             return x
@@ -476,3 +483,34 @@ def get_start_end_dates_period(period: str):
     end_date = end_date.strftime("%Y-%m-%d")
 
     return start_date, end_date
+
+
+## https://stackoverflow.com/a/68321739/3608936
+def contract_remaining_time_formatted(
+    contract: str,
+    day_label="D",
+    hour_label="H",
+    minute_label="m",
+    second_label="s",
+    no_time_label="-",
+) -> str:
+    seconds = time_to_contract_close(contract)
+    if seconds is not None:
+        seconds = int(seconds)
+        d = seconds // (3600 * 24)
+        h = seconds // 3600 % 24
+        m = seconds % 3600 // 60
+        s = seconds % 3600 % 60
+        if d > 0:
+            return "{:02d}{} {:02d}{} {:02d}{} {:02d}{}".format(
+                d, day_label, h, hour_label, m, minute_label, s, second_label
+            )
+        elif h > 0:
+            return "{:02d}{} {:02d}{} {:02d}{}".format(
+                h, hour_label, m, minute_label, s, second_label
+            )
+        elif m > 0:
+            return "{:02d}{} {:02d}{}".format(m, minute_label, s, second_label)
+        elif s > 0:
+            return "{:02d}{}".format(s, second_label)
+    return no_time_label
