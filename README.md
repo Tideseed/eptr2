@@ -231,9 +231,7 @@ df = get_day_ahead_and_bilateral_matches(eptr=eptr,start_date="2023-01-01", end_
 df2 = get_day_ahead_detail_info(
     eptr=eptr, start_date="2023-01-01", end_date="2023-01-31", verbose=True
 )
-
 ```
-
 
 #### Balancing Power Market Data
 
@@ -254,3 +252,24 @@ df2 = get_bpm_period(
 )
 ```
 
+#### Plant Costs
+
+```python
+from eptr2 import EPTR2
+from eptr2.composite import gather_and_calculate_plant_costs
+
+eptr = EPTR2(credentials_file_path="creds/eptr_credentials.json")
+
+df = gather_and_calculate_plant_costs(
+    eptr=eptr,
+    start_date="2023-01-01",
+    end_date="2023-01-31",
+    pp_id=120,  ## BOZCAADA RES
+    org_id=195,  ## EÜAŞ
+    uevcb_id=3204384,  ## BOZCAADA RES
+    plant_type="wind",
+    verbose=True,
+    forecast_source = "kgup",
+    actual_source = "uevm"
+)
+```
