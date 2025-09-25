@@ -16,7 +16,9 @@ def new_temp_imbalance_calculation():
             "SMF", key="smp", value=2500.0, min_value=0.0, max_value=3400.0, step=0.1
         )
 
-    res = temp_calculate_imbalance_price_and_costs_new(mcp=ss.mcp, smp=ss.smp)
+    res = temp_calculate_imbalance_price_and_costs_new(
+        mcp=round(ss.mcp, 2), smp=round(ss.smp, 2)
+    )
 
     # res_cols = st.columns(4)
     with calc_cols[2]:

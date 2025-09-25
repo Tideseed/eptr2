@@ -382,12 +382,12 @@ def temp_calculate_imbalance_price_and_costs_new(
     ceil_margin: Additional margin applied when the maximum of mcp and smp is equal to ceil_price (5%)
     regulation: Direction of system regulation ("up", "down", "balanced") when mcp == smp
     """
-    if mcp > smp:
-        neg_margin = high_margin
-        pos_margin = low_margin
-    elif mcp < smp:
+    if mcp > smp:  ## system imbalance is positive
         neg_margin = low_margin
         pos_margin = high_margin
+    elif mcp < smp:  ## system imbalance is negative
+        neg_margin = high_margin
+        pos_margin = low_margin
     elif mcp == ceil_price:  ## system imbalance is still negative
         neg_margin = high_margin
         pos_margin = low_margin
@@ -400,7 +400,7 @@ def temp_calculate_imbalance_price_and_costs_new(
     elif regulation == "down":  ## system imbalance is still positive
         neg_margin = low_margin
         pos_margin = high_margin
-    else:
+    else:  ### system is balanced
         neg_margin = low_margin
         pos_margin = low_margin
 
