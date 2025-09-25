@@ -174,11 +174,28 @@ def contract_to_day(c):
     return c[6:8]
 
 
-def contract_to_wday(c):
+def change_wday_name_to_tr(wday_name):
+    days_tr = {
+        "Mon": "Pzt",
+        "Tue": "Sal",
+        "Wed": "Çar",
+        "Thu": "Per",
+        "Fri": "Cum",
+        "Sat": "Cmt",
+        "Sun": "Paz",
+    }
+    return days_tr.get(wday_name, wday_name)
+
+
+def contract_to_wday(c, named=False, tr_name=False):
     """
     Get the weekday from a contract with the format PHyyMMDDHH or PByyMMDDHH-BB
     """
-    return contract_to_datetime(c).strftime("%w")
+    x = contract_to_datetime(c).strftime("%a" if named or tr_name else "%w")
+    if tr_name:
+        x = change_wday_name_to_tr(x)
+
+    return x
 
 
 def contract_to_date_info(c, include_c=False):
@@ -213,11 +230,14 @@ def contract_to_day_ahead_time(
     return da_dt
 
 
-def ts_to_day_of_week_utc3(ts):
+def ts_to_day_of_week_utc3(ts, named=False, tr_name=False):
     """
     0: Sunday
     """
-    return ts_to_format_utc3(ts=ts, format="%w")
+    x = ts_to_format_utc3(ts=ts, format="%a" if named or tr_name else "%w")
+    if tr_name:
+        x = change_wday_name_to_tr(x)
+    return x
 
 
 def ts_to_format_utc3(ts, format="%Y-%m-%d"):

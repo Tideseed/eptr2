@@ -1,4 +1,4 @@
-import pandas as pd
+from typing import Literal
 
 
 def get_kupst_tolerance(source: str):
@@ -354,3 +354,78 @@ def calculate_diff_costs_list(
         )
 
     return res_d
+
+
+def temp_calculate_imbalance_price_and_costs_new(
+    mcp: float,
+    smp: float,
+    floor_price: float = 0.0,
+    ceil_price: float = 3400.0,
+    V: float = 150,
+    B: float = 100,
+    low_margin: float = 0.03,
+    high_margin: float = 0.06,
+    ceil_margin: float = 0.05,
+    regulation: Literal["up", "down", "balanced"] = "balanced",
+):
+    """
+    Temporary function to calculate imbalance prices based on new regulation (2026)
+
+    mcp: Market Clearing Price (Day-ahead price) (PTF)
+    smp: System Marginal Price (Real-time price) (SMF)
+    floor_price: Price floor (0 TL/MWh)
+    ceil_price: Price ceiling (3400 TL/MWh)
+    V: Reference price for negative imbalance price calculation and positive imbalance threshold (150 TL/MWh)
+    B: Reference price for positive imbalance price calculation (100 TL/MWh)
+    low_margin: Margin for the opposite side of the imbalance (3%)
+    high_margin: Margin for the same side of the imbalance (6%)
+    ceil_margin: Additional margin applied when the maximum of mcp and smp is equal to ceil_price (5%)
+    regulation: Direction of system regulation ("up", "down", "balanced") when mcp == smp
+    """
+    if mcp > smp:
+        neg_margin = high_margin
+        pos_margin = low_margin
+    elif mcp < smp:
+        neg_margin = low_margin
+        pos_margin = high_margin
+    elif mcp == ceil_price:  ## system imbalance is still negative
+        neg_margin = high_margin
+        pos_margin = low_margin
+    elif mcp == floor_price:  ## system imbalance is still positive
+        neg_margin = low_margin
+        pos_margin = high_margin
+    elif regulation == "up":  ## system imbalance is still negative
+        neg_margin = high_margin
+        pos_margin = low_margin
+    elif regulation == "down":  ## system imbalance is still positive
+        neg_margin = low_margin
+        pos_margin = high_margin
+    else:
+        neg_margin = low_margin
+        pos_margin = low_margin
+
+    if max(mcp, smp) == ceil_price:
+        neg_imb_mult = 1 + ceil_margin
+    else:
+        neg_imb_mult = 1
+
+    neg_imb_price = max(mcp, smp, V) * (1 + neg_margin) * neg_imb_mult
+
+    pos_imb_price_raw = min(mcp, smp)
+
+    if pos_imb_price_raw < V:
+        pos_imb_price = -B * (1 - pos_margin)
+    else:
+        pos_imb_price = pos_imb_price_raw * (1 - pos_margin)
+
+    neg_imb_cost = neg_imb_price - mcp
+    pos_imb_cost = mcp - pos_imb_price
+
+    return {
+        "mcp": mcp,
+        "smp": smp,
+        "pos_cost": pos_imb_cost,
+        "neg_cost": neg_imb_cost,
+        "pos_price": pos_imb_price,
+        "neg_price": neg_imb_price,
+    }

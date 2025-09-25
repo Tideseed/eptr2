@@ -124,6 +124,16 @@ def composite_main():
             Bu sayfa, istediğiniz tarih aralığı için bir santralin dengesizlik maliyetlerini hesaplamanızı sağlayan kompozit fonksiyonu çalıştırır."""
     )
     st.divider()
+    st.page_link(
+        "pages/6_👨‍💻_Yeni_Dengesizlik_Hesabı.py",
+        label="**Yeni Dengesizlik Hesabı**",
+        icon="👨‍💻",
+    )
+    st.markdown(
+        """
+            Bu sayfa, EPDK'nın yeni taslağına uygun bir şekilde dengesizlik hesabı yapmanıza yardımcı olur. Geçici olarak eklenmiştir."""
+    )
+    st.divider()
     st.markdown("Diğer kompozit fonksiyonlar da yakında burada...")
 
 
