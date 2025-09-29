@@ -1,3 +1,15 @@
+def new_temp_imbalances_code():
+    ss = st.session_state
+    code = f"""
+    from eptr2.util.costs import temp_calculate_imbalance_price_and_costs_new
+    temp_calculate_imbalance_price_and_costs_new(
+        mcp={round(ss.mcp, 2)}, smp={round(ss.smp, 2)}
+    )
+    """
+
+    return code
+
+
 def new_temp_imbalance_calculation():
     ss = st.session_state
     st.title("👨‍💻 Yeni Dengesizlik Hesabı (Geçici)")
@@ -48,6 +60,9 @@ def new_temp_imbalance_calculation():
         + Pozitif dengesizlik fiyatı V değerinden düşük ise, B (100 ₺/MWh) değeri devreye girer. Pozitif dengesizlik fiyatı - B * (1 - l) olarak hesaplanır. l değeri sistem yönü enerji açığı ise 0.03, enerji fazlası ise 0.06 olarak alınır. Diğer durumda eski yöntem ile hesaplanır (ancak l gene 0.03 veya 0.06 değerini alabilir).
         """
     )
+
+    st.subheader("Python kodu")
+    st.code(new_temp_imbalances_code(), language="python")
 
 
 if __name__ == "__main__":
