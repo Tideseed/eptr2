@@ -8,6 +8,36 @@ def get_kupst_tolerance(source: str):
     return tol_source_map.get(alias_map.get(source, source), 0.05)
 
 
+def temp_get_draft_kupst_tolerance(source: str):
+    """
+    A temporary function to get the tolerance values based on source type according to the draft EPDK regulation (22 Sep 2025)
+    """
+    alias_map = {"sun": "solar"}
+
+    tol_source_map = {"wind": 0.15, "solar": 0.08, "unlicensed": 0.2}
+    return tol_source_map.get(alias_map.get(source, source), 0.05)
+
+
+def temp_calculate_draft_unit_kupst_cost(
+    mcp: float,
+    smp: float,
+    source: str | None = None,
+    kupst_multiplier_default: float = 0.05,
+    kupst_floor_price: float = 750.0,
+    include_maintenance_penalty: bool = False,
+):
+    """
+    A temporary function to get the unit kupst costs based on source type according to the draft EPDK regulation (22 Sep 2025)
+    """
+
+    kupst_multiplier = 0.08 if include_maintenance_penalty else kupst_multiplier_default
+    if source is not None:
+        source_map = {"battery": 0.1, "aggregator": 0.05, "unlicensed": 0.02}
+        kupst_multiplier = source_map.get(source, kupst_multiplier_default)
+
+    return max(mcp, smp, kupst_floor_price) * kupst_multiplier
+
+
 def calculate_unit_imbalance_price(
     mcp: float, smp: float, penalty_margin: float = 0.03
 ):

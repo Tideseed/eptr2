@@ -273,3 +273,16 @@ df = gather_and_calculate_plant_costs(
     actual_source = "uevm"
 )
 ```
+
+### Bulk Function Calls
+
+There are three bulk function calls for daily operations: daily production plan (DPP/KGÜP), real time generation and uevcb ids. 
+
+```python
+### DPP / KGÜP bulk
+dpp_df = eptr.call("dpp-bulk", date="2025-08-31", uevcb_ids=[3208611, 723724, 335505, 106710, 4094])
+### Real Time Generation bulk
+rt_gen_df = eptr.call("rt-gen-bulk", date="2025-08-31", pp_ids=[11162, 17889, 605, 5005121, 20764])
+### UEVCB list bulk
+uevcb_df = eptr.call("uevcb-list-bulk", date="2025-08-31", org_ids=[166, 12297, 648, 19880, 162])
+```
