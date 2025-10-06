@@ -144,10 +144,10 @@ def plant_costs_code():
     the_pp_id = pp_id.get("id", None)
     return f"""
     from eptr2 import EPTR2
-    from eptr2.composite import get_hourly_plant_costs_data
+    from eptr2.composite import gather_and_calculate_plant_costs
 
     eptr = EPTR2() ## Kullanıcı adı ve şifreyi yüklemeyi unutmayın
-    get_hourly_plant_costs_data(
+    gather_and_calculate_plant_costs(
         eptr=eptr,
         start_date="{ss["plant_costs_start_date"]}",
         end_date="{ss["plant_costs_end_date"]}",
@@ -452,7 +452,8 @@ def plant_costs_main():
                 )
                 st.dataframe(
                     df,
-                    width="stretch",
+                    # width="stretch",
+                    use_container_width=True,
                     height=800,
                     hide_index=True,
                 )
