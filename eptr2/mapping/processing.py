@@ -218,6 +218,9 @@ def get_postprocess_function(key):
         "planned-outages",
         "eligible-consumer-count",
         "unplanned-outages",
+        "dpp-bulk",
+        "rt-gen-bulk",
+        "uevcb-list-bulk",
     ]:
         return postprocess_items_to_df
 

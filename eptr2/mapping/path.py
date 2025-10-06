@@ -347,6 +347,24 @@ def get_path_map(just_call_keys: bool = False):
                 "prev": "generation",
                 "label": "region-list",
             },
+            ## Toplu KGÜP
+            "dpp-bulk": {
+                "prefix": "data",
+                "prev": "generation",
+                "label": "dpp-bulk",
+            },
+            ## Toplu Gerçek Zamanlı Üretim
+            "rt-gen-bulk": {
+                "prefix": "data",
+                "prev": "generation",
+                "label": "realtime-generation-bulk",
+            },
+            ### Toplu UEÇVB Listesi
+            "uevcb-list-bulk": {
+                "prefix": "data",
+                "prev": "generation",
+                "label": "uevcb-list-bulk",
+            },
             ## PMS Mesaj Tipi Listesi
             "mms-message-type-list": {
                 "prefix": "data",

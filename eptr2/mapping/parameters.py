@@ -57,6 +57,9 @@ def get_param_label(key):
         "dist_company_id": {"label": "distributionCompanyId"},
         "district_name": {"label": "districtName"},
         "pg_name": {"label": "profileGroupName"},
+        "uevcb_ids": {"label": "uevcbIds"},
+        "pp_ids": {"label": "powerPlantIds"},
+        "org_ids": {"label": "organizationIds"},
     }
     return d.get(key, key)
 
@@ -330,6 +333,9 @@ def get_required_parameters(key, return_mapping=False, mapping_only_keys=False):
         "elig-profile-groups": ["period"],
         "eligible-consumer-count": ["start_date", "end_date"],
         "unplanned-outages": ["period"],
+        "dpp-bulk": ["date", "uevcb_ids", "region"],
+        "rt-gen-bulk": ["date", "pp_ids"],
+        "uevcb-list-bulk": ["start_date", "org_ids"],
     }
 
     if return_mapping:

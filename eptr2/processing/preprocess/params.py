@@ -64,4 +64,11 @@ def preprocess_parameter(key, value):
         if value not in ["Baz", "Puant", "Puant Dışı"]:
             raise Exception("Load type must be either Baz, Puant or Puant Dışı")
 
+    elif key in ["uevcb_ids", "org_ids", "pp_ids"]:
+        if not isinstance(value, list):
+            raise Exception(f"{key} must be a list of IDs")
+        elif len(value) > 1000:
+            raise Exception(f"{key} list cannot be longer than 1000 items")
+        value = [str(v) for v in value]
+
     return value
