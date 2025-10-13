@@ -536,23 +536,51 @@ def contract_remaining_time_formatted(
     return no_time_label
 
 
-def get_previous_contracts(c: str, n: int = 1):
+def get_previous_contracts(c: str, n: int = 1, include_current: bool = False):
     """
     Given a contract and a number of previous contracts to get, return a list of previous contracts not including the current one.
     """
 
-    c_dt = contract_to_datetime(c)
-    l = [datetime_to_contract(c_dt - timedelta(hours=x + 1)) for x in range(n)]
+    if n > 0:
+        c_dt = contract_to_datetime(c)
+        l = [datetime_to_contract(c_dt - timedelta(hours=x + 1)) for x in range(n)]
+    if n < 0:
+        raise ValueError("n must be a non-negative integer")
+
+    if include_current:
+        l = l + [c]
 
     return l
 
 
-def get_next_contracts(c: str, n: int = 1):
+def get_next_contracts(c: str, n: int = 1, include_current: bool = False):
     """
     Given a contract and a number of next contracts to get, return a list of next contracts not including the current one.
     """
 
-    c_dt = contract_to_datetime(c)
-    l = [datetime_to_contract(c_dt + timedelta(hours=x + 1)) for x in range(n)]
+    if n > 0:
+        c_dt = contract_to_datetime(c)
+        l = [datetime_to_contract(c_dt + timedelta(hours=x + 1)) for x in range(n)]
+    if n < 0:
+        raise ValueError("n must be a non-negative integer")
+
+    if include_current:
+        l = [c] + l
+
+    l.sort()
+
+    return l
+
+
+def get_contract_range_from_center(c: str, n_before: int = 1, n_after: int = 1):
+    """
+    Given a contract and a number of previous and next contracts to get, return a list of contracts including the current one. Current contract is always included.
+    """
+
+    l_before = get_previous_contracts(c=c, n=n_before, include_current=False)
+    l_after = get_next_contracts(c=c, n=n_after, include_current=False)
+
+    l = l_before + [c] + l_after
+    l.sort()
 
     return l
