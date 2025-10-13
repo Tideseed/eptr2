@@ -550,6 +550,7 @@ def get_previous_contracts(c: str, n: int = 1, include_current: bool = False):
     if include_current:
         l = l + [c]
 
+    l.sort()
     return l
 
 
