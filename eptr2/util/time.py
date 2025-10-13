@@ -534,3 +534,25 @@ def contract_remaining_time_formatted(
         elif s > 0:
             return "{:02d}{}".format(s, second_label)
     return no_time_label
+
+
+def get_previous_contracts(c: str, n: int = 1):
+    """
+    Given a contract and a number of previous contracts to get, return a list of previous contracts not including the current one.
+    """
+
+    c_dt = contract_to_datetime(c)
+    l = [datetime_to_contract(c_dt - timedelta(hours=x + 1)) for x in range(n)]
+
+    return l
+
+
+def get_next_contracts(c: str, n: int = 1):
+    """
+    Given a contract and a number of next contracts to get, return a list of next contracts not including the current one.
+    """
+
+    c_dt = contract_to_datetime(c)
+    l = [datetime_to_contract(c_dt + timedelta(hours=x + 1)) for x in range(n)]
+
+    return l
