@@ -1,6 +1,6 @@
 [project]
 name = "eptr2"
-version = "1.2.3.dev0"
+version = "1.2.3.dev1"
 description = "EPIAS Transparency Platform v2.0 Python client by Robokami Data"
 authors = [
     {name = "Tideseed", email = "info@tideseed.com"}
@@ -41,5 +41,8 @@ dev-dependencies = [
 ]
 
 [tool.hatch.build]
-exclude = ['/creds', '/runs', '/data', '/helpdocs', '/wrappers', '/ui']
+include = ["/src", "README.md", "LICENSE","pyproject.toml", "/src/**"]
 
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/eptr2"]

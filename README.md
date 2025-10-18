@@ -9,16 +9,26 @@ This document is a quickstart guide for `eptr2` package. It is a Python client f
 
 ## Installation
 
-You can easily install it from PyPI with the following commmand.
+RECOMMENDED: Install `eptr2` with allextras option to get additional features. Extras currently include `python-dotenv`, `pandas` and `streamlit` libraries. You can install the package with the following command.
+
+```bash
+pip install "eptr2[allextras]"
+```
+
+Otherwise you can easily install it from PyPI with the following commmand.
 
 ```bash
 pip install eptr2
 ```
 
-If you want to the additional features, it is recommended to install it with the extras. Extras currently include `pandas` and `streamlit`. You can install the package with the following command.
+You can also use `uv` tool to install the package with extras or plain.
 
 ```bash
-pip install "eptr2[allextras]"
+uv pip install "eptr2[allextras]"
+```
+
+```bash
+uv pip install eptr2
 ```
 
 ## Usage

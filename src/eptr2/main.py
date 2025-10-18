@@ -48,6 +48,10 @@ class EPTR2:
         if self.use_dotenv:
             self.check_dotenv(dotenv_path=kwargs.get("dotenv_path", ".env"))
 
+        ### Options to recycle tgt
+        self.recycle_tgt = kwargs.get("recycle_tgt", True)
+        self.tgt_dir_path = kwargs.get("tgt_path", ".")
+
         if tgt_d is not None:
             self.import_tgt_info(tgt_d)
         else:
@@ -99,10 +103,22 @@ class EPTR2:
 
         return method
 
-    def import_tgt_info(self, tgt_d):
-        self.tgt = tgt_d["tgt"]
-        self.tgt_exp = tgt_d["tgt_exp"]
-        self.tgt_exp_0 = tgt_d["tgt_exp_0"]
+    def import_tgt_info(self, tgt_d=None):
+        if tgt_d is None:
+            if self.recycle_tgt:
+                tgt_file_path = os.path.join(self.tgt_dir_path, ".eptr2-tgt")
+                if os.path.exists(tgt_file_path):
+                    with open(tgt_file_path, "r") as f:
+                        tgt_d = json.load(f)
+
+        if tgt_d is None:
+            self.tgt = None
+            self.tgt_exp = 0
+            self.tgt_exp_0 = 0
+        else:
+            self.tgt = tgt_d["tgt"]
+            self.tgt_exp = tgt_d["tgt_exp"]
+            self.tgt_exp_0 = tgt_d["tgt_exp_0"]
 
     def check_renew_tgt(self):
         if self.tgt is None or self.tgt_exp_0 < datetime.now().timestamp():
@@ -153,15 +169,25 @@ class EPTR2:
             (tgt_start_time + timedelta(hours=1, minutes=45)).timestamp(),
         )
 
+        if self.recycle_tgt:
+            self.export_tgt_info()
+
     def export_tgt_info(self):
         """
         Exports TGT information to a dictionary. Contents are TGT itself, expiration timestamp (tgt_exp) and soft expiration (tgt_exp_0 i.e. expiration if not used) timestamp.
         """
-        return {
+        tgt_d = {
             "tgt": self.tgt,
             "tgt_exp": self.tgt_exp,
             "tgt_exp_0": self.tgt_exp_0,
         }
+
+        if self.recycle_tgt:
+            tgt_file_path = os.path.join(self.tgt_dir_path, ".eptr2-tgt")
+            with open(tgt_file_path, "w") as f:
+                json.dump(tgt_d, f)
+
+        return tgt_d
 
     def check_dotenv(self, dotenv_path: str = ".env"):
         """Check for .env file and load environment variables from it."""
@@ -170,7 +196,7 @@ class EPTR2:
             from dotenv import load_dotenv
         except ImportError:
             print(
-                "python-dotenv is not installed. Skipping .env file loading. To enable this functionality, please install python-dotenv package or install eptr2 with allextras option."
+                "python-dotenv is not installed. Skipping .env file loading. To enable this functionality, please install python-dotenv package or install eptr2 with allextras option. If you don't want to see this message, set use_dotenv parameter to False at the initialization. Setting use_dotenv to False..."
             )
             self.use_dotenv = False
             return
@@ -178,7 +204,10 @@ class EPTR2:
         if os.path.exists(dotenv_path):
             load_dotenv(dotenv_path, override=True)
         else:
-            print(f".env file not found at {dotenv_path}. Skipping .env file loading.")
+            print(
+                f".env file not found at {dotenv_path}. Skipping .env file loading. If you don't want to see this message, set use_dotenv parameter to False at the initialization. Setting use_dotenv to False..."
+            )
+            self.use_dotenv = False
 
     def check_postprocess(self, postprocess: bool = True):
         self.postprocess = postprocess
@@ -416,6 +445,10 @@ def eptr_w_tgt_wrapper(
     cred_path: str = "creds/eptr_credentials.json", **kwargs
 ) -> EPTR2:
     """This function is a wrapper for the EPTR2 class to handle TGT (Ticket Granting Ticket) management and credentials loading. This way TGT is automatically renewed when it expires, and credentials are loaded from a file or environment variables."""
+
+    print(
+        "This function is being deprecated. Please use EPTR2 class directly with recycle_tgt=True parameter. Soon enough, recycle_tgt parameter will be set to True by default in EPTR2 class."
+    )
 
     ### Initially you can define EPTR_USERNAME and EPTR_PASSWORD in the keyword arguments (strictly optional) and even tgt_d optional parameter. It is not a conventional use of this function.
     username = kwargs.get("EPTR_USERNAME", None)
