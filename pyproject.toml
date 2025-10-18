@@ -20,11 +20,11 @@ allextras = [
     "streamlit>=1.50.0",
     "tornado>=6.5.0",
     "requests>=2.32.4",
-    "python-dotenv>=1.1.1",
+    
 ]
 dev = [
     "pytest>=7.4.0",
-    "python-dotenv>=1.1.1",
+
 ]
 
 [project.scripts]
@@ -37,7 +37,7 @@ build-backend = "hatchling.build"
 [tool.uv]
 dev-dependencies = [
     "pytest>=7.4.0",
-    "python-dotenv>=0.19.1",
+    "python-dotenv>=1.1.1",
 ]
 
 [tool.hatch.build]
