@@ -78,14 +78,18 @@ class EPTR2:
         self, env_check_d: dict | None = None, custom_root_phrase: str | None = None
     ):
         if self.username is None or self.password is None:
+            ### DEPRECATED: Credentials file path is being deprecated in favor of dotenv usage
             if self.credentials_file_path is not None:
+                print(
+                    "Credentials file path is being deprecated in favor of dotenv usage. Use use_dotenv parameter and environment file instead. In current iteration, dotenv overrides credentials file path."
+                )
                 with open(self.credentials_file_path, "r") as f:
-                    credentials_d = json.load(f)
-                    self.username = credentials_d["EPTR_USERNAME"]
-                    self.password = credentials_d["EPTR_PASSWORD"]
-            else:
-                self.username = os.environ.get("EPTR_USERNAME", None)
-                self.password = os.environ.get("EPTR_PASSWORD", None)
+                    credentials_d: dict = json.load(f)
+                    self.username = credentials_d.get("EPTR_USERNAME", self.username)
+                    self.password = credentials_d.get("EPTR_PASSWORD", self.password)
+
+            self.username = os.environ.get("EPTR_USERNAME", self.username)
+            self.password = os.environ.get("EPTR_PASSWORD", self.password)
 
         if self.username is None or self.password is None:
             if env_check_d is not None:
