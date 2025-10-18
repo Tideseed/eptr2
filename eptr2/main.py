@@ -27,7 +27,6 @@ class EPTR2:
         username: str = None,
         password: str = None,
         tgt_d: dict | None = None,
-        credentials_file_path: str | None = None,
         **kwargs,
     ) -> None:
         ## kwargs are
@@ -43,9 +42,11 @@ class EPTR2:
         self.username = username
         self.password = password
         self.is_test = kwargs.get("is_test", False)  ## Currently not used
-        self.credentials_file_path = credentials_file_path
-        # self.credentials_file_path = kwargs.get("credentials_file_path", None)
+        self.credentials_file_path = kwargs.get("credentials_file_path", None)
         self.login(custom_root_phrase=kwargs.get("root_phrase", None))
+        self.use_dotenv = kwargs.get("use_dotenv", True)
+        if self.use_dotenv:
+            self.check_dotenv(dotenv_path=kwargs.get("dotenv_path", ".env"))
 
         if tgt_d is not None:
             self.import_tgt_info(tgt_d)
@@ -83,7 +84,6 @@ class EPTR2:
 
     ## Ref: https://stackoverflow.com/a/62303969/3608936
     def __getattr__(self, __name: str) -> Any:
-
         def method(*args, **kwargs):
             key_raw = __name
             key = re.sub("_", "-", key_raw)
@@ -141,7 +141,7 @@ class EPTR2:
         self.tgt = res_data["tgt"]
         try:
             tgt_start_time = datetime.fromisoformat(res_data["created"])
-        except:
+        except Exception:
             tgt_start_time = datetime.now()
 
         ## Hard timeout
@@ -163,11 +163,28 @@ class EPTR2:
             "tgt_exp_0": self.tgt_exp_0,
         }
 
+    def check_dotenv(self, dotenv_path: str = ".env"):
+        """Check for .env file and load environment variables from it."""
+
+        try:
+            from dotenv import load_dotenv
+        except ImportError:
+            print(
+                "python-dotenv is not installed. Skipping .env file loading. To enable this functionality, please install python-dotenv package or install eptr2 with allextras option."
+            )
+            self.use_dotenv = False
+            return
+
+        if os.path.exists(dotenv_path):
+            load_dotenv(dotenv_path, override=True)
+        else:
+            print(f".env file not found at {dotenv_path}. Skipping .env file loading.")
+
     def check_postprocess(self, postprocess: bool = True):
         self.postprocess = postprocess
         if self.postprocess:
             try:
-                from eptr2.mapping.processing import get_postprocess_function
+                from eptr2.mapping.processing import get_postprocess_function  # noqa: F401
             except ImportError:
                 print(
                     "pandas is not installed. Some functionalities may not work properly. Postprocessing is disabled. To disable postprocessing just set 'postprocess' parameter to False when calling EPTR2 class.",
@@ -180,7 +197,6 @@ class EPTR2:
         """
 
         if include_aliases:
-
             return {
                 "keys": self.path_map_keys,
                 "default_aliases": get_alias_map(),
@@ -267,7 +283,7 @@ class EPTR2:
                     label = get_param_label(k)["label"]
                     value = v
                     if isinstance(label, list):
-                        for l in label:
+                        for l in label:  # noqa: E741
                             cb2[l] = value
                     else:
                         cb2[label] = value
