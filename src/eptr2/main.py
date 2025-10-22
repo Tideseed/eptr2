@@ -19,6 +19,7 @@ from eptr2.mapping import (
 from warnings import warn
 from eptr2.processing.preprocess import preprocess_parameter, process_special_calls
 from datetime import datetime, timedelta
+import shlex
 
 
 class EPTR2:
@@ -26,8 +27,9 @@ class EPTR2:
         self,
         username: str = None,
         password: str = None,
-        tgt_d: dict | None = None,
-        credentials_file_path: str | None = None,
+        recycle_tgt: bool = False,
+        use_dotenv: bool = True,
+        dotenv_path: str = ".env",
         **kwargs,
     ) -> None:
         ## kwargs are
@@ -35,6 +37,7 @@ class EPTR2:
         ### secure: bool
         ### query_parameters: dict
         ### just_call_phrase: bool
+        ### root_phrase: str
         self.ssl_verify = kwargs.get("ssl_verify", True)
         self.check_postprocess(postprocess=kwargs.get("postprocess", True))
         self.get_raw_response = kwargs.get("get_raw_response", False)
@@ -42,17 +45,28 @@ class EPTR2:
         ### Credentials and Login
         self.username = username
         self.password = password
-        self.is_test = kwargs.get("is_test", False)  ## Currently not used
-        self.credentials_file_path = credentials_file_path
-        # self.credentials_file_path = kwargs.get("credentials_file_path", None)
-        self.login(custom_root_phrase=kwargs.get("root_phrase", None))
+        self.is_test = kwargs.get("is_test", False)  ## Currently not being used
 
-        if tgt_d is not None:
-            self.import_tgt_info(tgt_d)
+        ### Credentials file path is being deprecated in favor of dotenv usage
+        self.credentials_file_path = kwargs.get("credentials_file_path", None)
+
+        ### Dotenv usage. Get EPTR_USERNAME and EPTR_PASSWORD from .env file if use_dotenv is True and environment file exists and credentials are recorded there.
+        self.use_dotenv = use_dotenv
+        if self.use_dotenv:
+            env_check_d = self.check_dotenv(dotenv_path=dotenv_path)
         else:
-            self.tgt = None
-            self.tgt_exp = 0
-            self.tgt_exp_0 = 0
+            env_check_d = None
+
+        self.upass_check(
+            env_check_d=env_check_d, custom_root_phrase=kwargs.get("root_phrase", None)
+        )
+
+        ### Options to recycle tgt
+        self.recycle_tgt = recycle_tgt
+        self.tgt_dir_path = kwargs.get("tgt_path", ".")
+
+        input_tgt_d = kwargs.get("tgt_d", None)
+        self.import_tgt_info(input_tgt_d)
 
         self.check_renew_tgt()
 
@@ -60,18 +74,29 @@ class EPTR2:
         self.path_map_keys = get_path_map(just_call_keys=True)
         self.custom_aliases = kwargs.get("custom_aliases", {})
 
-    def login(self, custom_root_phrase: str | None = None):
+    def upass_check(
+        self, env_check_d: dict | None = None, custom_root_phrase: str | None = None
+    ):
         if self.username is None or self.password is None:
+            ### DEPRECATED: Credentials file path is being deprecated in favor of dotenv usage
             if self.credentials_file_path is not None:
+                print(
+                    "Credentials file path is being deprecated in favor of dotenv usage. Use use_dotenv parameter and environment file instead. In current iteration, dotenv overrides credentials file path."
+                )
                 with open(self.credentials_file_path, "r") as f:
-                    credentials_d = json.load(f)
-                    self.username = credentials_d["EPTR_USERNAME"]
-                    self.password = credentials_d["EPTR_PASSWORD"]
-            else:
-                self.username = os.environ.get("EPTR_USERNAME", None)
-                self.password = os.environ.get("EPTR_PASSWORD", None)
+                    credentials_d: dict = json.load(f)
+                    self.username = credentials_d.get("EPTR_USERNAME", self.username)
+                    self.password = credentials_d.get("EPTR_PASSWORD", self.password)
+
+            self.username = os.environ.get("EPTR_USERNAME", self.username)
+            self.password = os.environ.get("EPTR_PASSWORD", self.password)
 
         if self.username is None or self.password is None:
+            if env_check_d is not None:
+                if not all(env_check_d.values()):
+                    print(
+                        "Warning: EPTR_USERNAME and/or EPTR_PASSWORD not found in environment variables even after checking .env file."
+                    )
             raise Exception(
                 "Username and password must be provided for login. If you do not have the necessary credentials, you can get them from EPIAS Transparency Platform website."
             )
@@ -83,7 +108,6 @@ class EPTR2:
 
     ## Ref: https://stackoverflow.com/a/62303969/3608936
     def __getattr__(self, __name: str) -> Any:
-
         def method(*args, **kwargs):
             key_raw = __name
             key = re.sub("_", "-", key_raw)
@@ -99,10 +123,23 @@ class EPTR2:
 
         return method
 
-    def import_tgt_info(self, tgt_d):
-        self.tgt = tgt_d["tgt"]
-        self.tgt_exp = tgt_d["tgt_exp"]
-        self.tgt_exp_0 = tgt_d["tgt_exp_0"]
+    def import_tgt_info(self, tgt_d=None):
+        if tgt_d is None or self.recycle_tgt:
+            tgt_file_path = os.path.join(self.tgt_dir_path, ".eptr2-tgt")
+            if os.path.exists(tgt_file_path):
+                with open(tgt_file_path, "r") as f:
+                    tgt_d = json.load(f)
+        else:
+            tgt_d = None
+
+        if tgt_d is None:
+            self.tgt = None
+            self.tgt_exp = 0
+            self.tgt_exp_0 = 0
+        else:
+            self.tgt = tgt_d["tgt"]
+            self.tgt_exp = tgt_d["tgt_exp"]
+            self.tgt_exp_0 = tgt_d["tgt_exp_0"]
 
     def check_renew_tgt(self):
         if self.tgt is None or self.tgt_exp_0 < datetime.now().timestamp():
@@ -141,7 +178,7 @@ class EPTR2:
         self.tgt = res_data["tgt"]
         try:
             tgt_start_time = datetime.fromisoformat(res_data["created"])
-        except:
+        except Exception:
             tgt_start_time = datetime.now()
 
         ## Hard timeout
@@ -153,21 +190,37 @@ class EPTR2:
             (tgt_start_time + timedelta(hours=1, minutes=45)).timestamp(),
         )
 
+        if self.recycle_tgt:
+            self.export_tgt_info()
+
     def export_tgt_info(self):
         """
         Exports TGT information to a dictionary. Contents are TGT itself, expiration timestamp (tgt_exp) and soft expiration (tgt_exp_0 i.e. expiration if not used) timestamp.
         """
-        return {
+        tgt_d = {
             "tgt": self.tgt,
             "tgt_exp": self.tgt_exp,
             "tgt_exp_0": self.tgt_exp_0,
         }
 
+        if self.recycle_tgt:
+            tgt_file_path = os.path.join(self.tgt_dir_path, ".eptr2-tgt")
+            with open(tgt_file_path, "w") as f:
+                json.dump(tgt_d, f)
+
+        return tgt_d
+
+    def check_dotenv(self, dotenv_path: str = ".env"):
+        """Check for .env file and load environment variables from it."""
+
+        all_check = load_eptr_credentials_from_dotenv(env_file_path=dotenv_path)
+        return all_check
+
     def check_postprocess(self, postprocess: bool = True):
         self.postprocess = postprocess
         if self.postprocess:
             try:
-                from eptr2.mapping.processing import get_postprocess_function
+                from eptr2.mapping.processing import get_postprocess_function  # noqa: F401
             except ImportError:
                 print(
                     "pandas is not installed. Some functionalities may not work properly. Postprocessing is disabled. To disable postprocessing just set 'postprocess' parameter to False when calling EPTR2 class.",
@@ -180,7 +233,6 @@ class EPTR2:
         """
 
         if include_aliases:
-
             return {
                 "keys": self.path_map_keys,
                 "default_aliases": get_alias_map(),
@@ -267,7 +319,7 @@ class EPTR2:
                     label = get_param_label(k)["label"]
                     value = v
                     if isinstance(label, list):
-                        for l in label:
+                        for l in label:  # noqa: E741
                             cb2[l] = value
                     else:
                         cb2[label] = value
@@ -374,8 +426,43 @@ def transparency_call(
     return res
 
 
+def load_eptr_credentials_from_dotenv(env_file_path: str = ".env") -> None:
+    """
+    Load (only) EPTR credentials from a .env file and set them as environment variables.
+    """
+
+    check_d = {"EPTR_USERNAME": False, "EPTR_PASSWORD": False}
+    ### If the .env file does not exist, return False and print a warning
+    if not os.path.exists(env_file_path):
+        print(f"Dotenv file not found at {env_file_path}.")
+        return check_d
+
+    ## Read the .env file line by line
+    with open(env_file_path) as f:
+        for raw_line in f:
+            line = raw_line.strip()
+            if not line or line.startswith("#"):
+                continue
+            key, value = line.split("=", 1)
+            value = shlex.split(value, posix=True)[0] if value else ""
+            ## Only set EPTR_USERNAME and EPTR_PASSWORD
+            if key in ["EPTR_USERNAME", "EPTR_PASSWORD"]:
+                os.environ[key] = value
+                check_d[key] = True
+
+            ## If both credentials are set, break the loop
+            if all(check_d.values()):
+                break
+
+    return check_d
+
+
 def set_eptr_credentials_to_env(cred_path: str = "creds/eptr_credentials.json"):
     """Set EPTR credentials to environment variables from a JSON file."""
+
+    print(
+        "DEPRECATED in favor of dotenv usage. Use use_dotenv parameter and environment file instead."
+    )
 
     if not os.path.exists(cred_path):
         raise FileNotFoundError(
@@ -400,6 +487,10 @@ def eptr_w_tgt_wrapper(
     cred_path: str = "creds/eptr_credentials.json", **kwargs
 ) -> EPTR2:
     """This function is a wrapper for the EPTR2 class to handle TGT (Ticket Granting Ticket) management and credentials loading. This way TGT is automatically renewed when it expires, and credentials are loaded from a file or environment variables."""
+
+    print(
+        "This function is being deprecated. Please use EPTR2 class directly with recycle_tgt=True parameter. Soon enough, recycle_tgt parameter will be set to True by default in EPTR2 class."
+    )
 
     ### Initially you can define EPTR_USERNAME and EPTR_PASSWORD in the keyword arguments (strictly optional) and even tgt_d optional parameter. It is not a conventional use of this function.
     username = kwargs.get("EPTR_USERNAME", None)
@@ -481,6 +572,10 @@ def generate_eptr2_credentials_file(
     overwrite: bool = False,
 ):
     """Generate a credentials file for EPTR2 class. It creates a JSON file with EPTR_USERNAME and EPTR_PASSWORD."""
+
+    print(
+        "DEPRECATED in favor of dotenv usage. Use use_dotenv parameter and environment file instead."
+    )
 
     if not overwrite and os.path.exists(cred_path):
         print(
