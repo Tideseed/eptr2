@@ -9,7 +9,7 @@ This document is a quickstart guide for `eptr2` package. It is a Python client f
 
 ## Installation
 
-RECOMMENDED: Install `eptr2` with allextras option to get additional features. Extras currently include `python-dotenv`, `pandas` and `streamlit` libraries. You can install the package with the following command.
+RECOMMENDED: Install `eptr2` with "allextras" option to get additional features. Extras currently include `pandas` and `streamlit` libraries. You can install the package with the following command.
 
 ```bash
 pip install "eptr2[allextras]"
@@ -49,7 +49,34 @@ res = eptr.call("mcp", start_date="2024-07-29", end_date="2024-07-29")
 
 There are more than 213 calls available. You can search for available calls with `eptr.get_available_calls()` function. This is almost an exhaustive list of available calls in the platform currently. 
 
-### New Login Method
+
+### Alternative: Using .env file for credentials and TGT recycling
+
+Starting from version `1.2.3`, you can use ".env" file to store credentials and recycle TGT (Ticket Granting Ticket) automatically. Recycling TGT allows you to create wrapper functions without the need to carry `EPTR2` object directly or having to create TGTs for each call (which may be throttled). TGT information is stored in the target path (default is current directory) under the file name `.eptr2-tgt` and reused until it expires.
+
+```python
+from eptr2 import EPTR2
+
+eptr = EPTR2(
+    use_dotenv=True,  ## Default: True
+    recycle_tgt=True, ## Default: False
+    dotenv_path=".env" ## Default: "".env"
+    tgt_path="." ## Default: ".", included as a kwarg
+    )
+
+df = eptr.call("mcp", start_date="2025-08-01",end_date="2025-08-31")
+```
+
+`.env` file is simply a text file with the following content. You need to create it in the same directory where you run your script.
+
+```
+EPTR_USERNAME=youremail@something.com
+EPTR_PASSWORD=yourpassword
+```
+
+### Deprecated: Credentials JSON
+
+*This method is being deprecated and will be removed soon.*
 
 From eptr2 version 1.1.0, you can use a new login method that automatically handles TGT (Ticket Granting Ticket) management. This way, TGT is automatically renewed when it expires, and credentials are loaded from a file or environment variables. You need a credentials file (e.g. `creds/eptr_credentials.json`) with the following structure:
 
