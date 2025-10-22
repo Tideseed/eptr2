@@ -50,7 +50,7 @@ res = eptr.call("mcp", start_date="2024-07-29", end_date="2024-07-29")
 There are more than 213 calls available. You can search for available calls with `eptr.get_available_calls()` function. This is almost an exhaustive list of available calls in the platform currently. 
 
 
-### Alternative: Using .env file for credentials and TGT recycling
+### Alternative: Using .env file for credentials and TGT recycling
 
 Starting from version `1.2.3`, you can use ".env" file to store credentials and recycle TGT (Ticket Granting Ticket) automatically. Recycling TGT allows you to create wrapper functions without the need to carry `EPTR2` object directly or having to create TGTs for each call (which may be throttled). TGT information is stored in the target path (default is current directory) under the file name `.eptr2-tgt` and reused until it expires.
 
