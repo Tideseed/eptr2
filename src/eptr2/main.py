@@ -20,6 +20,7 @@ from warnings import warn
 from eptr2.processing.preprocess import preprocess_parameter, process_special_calls
 from datetime import datetime, timedelta
 import shlex
+from urllib.parse import quote
 
 
 class EPTR2:
@@ -47,6 +48,8 @@ class EPTR2:
         self.password = password
         self.is_test = kwargs.get("is_test", False)  ## Currently not being used
 
+        self.temp_new_login_method = kwargs.get("new_login_method", False)
+
         ### Credentials file path is being deprecated in favor of dotenv usage
         self.credentials_file_path = kwargs.get("credentials_file_path", None)
 
@@ -68,7 +71,7 @@ class EPTR2:
         input_tgt_d = kwargs.get("tgt_d", None)
         self.import_tgt_info(input_tgt_d)
 
-        self.check_renew_tgt()
+        self.check_renew_tgt(**kwargs)
 
         ## Path map keys and custom aliases
         self.path_map_keys = get_path_map(just_call_keys=True)
@@ -141,9 +144,9 @@ class EPTR2:
             self.tgt_exp = tgt_d["tgt_exp"]
             self.tgt_exp_0 = tgt_d["tgt_exp_0"]
 
-    def check_renew_tgt(self):
+    def check_renew_tgt(self, **kwargs):
         if self.tgt is None or self.tgt_exp_0 < datetime.now().timestamp():
-            self.get_tgt()
+            self.get_tgt(**kwargs)
 
     def get_tgt(self, **kwargs):
         if self.username is None or self.password is None:
@@ -151,7 +154,8 @@ class EPTR2:
 
         test_suffix = "-prp" if self.is_test else ""
         login_url = f"""https://giris{test_suffix}.epias.com.tr/cas/v1/tickets"""
-        login_url += f"?username={self.username}&password={self.password}"
+
+        body_str = f"username={quote(self.username)}&password={quote(self.password)}"
 
         http = urllib3.PoolManager(
             cert_reqs="CERT_REQUIRED" if self.ssl_verify else "CERT_NONE"
@@ -162,24 +166,31 @@ class EPTR2:
             url=login_url,
             headers={
                 "Content-Type": "application/x-www-form-urlencoded",
-                "Accept": "application/json",
+                "Accept": "text/plain",
             },
+            body=body_str,
             **kwargs.get("request_kwargs", {}),
         )
         if res.status not in [200, 201]:
             raise Exception(
                 "Request failed with status code: "
                 + str(res.status)
-                + "\n"
+                + ": "
                 + res.data.decode("utf-8")
             )
 
-        res_data = json.loads(res.data.decode("utf-8"))
-        self.tgt = res_data["tgt"]
-        try:
-            tgt_start_time = datetime.fromisoformat(res_data["created"])
-        except Exception:
-            tgt_start_time = datetime.now()
+        if isinstance(res.data, bytes):
+            res_data = res.data.decode("utf-8")
+        else:
+            res_data = res.data
+
+        if res_data.startswith("TGT-"):
+            tgt = res_data
+        else:
+            raise Exception("Login failed. TGT not found in response: " + res_data)
+
+        self.tgt = tgt
+        tgt_start_time = datetime.now()
 
         ## Hard timeout
         self.tgt_exp = (tgt_start_time + timedelta(hours=1, minutes=45)).timestamp()
@@ -272,7 +283,7 @@ class EPTR2:
         Main call function for the API. This function is used to process parameters and make calls to EPIAS Transparency API.
         """
 
-        self.check_renew_tgt()
+        self.check_renew_tgt(**kwargs)
         raw_key = key
         key = alias_to_path(alias=key, custom_aliases=self.custom_aliases)
 
