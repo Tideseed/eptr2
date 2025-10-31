@@ -1,5 +1,7 @@
 ![PyPI - Version](https://img.shields.io/pypi/v/eptr2) ![PyPI - Downloads](https://img.shields.io/pypi/dm/eptr2) 
 
+**!! CRITICAL: Due to authentication method changes you are strongly recommended to update the eptr2 version to 1.2.4+**
+
 # Quickstart
 
 This document is a quickstart guide for `eptr2` package. It is a Python client for [EPIAS Transparency Platform v2.0](https://seffaflik.epias.com.tr/home) API. It is an unofficial package with Apache License 2.0.
