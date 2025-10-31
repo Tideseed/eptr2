@@ -1,0 +1,18 @@
+{
+  "mcpServers": {
+    "eptr2": {
+      "command": "python",
+      "args": ["-m", "eptr2.mcp.server"],
+      "env": {
+        "EPTR_USERNAME": "${EPTR_USERNAME}",
+        "EPTR_PASSWORD": "${EPTR_PASSWORD}"
+      },
+      "description": "EPTR2 - Turkish Electricity Market Data API",
+      "capabilities": {
+        "tools": true,
+        "resources": false,
+        "prompts": false
+      }
+    }
+  }
+}

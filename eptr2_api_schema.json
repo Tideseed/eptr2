@@ -1,0 +1,226 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "EPTR2 API Schema for AI Agents",
+  "description": "Schema describing the eptr2 library API for Turkish electricity market data access",
+  "version": "1.2.4",
+  "apiInfo": {
+    "name": "eptr2",
+    "description": "EPIAS Transparency Platform v2.0 Python client",
+    "author": "Tideseed",
+    "license": "Apache-2.0",
+    "repository": "https://github.com/Tideseed/eptr2",
+    "pypi": "https://pypi.org/project/eptr2/"
+  },
+  "authentication": {
+    "methods": [
+      {
+        "name": "dotenv",
+        "description": "Load credentials from .env file",
+        "recommended": true,
+        "envVars": {
+          "EPTR_USERNAME": "EPIAS Transparency Platform username (email)",
+          "EPTR_PASSWORD": "EPIAS Transparency Platform password"
+        }
+      },
+      {
+        "name": "direct",
+        "description": "Pass credentials directly to constructor",
+        "parameters": {
+          "username": "string",
+          "password": "string"
+        }
+      }
+    ]
+  },
+  "commonAPICalls": [
+    {
+      "key": "mcp",
+      "aliases": ["ptf"],
+      "name": "Market Clearing Price",
+      "description": "Day-ahead market clearing price (hourly)",
+      "category": "pricing",
+      "requiredParams": ["start_date", "end_date"],
+      "optionalParams": [],
+      "returns": "DataFrame with date, hour, and price columns"
+    },
+    {
+      "key": "smp",
+      "aliases": ["smf"],
+      "name": "System Marginal Price",
+      "description": "System marginal price (hourly)",
+      "category": "pricing",
+      "requiredParams": ["start_date", "end_date"],
+      "optionalParams": [],
+      "returns": "DataFrame with date, hour, and price columns"
+    },
+    {
+      "key": "imbalance-price",
+      "aliases": [],
+      "name": "Imbalance Price",
+      "description": "Positive and negative imbalance prices",
+      "category": "pricing",
+      "requiredParams": ["start_date", "end_date"],
+      "optionalParams": [],
+      "returns": "DataFrame with date, hour, positive and negative imbalance prices"
+    },
+    {
+      "key": "rt-consumption",
+      "aliases": [],
+      "name": "Real-Time Consumption",
+      "description": "Real-time electricity consumption (hourly)",
+      "category": "consumption",
+      "requiredParams": ["start_date", "end_date"],
+      "optionalParams": [],
+      "returns": "DataFrame with date, hour, and consumption in MWh"
+    },
+    {
+      "key": "rt-generation",
+      "aliases": [],
+      "name": "Real-Time Generation",
+      "description": "Real-time generation by resource type (hourly)",
+      "category": "generation",
+      "requiredParams": ["start_date", "end_date"],
+      "optionalParams": [],
+      "returns": "DataFrame with generation by source type (wind, solar, hydro, etc.)"
+    },
+    {
+      "key": "load-plan",
+      "aliases": [],
+      "name": "Load Plan / UECM",
+      "description": "Demand forecast (hourly)",
+      "category": "forecast",
+      "requiredParams": ["start_date", "end_date"],
+      "optionalParams": [],
+      "returns": "DataFrame with forecasted demand"
+    },
+    {
+      "key": "dpp",
+      "aliases": ["kgup"],
+      "name": "Daily Production Plan",
+      "description": "Daily production plan for generation units",
+      "category": "production_plan",
+      "requiredParams": ["date", "uevcb_ids"],
+      "optionalParams": [],
+      "returns": "DataFrame with production plans by unit"
+    },
+    {
+      "key": "uevm",
+      "aliases": [],
+      "name": "Generation Forecast by Plant",
+      "description": "Generation forecast for specific power plants",
+      "category": "forecast",
+      "requiredParams": ["start_date", "end_date"],
+      "optionalParams": ["powerplant_id"],
+      "returns": "DataFrame with generation forecasts"
+    }
+  ],
+  "compositeFunctions": [
+    {
+      "name": "get_hourly_consumption_and_forecast_data",
+      "description": "Combines load plan, UECM, and real-time consumption into single dataset",
+      "category": "composite_consumption",
+      "requiredParams": ["eptr", "start_date", "end_date"],
+      "returns": "DataFrame with combined consumption and forecast data"
+    },
+    {
+      "name": "get_hourly_price_and_cost_data",
+      "description": "Combines MCP, SMP, WAP, and imbalance costs",
+      "category": "composite_pricing",
+      "requiredParams": ["eptr", "start_date", "end_date"],
+      "returns": "DataFrame with comprehensive pricing data"
+    },
+    {
+      "name": "get_imbalance_data",
+      "description": "Combines imbalance prices, volumes, and costs",
+      "category": "composite_pricing",
+      "requiredParams": ["eptr", "start_date", "end_date"],
+      "returns": "DataFrame with imbalance analysis"
+    },
+    {
+      "name": "get_hourly_production_data",
+      "description": "Real-time and UEVM production data",
+      "category": "composite_production",
+      "requiredParams": ["eptr", "start_date", "end_date"],
+      "optionalParams": ["rt_pp_id", "uevm_pp_id"],
+      "returns": "DataFrame with production data"
+    },
+    {
+      "name": "get_hourly_production_plan_data",
+      "description": "Production plan data (KGUP v1, KGUP, KUDUP)",
+      "category": "composite_production",
+      "requiredParams": ["eptr", "start_date", "end_date"],
+      "optionalParams": ["org_id", "uevcb_id"],
+      "returns": "DataFrame with production plan data"
+    }
+  ],
+  "dateFormat": {
+    "format": "YYYY-MM-DD",
+    "examples": ["2024-07-29", "2024-01-01", "2023-12-31"],
+    "description": "All dates must be in ISO 8601 format"
+  },
+  "parameterTypes": {
+    "start_date": {
+      "type": "string",
+      "format": "YYYY-MM-DD",
+      "description": "Start date for data query"
+    },
+    "end_date": {
+      "type": "string",
+      "format": "YYYY-MM-DD",
+      "description": "End date for data query"
+    },
+    "date": {
+      "type": "string",
+      "format": "YYYY-MM-DD",
+      "description": "Specific date for data query"
+    },
+    "org_id": {
+      "type": "integer",
+      "description": "Organization ID"
+    },
+    "pp_id": {
+      "type": "integer",
+      "description": "Power plant ID"
+    },
+    "uevcb_id": {
+      "type": "integer",
+      "description": "Production unit ID (UEVCB)"
+    }
+  },
+  "returnTypes": {
+    "default": "pandas.DataFrame",
+    "alternative": "dict/list (with postprocess=False)",
+    "columns": "Varies by API call, typically includes date, hour, and metric-specific fields"
+  },
+  "totalAPICalls": 213,
+  "usageExamples": [
+    {
+      "description": "Get market clearing price for a date range",
+      "code": "from eptr2 import EPTR2\neptr = EPTR2(use_dotenv=True, recycle_tgt=True)\ndf = eptr.call('mcp', start_date='2024-07-29', end_date='2024-07-29')"
+    },
+    {
+      "description": "Get composite consumption and forecast data",
+      "code": "from eptr2 import EPTR2\nfrom eptr2.composite import get_hourly_consumption_and_forecast_data\neptr = EPTR2(use_dotenv=True, recycle_tgt=True)\ndf = get_hourly_consumption_and_forecast_data(eptr, start_date='2024-07-29', end_date='2024-07-29')"
+    },
+    {
+      "description": "Discover all available API calls",
+      "code": "from eptr2 import EPTR2\neptr = EPTR2(use_dotenv=True, recycle_tgt=True)\ncalls = eptr.get_available_calls(include_aliases=True)"
+    }
+  ],
+  "mcpServer": {
+    "description": "Model Context Protocol server for AI agent integration",
+    "usage": "python -m eptr2.mcp.server",
+    "tools": [
+      "get_market_clearing_price",
+      "get_system_marginal_price",
+      "get_real_time_consumption",
+      "get_real_time_generation",
+      "get_demand_forecast",
+      "get_imbalance_price",
+      "get_available_eptr2_calls",
+      "call_eptr2_api",
+      "get_hourly_consumption_and_forecast",
+      "get_price_and_cost_data"
+    ]
+  }
+}
