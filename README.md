@@ -17,6 +17,12 @@ RECOMMENDED: Install `eptr2` with "allextras" option to get additional features.
 pip install "eptr2[allextras]"
 ```
 
+For AI agent integration, install with MCP support:
+
+```bash
+pip install "eptr2[allextras,mcp]"
+```
+
 Otherwise you can easily install it from PyPI with the following commmand.
 
 ```bash
@@ -131,6 +137,71 @@ run_calc_app(username="YOUR_USERNAME",password="YOUR_PASSWORD")
 
 
 _More tutorials are expected to be added in the future._
+
+## AI Agent Integration (MCP Server)
+
+Starting from version 1.2.4, `eptr2` includes a Model Context Protocol (MCP) server for AI agent integration. This allows AI assistants like Claude to directly query Turkish electricity market data.
+
+### Quick Start
+
+Install with MCP support:
+
+```bash
+pip install "eptr2[mcp]"
+```
+
+Run the MCP server:
+
+```bash
+eptr2-mcp-server
+```
+
+Or programmatically:
+
+```python
+from eptr2.mcp import run_mcp_server
+import asyncio
+
+asyncio.run(run_mcp_server(use_dotenv=True, recycle_tgt=True))
+```
+
+### Configuration
+
+Create a `.env` file with your credentials:
+
+```env
+EPTR_USERNAME=your.email@example.com
+EPTR_PASSWORD=yourpassword
+```
+
+For Claude Desktop integration, add to your config file:
+
+```json
+{
+  "mcpServers": {
+    "eptr2": {
+      "command": "eptr2-mcp-server",
+      "env": {
+        "EPTR_USERNAME": "your.email@example.com",
+        "EPTR_PASSWORD": "yourpassword"
+      }
+    }
+  }
+}
+```
+
+### Available MCP Tools
+
+The server exposes 10 tools for querying electricity market data:
+- Market Clearing Price (MCP/PTF)
+- System Marginal Price (SMP/SMF)
+- Real-time Consumption and Generation
+- Demand Forecasts
+- Imbalance Prices
+- Generic API calls (213+ endpoints)
+- Composite data functions
+
+See [AGENT_GUIDE.md](AGENT_GUIDE.md) and [src/eptr2/mcp/README.md](src/eptr2/mcp/README.md) for detailed documentation.
 
 # About EPIAS Transparency Platform v2.0 Python client by Robokami Data
 
