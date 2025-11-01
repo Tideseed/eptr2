@@ -127,7 +127,7 @@ If you have Claude Desktop:
 
 1. **Configure Claude Desktop**
 
-   Add to `~/Library/Application Support/Claude/claude_desktop_config.json` (macOS):
+   Add to `YOUR_CLAUDE_PATH/claude_desktop_config.json` (macOS):
    ```json
    {
      "mcpServers": {

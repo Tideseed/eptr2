@@ -80,7 +80,7 @@ asyncio.run(run_mcp_server(use_dotenv=True, recycle_tgt=True))
 
 ### For Claude Desktop
 
-Add to your Claude Desktop configuration (`~/Library/Application Support/Claude/claude_desktop_config.json` on macOS):
+Add to your Claude Desktop configuration (`YOUR_CLAUDE_PATH/claude_desktop_config.json` on macOS):
 
 ```json
 {
