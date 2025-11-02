@@ -90,6 +90,36 @@ eptr.get_number_of_calls()
 eptr.get_aliases()
 ```
 
+## API Call Help and Documentation
+
+The `get_help_d` function provides detailed metadata for each API endpoint:
+
+```python
+from eptr2.mapping.help import get_help_d
+
+# Get help for a specific call
+help_info = get_help_d("mcp")
+
+# Returns a dictionary with:
+# - "category": Market category (e.g., "GÖP" for Day-Ahead Market)
+# - "title": {"tr": "Turkish title", "en": "English title"}
+# - "desc": {"tr": "Turkish description", "en": "English description"}
+# - "url": Link to official documentation
+
+# Get all available help entries
+all_help = get_help_d()
+```
+
+**Important**: Descriptions are bilingual:
+- Turkish text is under `"tr"` keys
+- English text is under `"en"` keys
+
+This function is useful for:
+- Understanding what each API call returns
+- Getting official Turkish terminology
+- Finding links to official EPIAS documentation
+- Discovering the category/market type for each endpoint
+
 ## Common Parameters
 
 Most calls accept:
@@ -203,3 +233,21 @@ pip install "eptr2[allextras]" mcp
 # Basic installation
 pip install eptr2
 ```
+
+## Common Abbreviations
+
+Since eptr is about the Turkish electricity market, many terms are abbreviated in Turkish:
+
+- MCP: Market Clearing Price (Piyasa Takas Fiyatı)
+- SMP: System Marginal Price (Sistem Marjinal Fiyatı)
+- KGÜP: Daily Production Plan (Kesinleşmiş Günlük Üretim Planı)
+- UEÇM: Settlement Actual Demand (Uzlaştırmaya Esas Çekiş Miktarı)
+- UEVM: Settlement Actual Generation (Uzlaştırmaya Esas Veriş Miktarı)
+- KÜPST: Deviation Cost from Production Plan (Kesinleşmiş Üretim Planından Sapma Tutarı)
+- KUDÜP: Settlement Production Plan (Kesinleşmiş Uzlaştırma Dönemi Üretim Planı)
+- AOF: Weighted Average Price (Ağırlıklı Ortalama Fiyat)
+- GİP: Intraday Market (Gün İçi Piyasası)
+- GÖP: Day-Ahead Market (Gün Öncesi Piyasası)
+- DGP: Balancing Power Market (Dengeleme Güç Piyasası)
+- YAL: Up regulation (Yük Alma)
+- YAT: Down regulation (Yük Atma)
