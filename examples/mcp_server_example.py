@@ -89,7 +89,11 @@ def print_configuration_guide():
         }
     }
     print("   Add this to your Claude Desktop config file:")
-    print("   Location: YOUR_CLAUDE_PATH/claude_desktop_config.json")
+    print("   macOS: ~/Library/Application Support/Claude/claude_desktop_config.json")
+    print("   Windows: %APPDATA%\\Claude\\claude_desktop_config.json")
+    print("   Linux: ~/.config/Claude/claude_desktop_config.json")
+    print()
+    print("   See CLAUDE_SETUP.md for complete setup instructions.")
     print()
     print(json.dumps(claude_config, indent=2))
     print()

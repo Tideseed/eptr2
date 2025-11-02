@@ -80,7 +80,37 @@ asyncio.run(run_mcp_server(use_dotenv=True, recycle_tgt=True))
 
 ### For Claude Desktop
 
-Add to your Claude Desktop configuration (`YOUR_CLAUDE_PATH/claude_desktop_config.json` on macOS):
+**For complete setup instructions, see `CLAUDE_SETUP.md` in the repository root.**
+
+Quick reference - Add to your Claude Desktop configuration:
+
+| OS | Config File Location |
+|----|---------------------|
+| macOS | `~/Library/Application Support/Claude/claude_desktop_config.json` |
+| Windows | `%APPDATA%\Claude\claude_desktop_config.json` |
+| Linux | `~/.config/Claude/claude_desktop_config.json` |
+
+**Recommended configuration using uv:**
+
+```json
+{
+  "mcpServers": {
+    "eptr2": {
+      "command": "uv",
+      "args": [
+        "run",
+        "--directory",
+        "/FULL/PATH/TO/YOUR/eptr2",
+        "--extra",
+        "mcp",
+        "eptr2-mcp-server"
+      ]
+    }
+  }
+}
+```
+
+**Alternative using environment variables:**
 
 ```json
 {

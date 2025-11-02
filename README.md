@@ -2,6 +2,8 @@
 
 **!! CRITICAL: Due to authentication method changes you are strongly recommended to update the eptr2 version to 1.2.4+**
 
+**Note: From 1.3.0 and onwards, eptr2 starts to evolve to be an AI oriented tool. You can use it as an MCP server, directly use them in your LLMs and AI agents to write your code for you.**
+
 # Quickstart
 
 This document is a quickstart guide for `eptr2` package. It is a Python client for [EPIAS Transparency Platform v2.0](https://seffaflik.epias.com.tr/home) API. It is an unofficial package with Apache License 2.0.
@@ -17,11 +19,7 @@ RECOMMENDED: Install `eptr2` with "allextras" option to get additional features.
 pip install "eptr2[allextras]"
 ```
 
-For AI agent integration, install with MCP support:
-
-```bash
-pip install "eptr2[allextras,mcp]"
-```
+**Note:** The `[allextras]` option includes MCP server support for AI agent integration, along with pandas and streamlit.
 
 Otherwise you can easily install it from PyPI with the following commmand.
 
@@ -144,10 +142,10 @@ Starting from version 1.2.4, `eptr2` includes a Model Context Protocol (MCP) ser
 
 ### Quick Start
 
-Install with MCP support:
+Install with all extras (includes MCP support):
 
 ```bash
-pip install "eptr2[mcp]"
+pip install "eptr2[allextras]"
 ```
 
 Run the MCP server:
@@ -201,7 +199,9 @@ The server exposes 10 tools for querying electricity market data:
 - Generic API calls (213+ endpoints)
 - Composite data functions
 
-See [AGENT_GUIDE.md](AGENT_GUIDE.md) and [src/eptr2/mcp/README.md](src/eptr2/mcp/README.md) for detailed documentation.
+For complete Claude Desktop setup, see [CLAUDE_SETUP.md](CLAUDE_SETUP.md).
+
+For AI agent reference documentation, see [AGENTS.md](AGENTS.md) and [src/eptr2/mcp/README.md](src/eptr2/mcp/README.md).
 
 # About EPIAS Transparency Platform v2.0 Python client by Robokami Data
 

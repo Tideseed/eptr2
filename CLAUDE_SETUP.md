@@ -1,13 +1,42 @@
 # Claude Desktop MCP Server Setup for eptr2
 
-## ✅ Setup Complete!
+This guide will help you integrate eptr2 with Claude Desktop, allowing Claude to access Turkish electricity market data through the EPIAS Transparency Platform.
 
-The eptr2 MCP server has been added to Claude Desktop.
+## Prerequisites
 
-## Configuration Files
+Before starting, you need:
 
-### 1. Claude Desktop Config
-**Location:** `YOUR_CLAUDE_PATH/claude_desktop_config.json`
+1. **EPIAS Transparency Platform credentials**
+   - Register at: https://kayit.epias.com.tr/epias-transparency-platform-registration-form
+   - You'll receive login credentials via email
+
+2. **Install eptr2 with all extras (includes MCP support)**
+   ```bash
+   pip install "eptr2[allextras]"
+   ```
+
+3. **Optional: Install uv (recommended)**
+   ```bash
+   pip install uv
+   ```
+   - `uv` provides faster, more reliable Python execution
+   - Alternative: You can use standard Python (see below)
+
+## Step 1: Locate Your Claude Desktop Config File
+
+The config file location depends on your operating system:
+
+| Operating System | Config File Location |
+|-----------------|---------------------|
+| **macOS** | `~/Library/Application Support/Claude/claude_desktop_config.json` |
+| **Windows** | `%APPDATA%\Claude\claude_desktop_config.json` |
+| **Linux** | `~/.config/Claude/claude_desktop_config.json` |
+
+## Step 2: Add eptr2 to Claude Desktop Config
+
+### Option A: Using uv (Recommended)
+
+Open your `claude_desktop_config.json` file and add the eptr2 server configuration:
 
 ```json
 {
@@ -17,7 +46,7 @@ The eptr2 MCP server has been added to Claude Desktop.
       "args": [
         "run",
         "--directory",
-        "YOUR_EPTR2_PATH",
+        "/FULL/PATH/TO/YOUR/eptr2",
         "--extra",
         "mcp",
         "eptr2-mcp-server"
@@ -27,28 +56,61 @@ The eptr2 MCP server has been added to Claude Desktop.
 }
 ```
 
-### 2. Environment Variables
-**Location:** `YOUR_EPTR2_PATH/.env`
+**Important:** Replace `/FULL/PATH/TO/YOUR/eptr2` with the actual path to your eptr2 installation.
 
-**⚠️ IMPORTANT:** You need to update the `.env` file with your actual EPIAS credentials:
+### Option B: Using Standard Python
 
-```bash
-# Edit this file with your credentials
-nano YOUR_EPTR2_PATH/.env
+If you don't want to install `uv`, you can use standard Python:
+
+```json
+{
+  "mcpServers": {
+    "eptr2": {
+      "command": "python",
+      "args": [
+        "-m",
+        "eptr2.mcp.server"
+      ],
+      "env": {
+        "PYTHONPATH": "/FULL/PATH/TO/YOUR/eptr2/src"
+      }
+    }
+  }
+}
 ```
 
-Replace:
-- `EPTR_USERNAME=your.email@example.com` → Your actual email
-- `EPTR_PASSWORD=yourpassword` → Your actual password
+**Note:** This option requires setting `PYTHONPATH` to the eptr2 source directory.
 
-## Next Steps
+## Step 3: Set Up Your Credentials
 
-1. **Update credentials** in `.env` file (required!)
-2. **Restart Claude Desktop** to load the MCP server
-3. **Look for the 🔌 icon** in Claude Desktop - it should show "eptr2" as connected
-4. **Test it** by asking Claude about Turkish electricity market data
+Create a `.env` file in your eptr2 directory with your EPIAS credentials:
 
-## Available Tools in Claude
+**Location:** `/FULL/PATH/TO/YOUR/eptr2/.env`
+
+```bash
+EPTR_USERNAME=your.email@example.com
+EPTR_PASSWORD=yourpassword
+```
+
+**⚠️ IMPORTANT:** Replace with your actual EPIAS credentials:
+- `your.email@example.com` → Your registered EPIAS email
+- `yourpassword` → Your EPIAS password
+
+**Security Note:** Never commit the `.env` file to version control. It's already in `.gitignore`.
+
+## Step 4: Restart Claude Desktop
+
+**Completely quit and restart Claude Desktop** to load the MCP server.
+
+## Step 5: Verify the Connection
+
+1. **Look for the 🔌 icon** at the bottom of Claude Desktop
+2. **Click it** to see connected MCP servers
+3. **Confirm "eptr2"** appears in the list with a green indicator
+
+If you see "eptr2" listed, you're ready to go! ✅
+
+## Using eptr2 with Claude
 
 Once connected, Claude will have access to these 10 tools:
 
@@ -76,28 +138,71 @@ After setup, try asking Claude:
 ## Troubleshooting
 
 ### MCP Server Not Showing Up
-1. Make sure you've restarted Claude Desktop
-2. Check that credentials are set in `.env` file
-3. Look at Claude Desktop logs: `CLAUDE_LOGS_PATH/Logs/Claude/`
+
+1. **Restart Claude Desktop** completely (quit and reopen)
+2. **Check config file syntax** - JSON must be valid (no trailing commas)
+3. **Verify credentials** are set in `.env` file
+4. **Check Claude Desktop logs:**
+
+   | Operating System | Log Location |
+   |-----------------|--------------|
+   | **macOS** | `~/Library/Logs/Claude/` |
+   | **Windows** | `%APPDATA%\Claude\Logs\` |
+   | **Linux** | `~/.config/Claude/Logs/` |
 
 ### Authentication Errors
-- Verify your EPIAS credentials are correct
-- Register at: https://kayit.epias.com.tr/epias-transparency-platform-registration-form
+
+- **Verify EPIAS credentials** are correct in `.env` file
+- **Check registration status** - account must be approved
+- **Re-register if needed:** https://kayit.epias.com.tr/epias-transparency-platform-registration-form
 
 ### Testing the Server Manually
+
+You can test the MCP server independently:
+
+**With uv:**
 ```bash
-cd YOUR_EPTR2_PATH
+cd /FULL/PATH/TO/YOUR/eptr2
 uv run --extra mcp eptr2-mcp-server
 ```
 
-Press Ctrl+C to stop the test.
+**With standard Python:**
+```bash
+cd /FULL/PATH/TO/YOUR/eptr2
+python -m eptr2.mcp.server
+```
 
-## Files Created/Modified
+The server should start and show initialization messages. Press `Ctrl+C` to stop.
 
-- ✅ `YOUR_CLAUDE/PATH/claude_desktop_config.json` - Updated with eptr2 server
-- ✅ `YOUR_EPTR2_PATH/.env` - Created (needs your credentials)
+If this works but Claude Desktop doesn't connect:
+- Double-check your `claude_desktop_config.json` syntax
+- Ensure paths are absolute, not relative
+- Restart Claude Desktop again
+
+## Summary
+
+**Files you need to modify:**
+
+1. **Claude Desktop Config** (one of):
+   - macOS: `~/Library/Application Support/Claude/claude_desktop_config.json`
+   - Windows: `%APPDATA%\Claude\claude_desktop_config.json`
+   - Linux: `~/.config/Claude/claude_desktop_config.json`
+
+2. **Environment File:**
+   - `/FULL/PATH/TO/YOUR/eptr2/.env` (create with your EPIAS credentials)
+
+**After setup:**
+- Restart Claude Desktop
+- Look for 🔌 icon showing "eptr2" connected
+- Start asking questions about Turkish electricity market data!
 
 ## Additional Resources
+
+- **AGENTS.md** - Quick reference for AI agents
+- **README.md** - Full documentation
+- **Package on PyPI:** https://pypi.org/project/eptr2/
+- **Live Demo:** https://eptr2demo.streamlit.app/
+- **EPIAS Platform:** https://seffaflik.epias.com.tr/
 
 - [FastMCP Documentation](https://gofastmcp.com)
 - [Model Context Protocol Docs](https://modelcontextprotocol.io)

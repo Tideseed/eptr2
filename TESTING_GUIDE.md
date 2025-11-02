@@ -127,7 +127,14 @@ If you have Claude Desktop:
 
 1. **Configure Claude Desktop**
 
-   Add to `YOUR_CLAUDE_PATH/claude_desktop_config.json` (macOS):
+   **See `CLAUDE_SETUP.md` for complete setup instructions.**
+
+   Quick reference - config file locations:
+   - macOS: `~/Library/Application Support/Claude/claude_desktop_config.json`
+   - Windows: `%APPDATA%\Claude\claude_desktop_config.json`
+   - Linux: `~/.config/Claude/claude_desktop_config.json`
+
+   Example configuration:
    ```json
    {
      "mcpServers": {

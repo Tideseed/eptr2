@@ -130,9 +130,13 @@ Most calls accept:
   - `pp_id`: Power plant ID
   - `uevcb_id`: Production unit ID
 
-## MCP Server
+## MCP Server (Claude Desktop Integration)
 
-For AI agents using Model Context Protocol:
+For AI agents using Model Context Protocol (e.g., Claude Desktop):
+
+**For detailed setup instructions, see `CLAUDE_SETUP.md`**
+
+Quick command-line usage:
 
 ```python
 from eptr2.mcp import run_mcp_server
@@ -144,6 +148,10 @@ asyncio.run(run_mcp_server(use_dotenv=True))
 
 Or from command line:
 ```bash
+# Using uv (recommended)
+uv run --extra mcp eptr2-mcp-server
+
+# Using standard Python
 python -m eptr2.mcp.server
 ```
 
@@ -224,15 +232,16 @@ analysis = pd.merge(
 ## Installation
 
 ```bash
-# With all extras (recommended for agents)
+# Recommended: Install with all extras (includes MCP support)
 pip install "eptr2[allextras]"
 
-# With MCP support
-pip install "eptr2[allextras]" mcp
-
-# Basic installation
+# Basic installation (minimal dependencies)
 pip install eptr2
 ```
+
+**Note:** The `[allextras]` variant includes everything needed for Claude Desktop integration, data analysis (pandas), and the demo app (streamlit).
+
+**For Claude Desktop setup:** See `CLAUDE_SETUP.md` for step-by-step instructions.
 
 ## Common Abbreviations
 
