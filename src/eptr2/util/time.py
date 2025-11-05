@@ -1,6 +1,6 @@
 from datetime import datetime, timedelta, timezone
 import pytz
-from typing import Literal
+from typing import Literal, Union
 
 
 def contract_duration(
@@ -69,17 +69,49 @@ def get_today_utc3():
     return get_utc3_now().strftime("%Y-%m-%d")
 
 
-def get_date_from_key(key: Literal["today", "start_of_month", "end_of_month"]):
-    if key == "today":
-        res = get_today_utc3()
-    elif key == "start_of_month":
-        res = get_utc3_now().strftime("%Y-%m-01")
-    elif key == "end_of_month":
-        res = (
-            (get_utc3_now().replace(day=1) + timedelta(days=31)).replace(day=1)
-            - timedelta(days=1)
-        ).strftime("%Y-%m-%d")
+def transform_date(
+    date_val: Union[str, datetime, None] = None,
+    key: Literal[
+        "today",
+        "start_of_month",
+        "end_of_month",
+        "next_day",
+        "previous_day",
+        "start_of_year",
+        "end_of_year",
+    ] = "today",
+    to_str: bool = True,
+):
+    """
+    Get a date value and transform it according to the key.
+    """
 
+    if date_val is None:
+        date_val = get_utc3_now()
+    elif isinstance(date_val, str):
+        date_val = datetime.strptime(date_val, "%Y-%m-%d")
+
+    if key == "today":
+        res = date_val
+    elif key == "next_day":
+        res = date_val + timedelta(days=1)
+    elif key == "previous_day":
+        res = date_val - timedelta(days=1)
+    elif key == "start_of_month":
+        res = date_val.replace(day=1)
+    elif key == "end_of_month":
+        res = (date_val.replace(day=1) + timedelta(days=31)).replace(day=1) - timedelta(
+            days=1
+        )
+    elif key == "start_of_year":
+        res = date_val.replace(month=1, day=1)
+    elif key == "end_of_year":
+        res = date_val.replace(month=12, day=31)
+    else:
+        raise ValueError(f"Invalid key: {key}")
+
+    if to_str:
+        return res.strftime("%Y-%m-%d")
     return res
 
 
@@ -268,7 +300,6 @@ def ts_to_hour_utc3(ts):
 
 
 def calculate_active_contracts():
-
     now_dt = get_utc3_now()
     sod = now_dt.replace(minute=0, second=0, microsecond=0) + timedelta(hours=2)
     eod = now_dt.replace(hour=23, minute=0, second=0, microsecond=0)
@@ -318,7 +349,6 @@ def time_to_contract_close(c, dt_then: datetime | str = None, ts_then: float = N
 
 
 def get_time_min_max_price_map():
-
     map_l = [
         {
             "date": "2025-04-05",
