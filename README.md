@@ -11,6 +11,13 @@ This document is a quickstart guide for `eptr2` package. It is a Python client f
 + For live demo, please visit <https://eptr2demo.streamlit.app/>
 + For local demo, you can run `eptr2demo` at terminal after installing the library.
 
+
+# MCP Server Quick Reference
+
++ You can use Claude Desktop configuration to connect to the MCP server in VS Code as well. See Claude Desktop configuration details [here](https://modelcontextprotocol.io/docs/develop/connect-local-servers).
++ Make sure in VS Code settings `chat.mcp.discovery.enabled` is enabled and `chat.mcp.access` is set to the correct value. See details in [VS Code documentation](https://code.visualstudio.com/docs/copilot/customization/mcp-servers).
+
+
 ## Installation
 
 RECOMMENDED: Install `eptr2` with "allextras" option to get additional features. Extras currently include `pandas` and `streamlit` libraries. You can install the package with the following command.
