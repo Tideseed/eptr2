@@ -6,6 +6,8 @@ from eptr2.util.time import (
     get_start_end_dates_period,
 )
 
+pd.set_option("future.no_silent_downcasting", True)
+
 
 def process_idm_data(
     eptr: EPTR2, start_date: str, end_date: str, org_id: str, **kwargs
@@ -37,13 +39,17 @@ def process_idm_data(
     if df.empty:
         df = pd.DataFrame(columns=["contract", "idm_long", "idm_short"])
     else:
-        df = df.drop("kontratTuru", axis=1).rename(
-            {
-                "kontratAdi": "contract",
-                "clearingQuantityAsk": "idm_long",
-                "clearingQuantityBid": "idm_short",
-            },
-            axis=1,
+        df = (
+            df.drop("kontratTuru", axis=1)
+            .rename(
+                {
+                    "kontratAdi": "contract",
+                    "clearingQuantityAsk": "idm_long",
+                    "clearingQuantityBid": "idm_short",
+                },
+                axis=1,
+            )
+            .copy()
         )
 
     return df
@@ -86,9 +92,11 @@ def get_day_ahead_and_bilateral_matches(
 
             continue
 
-    df = df_da.rename(
-        {"matchedBids": "da_long", "matchedOffers": "da_short"}, axis=1
-    ).drop("hour", axis=1)
+    df = (
+        df_da.rename({"matchedBids": "da_long", "matchedOffers": "da_short"}, axis=1)
+        .drop("hour", axis=1)
+        .copy()
+    )
 
     for cc in ["bi-long", "bi-short"]:
         if verbose:
@@ -111,7 +119,7 @@ def get_day_ahead_and_bilateral_matches(
                     ),
                     on="date",
                     how="left",
-                )
+                ).copy()
                 break
             except Exception as e:
                 print("Error fetching bilateral long matches:", e)
@@ -119,23 +127,6 @@ def get_day_ahead_and_bilateral_matches(
                 if lives <= 0:
                     raise Exception("Max lives reached. Exiting.")
                 continue
-
-    # if verbose:
-    #     print("Getting bilateral short matches...")
-
-    # df_bi_short = eptr.call(
-    #     "bi-short",
-    #     start_date=start_date,
-    #     end_date=end_date,
-    #     org_id=org_id,
-    #     request_kwargs={"timeout": 5},
-    # )
-
-    # df = df.merge(
-    #     df_bi_short.rename({"quantity": "bi_short"}, axis=1).drop("hour", axis=1),
-    #     on="date",
-    #     how="left",
-    # )
 
     df["dabi_net"] = df["da_long"] - df["da_short"] + df["bi_long"] - df["bi_short"]
 
@@ -156,6 +147,7 @@ def get_day_ahead_and_bilateral_matches(
             df.merge(df_idm, on=["contract"], how="left")
             .fillna(0.0)
             .infer_objects(copy=False)
+            .copy()
         )
         df["idm_net"] = df["idm_long"] - df["idm_short"]
         df["dabi_idm_net"] = df["dabi_net"] + df["idm_net"]
@@ -267,23 +259,25 @@ def get_day_ahead_detail_info(
             try:
                 if verbose:
                     print(f"Fetching {item} data...")
-                df_d[item] = eptr.call(
+                sub_df = eptr.call(
                     item,
                     start_date=start_date,
                     end_date=end_date,
                     request_kwargs={"timeout": kwargs.get("timeout", 5)},
                 )
 
-                df_d[item].rename(map_d[item], axis=1, inplace=True)
-                if "hour" in df_d[item].columns:
-                    df_d[item].drop("hour", axis=1, inplace=True)
-                elif "time" in df_d[item].columns:
-                    df_d[item].drop("time", axis=1, inplace=True)
+                df_d[item] = sub_df.copy()
+
+                sub_df.rename(map_d[item], axis=1, inplace=True)
+                if "hour" in sub_df.columns:
+                    sub_df.drop("hour", axis=1, inplace=True)
+                elif "time" in sub_df.columns:
+                    sub_df.drop("time", axis=1, inplace=True)
 
                 if df is None:
-                    df = df_d[item].copy()
+                    df = sub_df.copy()
                 else:
-                    df = df.merge(df_d[item], on="date", how="outer")
+                    df = df.merge(sub_df, on="date", how="outer").copy()
 
             except Exception as e:
                 if verbose:

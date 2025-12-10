@@ -145,7 +145,12 @@ class EPTR2:
             self.tgt_exp_0 = tgt_d["tgt_exp_0"]
 
     def check_renew_tgt(self, **kwargs):
-        if self.tgt is None or self.tgt_exp_0 < datetime.now().timestamp():
+        force_renew_tgt = kwargs.get("force_renew_tgt", False)
+        if (
+            self.tgt is None
+            or self.tgt_exp_0 < datetime.now().timestamp()
+            or force_renew_tgt
+        ):
             self.get_tgt(**kwargs)
 
     def get_tgt(self, **kwargs):
@@ -169,7 +174,7 @@ class EPTR2:
                 "Accept": "text/plain",
             },
             body=body_str,
-            **kwargs.get("request_kwargs", {}),
+            **kwargs.get("request_kwargs", {"timeout": 10}),
         )
         if res.status not in [200, 201]:
             raise Exception(
@@ -212,6 +217,8 @@ class EPTR2:
             "tgt": self.tgt,
             "tgt_exp": self.tgt_exp,
             "tgt_exp_0": self.tgt_exp_0,
+            "tgt_exp_dt": datetime.fromtimestamp(self.tgt_exp).isoformat(),
+            "tgt_exp_0_dt": datetime.fromtimestamp(self.tgt_exp_0).isoformat(),
         }
 
         if self.recycle_tgt:
@@ -359,6 +366,9 @@ class EPTR2:
             self.tgt_exp,
             datetime.now().timestamp() + 60 * 90,
         )
+
+        if self.recycle_tgt:
+            self.export_tgt_info()
 
         if kwargs.get("get_raw_response", self.get_raw_response):
             return res
