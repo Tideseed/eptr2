@@ -1,5 +1,9 @@
 from eptr2 import EPTR2
-from eptr2.util.costs import calculate_unit_kupst_cost
+from eptr2.util.costs import (
+    calculate_unit_kupst_cost,
+    temp_calculate_imbalance_price_and_costs_new,
+    temp_calculate_draft_unit_kupst_cost,
+)
 from eptr2.util.time import iso_to_contract
 import pandas as pd
 
@@ -13,6 +17,7 @@ def get_hourly_price_and_cost_data(
     verbose: bool = False,
     include_contract_symbol: bool = False,
     timeout: int = 10,
+    **kwargs,
 ):
     """
     This composite function gets price and imbalance (kupst included) cost data.
@@ -112,6 +117,36 @@ def get_hourly_price_and_cost_data(
 
     price_df = price_df[columns_order]
 
+    ### This is a temporary function to calculate draft 2026 imbalance costs
+    if kwargs.get("add_draft_2026_costs", False):
+        if verbose:
+            print(
+                "Calculating draft 2026 imbalance costs... This is a temporary option, it will be replaced in 2026."
+            )
+        dir_map = {
+            -1: "up",
+            1: "down",
+            0: "balanced",
+        }
+        draft_costs_df = price_df.apply(
+            lambda x: temp_calculate_imbalance_price_and_costs_new(
+                mcp=x["mcp"],
+                smp=x["smp"],
+                regulation=dir_map.get(x["sd_sign"], "balanced"),
+            ),
+            axis=1,
+        )
+        draft_costs_df = pd.json_normalize(draft_costs_df)
+
+        draft_costs_df.drop(["mcp", "smp"], axis=1, inplace=True)
+        draft_costs_df.columns = [f"{col}_2026" for col in draft_costs_df.columns]
+        draft_costs_df["kupst_2026"] = price_df.apply(
+            lambda x: temp_calculate_draft_unit_kupst_cost(mcp=x["mcp"], smp=x["smp"]),
+            axis=1,
+        )
+
+        price_df = pd.concat([price_df, draft_costs_df], axis=1).copy()
+
     return price_df
 
 
@@ -125,6 +160,7 @@ def get_hourly_imbalance_data(
     verbose: bool = False,
     include_contract_symbol=False,
     timeout: int = 10,
+    **kwargs,
 ):
     """
     This composite function gets imbalance volume, imbalance quantity and imbalance cost data.
@@ -217,6 +253,7 @@ def get_hourly_imbalance_data(
         verbose=verbose,
         include_contract_symbol=False,
         timeout=timeout,
+        **kwargs,
     )
 
     merged_df = merged_df.merge(price_df, on="date", how="outer")
