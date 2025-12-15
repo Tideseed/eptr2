@@ -1,4 +1,5 @@
-![PyPI - Version](https://img.shields.io/pypi/v/eptr2) ![PyPI - Downloads](https://img.shields.io/pypi/dm/eptr2) 
+![PyPI - Version](https://img.shields.io/pypi/v/eptr2) ![PyPI - Downloads](https://img.shields.io/pypi/dm/eptr2) ![PyPI - Python Version](https://img.shields.io/python/required-version-toml?tomlFilePath=https%3A%2F%2Fraw.githubusercontent.com%2Ftideseed%2Feptr2%2Fmain%2Fpyproject.toml
+) ![PyPI - License](https://img.shields.io/pypi/l/eptr2)
 
 **!! CRITICAL: Due to authentication method changes you are strongly recommended to update the eptr2 version to 1.2.4+**
 
