@@ -1301,3 +1301,26 @@ def date_str_to_contract(date_str: str, hour: int | str = 0) -> str:
 
     dt = datetime.strptime(date_str, "%Y-%m-%d").strftime(f"PH%y%m%d{hour}")
     return dt
+
+
+def contract_open_time(c, to_timestamp=False, start_hour=18):
+    """
+    Calculate the gate opening time for a contract (when trading starts).
+
+    The gate typically opens at the start of the delivery hour.
+
+    Args:
+        c: Contract string in format 'PHyyMMDDHH'
+        to_timestamp: If True, return Unix timestamp; if False, return datetime object
+        start_hour: Hour when the gate opens (default: 18 for 18:00 previous day)
+    Returns:
+        datetime or float: Gate opening time as datetime or Unix timestamp
+    """
+    dt = contract_to_datetime(c)
+    dt = dt.replace(minute=0, second=0, microsecond=0, hour=start_hour) - timedelta(
+        days=1
+    )
+
+    if to_timestamp:
+        return dt.timestamp()
+    return dt
