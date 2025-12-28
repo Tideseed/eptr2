@@ -2,6 +2,39 @@
 
 This document provides a quick reference guide for AI agents working with the eptr2 library.
 
+## Claude Agent Skills
+
+eptr2 includes Claude Agent Skills for enhanced AI assistance. Skills are automatically loaded based on your request and provide specialized guidance for:
+
+| Skill | Triggers On | Location |
+|-------|------------|----------|
+| **eptr2-price-analysis** | Electricity prices, MCP, PTF, SMP, WAP | `.claude/skills/eptr2-price-analysis/` |
+| **eptr2-consumption-data** | Consumption, demand forecast, UECM, load plan | `.claude/skills/eptr2-consumption-data/` |
+| **eptr2-generation-tracking** | Generation, UEVM, power plants, renewables | `.claude/skills/eptr2-generation-tracking/` |
+| **eptr2-imbalance-costs** | Imbalance, KUPST, deviation costs, penalties | `.claude/skills/eptr2-imbalance-costs/` |
+| **eptr2-market-operations** | DAM, IDM, GÖP, GİP, bilateral contracts | `.claude/skills/eptr2-market-operations/` |
+| **eptr2-api-discovery** | Available endpoints, API search, discovery | `.claude/skills/eptr2-api-discovery/` |
+
+### Using Skills
+
+Skills are model-invoked - Claude automatically selects the relevant skill based on your request. For example:
+- "What are today's electricity prices?" → triggers `eptr2-price-analysis`
+- "Show me wind generation data" → triggers `eptr2-generation-tracking`
+- "Calculate imbalance costs" → triggers `eptr2-imbalance-costs`
+- "What APIs are available?" → triggers `eptr2-api-discovery`
+
+### Installing Skills Personally
+
+To use skills across all your projects, copy to your personal skills directory:
+
+```bash
+# macOS/Linux
+cp -r .claude/skills/* ~/.claude/skills/
+
+# Windows
+xcopy /E /I .claude\skills %USERPROFILE%\.claude\skills
+```
+
 ## Quick Start for AI Agents
 
 eptr2 is a Python client for accessing Turkish electricity market data from EPIAS Transparency Platform v2.0.
