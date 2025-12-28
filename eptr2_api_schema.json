@@ -2,7 +2,7 @@
   "$schema": "http://json-schema.org/draft-07/schema#",
   "title": "EPTR2 API Schema for AI Agents",
   "description": "Schema describing the eptr2 library API for Turkish electricity market data access",
-  "version": "1.2.4",
+  "version": "1.3.2",
   "apiInfo": {
     "name": "eptr2",
     "description": "EPIAS Transparency Platform v2.0 Python client",
@@ -10,6 +10,83 @@
     "license": "Apache-2.0",
     "repository": "https://github.com/Tideseed/eptr2",
     "pypi": "https://pypi.org/project/eptr2/"
+  },
+  "agentSkills": {
+    "description": "Claude Agent Skills for specialized guidance on eptr2 usage",
+    "location": ".claude/skills/",
+    "skills": [
+      {
+        "name": "eptr2-price-analysis",
+        "triggers": [
+          "electricity prices",
+          "MCP",
+          "PTF",
+          "SMP",
+          "SMF",
+          "WAP",
+          "elektrik fiyatı"
+        ],
+        "description": "Query and analyze Turkish electricity market prices"
+      },
+      {
+        "name": "eptr2-consumption-data",
+        "triggers": [
+          "consumption",
+          "demand forecast",
+          "UECM",
+          "load plan",
+          "tüketim",
+          "talep tahmini"
+        ],
+        "description": "Query consumption and demand forecast data"
+      },
+      {
+        "name": "eptr2-generation-tracking",
+        "triggers": [
+          "generation",
+          "UEVM",
+          "power plants",
+          "renewables",
+          "üretim",
+          "santral"
+        ],
+        "description": "Query generation data by type and plant"
+      },
+      {
+        "name": "eptr2-imbalance-costs",
+        "triggers": [
+          "imbalance",
+          "KUPST",
+          "KÜPST",
+          "deviation costs",
+          "dengesizlik",
+          "sapma"
+        ],
+        "description": "Calculate imbalance costs and KUPST penalties"
+      },
+      {
+        "name": "eptr2-market-operations",
+        "triggers": [
+          "DAM",
+          "IDM",
+          "GÖP",
+          "GİP",
+          "bilateral contracts",
+          "market orders"
+        ],
+        "description": "Query market operations data (DAM, IDM, bilateral)"
+      },
+      {
+        "name": "eptr2-api-discovery",
+        "triggers": [
+          "available endpoints",
+          "API calls",
+          "list endpoints",
+          "which API"
+        ],
+        "description": "Discover and explore available API endpoints"
+      }
+    ]
   },
   "authentication": {
     "methods": [
@@ -35,128 +112,482 @@
   "commonAPICalls": [
     {
       "key": "mcp",
-      "aliases": ["ptf"],
+      "aliases": [
+        "ptf"
+      ],
       "name": "Market Clearing Price",
+      "nameTR": "Piyasa Takas Fiyatı",
       "description": "Day-ahead market clearing price (hourly)",
       "category": "pricing",
-      "requiredParams": ["start_date", "end_date"],
+      "requiredParams": [
+        "start_date",
+        "end_date"
+      ],
       "optionalParams": [],
       "returns": "DataFrame with date, hour, and price columns"
     },
     {
       "key": "smp",
-      "aliases": ["smf"],
+      "aliases": [
+        "smf"
+      ],
       "name": "System Marginal Price",
+      "nameTR": "Sistem Marjinal Fiyatı",
       "description": "System marginal price (hourly)",
       "category": "pricing",
-      "requiredParams": ["start_date", "end_date"],
+      "requiredParams": [
+        "start_date",
+        "end_date"
+      ],
       "optionalParams": [],
-      "returns": "DataFrame with date, hour, and price columns"
+      "returns": "DataFrame with date, hour, systemMarginalPrice columns"
+    },
+    {
+      "key": "smp-dir",
+      "aliases": [],
+      "name": "System Direction",
+      "nameTR": "Sistem Yönü",
+      "description": "System direction (Enerji Açığı/Enerji Fazlası/Dengede)",
+      "category": "pricing",
+      "requiredParams": [
+        "start_date",
+        "end_date"
+      ],
+      "optionalParams": [],
+      "returns": "DataFrame with date, hour, systemDirection columns"
+    },
+    {
+      "key": "wap",
+      "aliases": [],
+      "name": "Weighted Average Price",
+      "nameTR": "Ağırlıklı Ortalama Fiyat",
+      "description": "Intraday market weighted average price (hourly)",
+      "category": "pricing",
+      "requiredParams": [
+        "start_date",
+        "end_date"
+      ],
+      "optionalParams": [],
+      "returns": "DataFrame with date, hour, and wap columns"
     },
     {
       "key": "imbalance-price",
       "aliases": [],
       "name": "Imbalance Price",
+      "nameTR": "Dengesizlik Fiyatı",
       "description": "Positive and negative imbalance prices",
       "category": "pricing",
-      "requiredParams": ["start_date", "end_date"],
+      "requiredParams": [
+        "start_date",
+        "end_date"
+      ],
       "optionalParams": [],
       "returns": "DataFrame with date, hour, positive and negative imbalance prices"
     },
     {
       "key": "rt-consumption",
-      "aliases": [],
+      "aliases": [
+        "rt-cons"
+      ],
       "name": "Real-Time Consumption",
+      "nameTR": "Gerçek Zamanlı Tüketim",
       "description": "Real-time electricity consumption (hourly)",
       "category": "consumption",
-      "requiredParams": ["start_date", "end_date"],
+      "requiredParams": [
+        "start_date",
+        "end_date"
+      ],
       "optionalParams": [],
       "returns": "DataFrame with date, hour, and consumption in MWh"
+    },
+    {
+      "key": "uecm",
+      "aliases": [],
+      "name": "Settlement Consumption",
+      "nameTR": "Uzlaştırmaya Esas Çekiş Miktarı",
+      "description": "Settlement consumption (UEÇM) - finalized consumption data",
+      "category": "consumption",
+      "requiredParams": [
+        "start_date",
+        "end_date"
+      ],
+      "optionalParams": [],
+      "returns": "DataFrame with settlement consumption data"
     },
     {
       "key": "rt-generation",
       "aliases": [],
       "name": "Real-Time Generation",
+      "nameTR": "Gerçek Zamanlı Üretim",
       "description": "Real-time generation by resource type (hourly)",
       "category": "generation",
-      "requiredParams": ["start_date", "end_date"],
+      "requiredParams": [
+        "start_date",
+        "end_date"
+      ],
       "optionalParams": [],
       "returns": "DataFrame with generation by source type (wind, solar, hydro, etc.)"
     },
     {
+      "key": "uevm",
+      "aliases": [],
+      "name": "Settlement Generation",
+      "nameTR": "Uzlaştırmaya Esas Veriş Miktarı",
+      "description": "Settlement generation (UEVM) - finalized generation data",
+      "category": "generation",
+      "requiredParams": [
+        "start_date",
+        "end_date"
+      ],
+      "optionalParams": [
+        "pp_id"
+      ],
+      "returns": "DataFrame with settlement generation data"
+    },
+    {
       "key": "load-plan",
       "aliases": [],
-      "name": "Load Plan / UECM",
+      "name": "Load Plan / Demand Forecast",
+      "nameTR": "Yük Tahmini",
       "description": "Demand forecast (hourly)",
       "category": "forecast",
-      "requiredParams": ["start_date", "end_date"],
+      "requiredParams": [
+        "start_date",
+        "end_date"
+      ],
       "optionalParams": [],
       "returns": "DataFrame with forecasted demand"
     },
     {
       "key": "dpp",
-      "aliases": ["kgup"],
+      "aliases": [
+        "kgup"
+      ],
       "name": "Daily Production Plan",
+      "nameTR": "Kesinleşmiş Günlük Üretim Planı (KGÜP)",
       "description": "Daily production plan for generation units",
       "category": "production_plan",
-      "requiredParams": ["date", "uevcb_ids"],
-      "optionalParams": [],
+      "requiredParams": [
+        "start_date",
+        "end_date"
+      ],
+      "optionalParams": [
+        "org_id",
+        "uevcb_id"
+      ],
       "returns": "DataFrame with production plans by unit"
     },
     {
-      "key": "uevm",
+      "key": "dam-clearing",
       "aliases": [],
-      "name": "Generation Forecast by Plant",
-      "description": "Generation forecast for specific power plants",
-      "category": "forecast",
-      "requiredParams": ["start_date", "end_date"],
-      "optionalParams": ["powerplant_id"],
-      "returns": "DataFrame with generation forecasts"
+      "name": "DAM Clearing Quantity",
+      "nameTR": "GÖP Eşleşme Miktarı",
+      "description": "Day-ahead market matched quantity",
+      "category": "market_operations",
+      "requiredParams": [
+        "start_date",
+        "end_date"
+      ],
+      "optionalParams": [],
+      "returns": "DataFrame with DAM clearing quantities"
+    },
+    {
+      "key": "idm-qty",
+      "aliases": [],
+      "name": "IDM Matching Quantity",
+      "nameTR": "GİP Eşleşme Miktarı",
+      "description": "Intraday market matched quantity",
+      "category": "market_operations",
+      "requiredParams": [
+        "start_date",
+        "end_date"
+      ],
+      "optionalParams": [],
+      "returns": "DataFrame with IDM matching quantities"
+    },
+    {
+      "key": "idm-log",
+      "aliases": [],
+      "name": "IDM Transaction History",
+      "nameTR": "GİP İşlem Akışı",
+      "description": "Intraday market transaction log",
+      "category": "market_operations",
+      "requiredParams": [
+        "start_date",
+        "end_date"
+      ],
+      "optionalParams": [],
+      "returns": "DataFrame with IDM transactions"
+    },
+    {
+      "key": "bpm-up",
+      "aliases": [],
+      "name": "Up Regulation Instructions",
+      "nameTR": "Yük Alma (YAL) Talimat",
+      "description": "Balancing power market up regulation instructions",
+      "category": "balancing",
+      "requiredParams": [
+        "start_date",
+        "end_date"
+      ],
+      "optionalParams": [],
+      "returns": "DataFrame with up regulation quantities"
+    },
+    {
+      "key": "bpm-down",
+      "aliases": [],
+      "name": "Down Regulation Instructions",
+      "nameTR": "Yük Atma (YAT) Talimat",
+      "description": "Balancing power market down regulation instructions",
+      "category": "balancing",
+      "requiredParams": [
+        "start_date",
+        "end_date"
+      ],
+      "optionalParams": [],
+      "returns": "DataFrame with down regulation quantities"
+    },
+    {
+      "key": "bi-long",
+      "aliases": [],
+      "name": "Bilateral Contracts Bid",
+      "nameTR": "İkili Anlaşma Alış Miktarı",
+      "description": "Bilateral contracts purchase quantity",
+      "category": "bilateral",
+      "requiredParams": [
+        "start_date",
+        "end_date"
+      ],
+      "optionalParams": [],
+      "returns": "DataFrame with bilateral bid quantities"
+    },
+    {
+      "key": "bi-short",
+      "aliases": [],
+      "name": "Bilateral Contracts Offer",
+      "nameTR": "İkili Anlaşma Satış Miktarı",
+      "description": "Bilateral contracts sales quantity",
+      "category": "bilateral",
+      "requiredParams": [
+        "start_date",
+        "end_date"
+      ],
+      "optionalParams": [],
+      "returns": "DataFrame with bilateral offer quantities"
     }
   ],
   "compositeFunctions": [
     {
       "name": "get_hourly_consumption_and_forecast_data",
+      "module": "eptr2.composite",
       "description": "Combines load plan, UECM, and real-time consumption into single dataset",
       "category": "composite_consumption",
-      "requiredParams": ["eptr", "start_date", "end_date"],
-      "returns": "DataFrame with combined consumption and forecast data"
+      "requiredParams": [
+        "eptr",
+        "start_date",
+        "end_date"
+      ],
+      "optionalParams": [
+        "verbose",
+        "include_contract_symbol"
+      ],
+      "returns": "DataFrame with columns: dt, load_plan, uecm, rt_cons, consumption"
     },
     {
       "name": "get_hourly_price_and_cost_data",
+      "module": "eptr2.composite",
       "description": "Combines MCP, SMP, WAP, and imbalance costs",
       "category": "composite_pricing",
-      "requiredParams": ["eptr", "start_date", "end_date"],
-      "returns": "DataFrame with comprehensive pricing data"
+      "requiredParams": [
+        "eptr",
+        "start_date",
+        "end_date"
+      ],
+      "optionalParams": [
+        "include_wap",
+        "add_kupst_cost"
+      ],
+      "returns": "DataFrame with columns: date, mcp, smp, wap, system_direction, pos_imb_price, neg_imb_price, pos_imb_cost, neg_imb_cost, kupst_cost"
     },
     {
-      "name": "get_imbalance_data",
+      "name": "get_hourly_imbalance_data",
+      "module": "eptr2.composite",
       "description": "Combines imbalance prices, volumes, and costs",
       "category": "composite_pricing",
-      "requiredParams": ["eptr", "start_date", "end_date"],
+      "requiredParams": [
+        "eptr",
+        "start_date",
+        "end_date"
+      ],
       "returns": "DataFrame with imbalance analysis"
     },
     {
       "name": "get_hourly_production_data",
+      "module": "eptr2.composite",
       "description": "Real-time and UEVM production data",
       "category": "composite_production",
-      "requiredParams": ["eptr", "start_date", "end_date"],
-      "optionalParams": ["rt_pp_id", "uevm_pp_id"],
-      "returns": "DataFrame with production data"
+      "requiredParams": [
+        "eptr",
+        "start_date",
+        "end_date"
+      ],
+      "optionalParams": [
+        "rt_pp_id",
+        "uevm_pp_id",
+        "skip_uevm",
+        "skip_rt"
+      ],
+      "returns": "DataFrame with production data (columns have _rt and _uevm suffixes)"
     },
     {
       "name": "get_hourly_production_plan_data",
+      "module": "eptr2.composite",
       "description": "Production plan data (KGUP v1, KGUP, KUDUP)",
       "category": "composite_production",
-      "requiredParams": ["eptr", "start_date", "end_date"],
-      "optionalParams": ["org_id", "uevcb_id"],
+      "requiredParams": [
+        "eptr",
+        "start_date",
+        "end_date"
+      ],
+      "optionalParams": [
+        "org_id",
+        "uevcb_id",
+        "skip_kgup",
+        "skip_kgup_v1",
+        "skip_kudup"
+      ],
       "returns": "DataFrame with production plan data"
+    },
+    {
+      "name": "get_dabi_idm_data",
+      "module": "eptr2.composite",
+      "description": "Day-ahead, bilateral, and intraday market combined data",
+      "category": "composite_market",
+      "requiredParams": [
+        "eptr",
+        "start_date",
+        "end_date"
+      ],
+      "returns": "DataFrame with combined market position data"
+    },
+    {
+      "name": "get_mms_detail",
+      "module": "eptr2.composite",
+      "description": "Market Message System detail data",
+      "category": "composite_mms",
+      "requiredParams": [
+        "eptr",
+        "start_date",
+        "end_date"
+      ],
+      "optionalParams": [
+        "org_id"
+      ],
+      "returns": "DataFrame with MMS detail"
+    },
+    {
+      "name": "get_bpm_range",
+      "module": "eptr2.composite",
+      "description": "Balancing Power Market data for a date range",
+      "category": "composite_balancing",
+      "requiredParams": [
+        "eptr",
+        "start_date",
+        "end_date"
+      ],
+      "returns": "DataFrame with BPM data"
     }
   ],
+  "costUtilityFunctions": {
+    "module": "eptr2.util.costs",
+    "description": "Utility functions for calculating imbalance costs and KUPST",
+    "functions": [
+      {
+        "name": "calculate_unit_imbalance_price",
+        "description": "Calculate positive and negative imbalance prices per MWh",
+        "params": [
+          "mcp",
+          "smp",
+          "penalty_margin=0.03"
+        ],
+        "returns": "dict with 'pos' and 'neg' prices",
+        "formula": {
+          "pos": "(1 - penalty_margin) × min(MCP, SMP)",
+          "neg": "(1 + penalty_margin) × max(MCP, SMP)"
+        }
+      },
+      {
+        "name": "calculate_unit_imbalance_cost",
+        "description": "Calculate unit imbalance costs (cost per MWh of imbalance)",
+        "params": [
+          "mcp",
+          "smp",
+          "penalty_margin=0.03"
+        ],
+        "returns": "dict with 'pos' and 'neg' costs",
+        "formula": {
+          "pos": "MCP - pos_imb_price (revenue foregone)",
+          "neg": "neg_imb_price - MCP (penalty paid)"
+        }
+      },
+      {
+        "name": "calculate_unit_kupst_cost",
+        "description": "Calculate KUPST (deviation cost from production plan) per MWh",
+        "params": [
+          "mcp",
+          "smp",
+          "kupst_multiplier=0.03",
+          "kupst_floor_price=750.0"
+        ],
+        "returns": "float - KUPST cost per MWh",
+        "formula": "max(MCP, SMP, floor_price) × multiplier"
+      },
+      {
+        "name": "calculate_imb_cost",
+        "description": "Calculate total imbalance cost for a specific deviation",
+        "params": [
+          "actual",
+          "forecast",
+          "mcp",
+          "smp",
+          "is_producer",
+          "imb_tol=0.1",
+          "return_detail=False",
+          "dsg_absorption_rate=0.0"
+        ],
+        "returns": "Total cost or detailed breakdown if return_detail=True"
+      },
+      {
+        "name": "calculate_imbalance_amounts",
+        "description": "Calculate DSG and individual imbalance amounts based on tolerance",
+        "params": [
+          "actual",
+          "forecast",
+          "is_producer",
+          "imb_tol=0.1",
+          "dsg_absorption_rate=0.0"
+        ],
+        "returns": "dict with diff, dsg_imbalance, individual_imbalance, imb_tol_value"
+      },
+      {
+        "name": "get_kupst_tolerance",
+        "description": "Get KUPST tolerance rate by source type",
+        "params": [
+          "source"
+        ],
+        "returns": "float - tolerance rate (0.17 for wind, 0.10 for solar, 0.05 default)"
+      }
+    ]
+  },
   "dateFormat": {
     "format": "YYYY-MM-DD",
-    "examples": ["2024-07-29", "2024-01-01", "2023-12-31"],
-    "description": "All dates must be in ISO 8601 format"
+    "examples": [
+      "2024-07-29",
+      "2024-01-01",
+      "2023-12-31"
+    ],
+    "description": "All dates must be in ISO 8601 format",
+    "timezone": "Turkey (UTC+3)"
   },
   "parameterTypes": {
     "start_date": {
@@ -193,6 +624,60 @@
     "columns": "Varies by API call, typically includes date, hour, and metric-specific fields"
   },
   "totalAPICalls": 213,
+  "abbreviations": {
+    "MCP": {
+      "en": "Market Clearing Price",
+      "tr": "Piyasa Takas Fiyatı (PTF)"
+    },
+    "SMP": {
+      "en": "System Marginal Price",
+      "tr": "Sistem Marjinal Fiyatı (SMF)"
+    },
+    "WAP": {
+      "en": "Weighted Average Price",
+      "tr": "Ağırlıklı Ortalama Fiyat (AOF)"
+    },
+    "KGÜP": {
+      "en": "Daily Production Plan",
+      "tr": "Kesinleşmiş Günlük Üretim Planı"
+    },
+    "UEÇM": {
+      "en": "Settlement Consumption",
+      "tr": "Uzlaştırmaya Esas Çekiş Miktarı"
+    },
+    "UEVM": {
+      "en": "Settlement Generation",
+      "tr": "Uzlaştırmaya Esas Veriş Miktarı"
+    },
+    "KÜPST": {
+      "en": "Production Plan Deviation Cost",
+      "tr": "Kesinleşmiş Üretim Planından Sapma Tutarı"
+    },
+    "GÖP": {
+      "en": "Day-Ahead Market",
+      "tr": "Gün Öncesi Piyasası"
+    },
+    "GİP": {
+      "en": "Intraday Market",
+      "tr": "Gün İçi Piyasası"
+    },
+    "DGP": {
+      "en": "Balancing Power Market",
+      "tr": "Dengeleme Güç Piyasası"
+    },
+    "YAL": {
+      "en": "Up Regulation",
+      "tr": "Yük Alma"
+    },
+    "YAT": {
+      "en": "Down Regulation",
+      "tr": "Yük Atma"
+    },
+    "DSG": {
+      "en": "Balancing Responsible Group",
+      "tr": "Dengeden Sorumlu Grup"
+    }
+  },
   "usageExamples": [
     {
       "description": "Get market clearing price for a date range",
@@ -203,13 +688,22 @@
       "code": "from eptr2 import EPTR2\nfrom eptr2.composite import get_hourly_consumption_and_forecast_data\neptr = EPTR2(use_dotenv=True, recycle_tgt=True)\ndf = get_hourly_consumption_and_forecast_data(eptr, start_date='2024-07-29', end_date='2024-07-29')"
     },
     {
+      "description": "Calculate imbalance costs using utility functions",
+      "code": "from eptr2.util.costs import calculate_unit_imbalance_cost, calculate_unit_kupst_cost\n\nmcp, smp = 2500, 2800\ncosts = calculate_unit_imbalance_cost(mcp=mcp, smp=smp)\nprint(f'Positive imbalance cost: {costs[\"pos\"]:.2f} TL/MWh')\nprint(f'Negative imbalance cost: {costs[\"neg\"]:.2f} TL/MWh')\n\nkupst = calculate_unit_kupst_cost(mcp=mcp, smp=smp)\nprint(f'KUPST cost: {kupst:.2f} TL/MWh')"
+    },
+    {
       "description": "Discover all available API calls",
       "code": "from eptr2 import EPTR2\neptr = EPTR2(use_dotenv=True, recycle_tgt=True)\ncalls = eptr.get_available_calls(include_aliases=True)"
+    },
+    {
+      "description": "Get help for a specific endpoint",
+      "code": "from eptr2.mapping.help import get_help_d\n\nhelp_info = get_help_d('mcp')\nprint(f'Category: {help_info[\"category\"]}')\nprint(f'Title: {help_info[\"title\"][\"en\"]}')\nprint(f'Description: {help_info[\"desc\"][\"en\"]}')"
     }
   ],
   "mcpServer": {
     "description": "Model Context Protocol server for AI agent integration",
     "usage": "python -m eptr2.mcp.server",
+    "alternativeUsage": "uv run --extra mcp eptr2-mcp-server",
     "tools": [
       "get_market_clearing_price",
       "get_system_marginal_price",

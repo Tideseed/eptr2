@@ -1,7 +1,20 @@
+import warnings
 from typing import Literal
 
 
-def get_kupst_tolerance(source: str):
+### KUPST TOLERANCE FUNCTIONS ###
+def get_kupst_tolerance(
+    source: str, regulation_period: Literal["current", "pre_2026"] = "pre_2026"
+):
+    if regulation_period == "current":
+        return get_kupst_tolerance_2026(source)
+    elif regulation_period == "pre_2026":
+        return get_kupst_tolerance_pre_2026(source)
+    else:
+        raise ValueError("Invalid period specified. Use 'current' or 'pre_2026'.")
+
+
+def get_kupst_tolerance_pre_2026(source: str):
     alias_map = {"sun": "solar"}
 
     tol_source_map = {"wind": 0.17, "solar": 0.10}
@@ -10,7 +23,21 @@ def get_kupst_tolerance(source: str):
 
 def temp_get_draft_kupst_tolerance(source: str):
     """
-    A temporary function to get the tolerance values based on source type according to the draft EPDK regulation (22 Sep 2025)
+    .. deprecated:: 1.3.2
+        Use :func:`get_kupst_tolerance_2026` instead.
+    """
+    warnings.warn(
+        "temp_get_draft_kupst_tolerance is deprecated, "
+        "use get_kupst_tolerance_2026 instead",
+        DeprecationWarning,
+        stacklevel=2,
+    )
+    return get_kupst_tolerance_2026(source)
+
+
+def get_kupst_tolerance_2026(source: str):
+    """
+    Get the tolerance values based on source type according to the EPDK regulation (valid from Jan 1, 2026).
     """
     alias_map = {"sun": "solar"}
 
@@ -18,6 +45,10 @@ def temp_get_draft_kupst_tolerance(source: str):
     return tol_source_map.get(alias_map.get(source, source), 0.05)
 
 
+### KUPST TOLERANCE FUNCTIONS END###
+
+
+### KUPST COST FUNCTIONS ###
 def temp_calculate_draft_unit_kupst_cost(
     mcp: float,
     smp: float,
@@ -27,7 +58,63 @@ def temp_calculate_draft_unit_kupst_cost(
     include_maintenance_penalty: bool = False,
 ):
     """
-    A temporary function to get the unit kupst costs based on source type according to the draft EPDK regulation (22 Sep 2025)
+    .. deprecated:: 1.3.2
+        Use :func:`calculate_unit_kupst_cost_2026` instead.
+    """
+    warnings.warn(
+        "temp_calculate_draft_unit_kupst_cost is deprecated, "
+        "use calculate_unit_kupst_cost_2026 instead",
+        DeprecationWarning,
+        stacklevel=2,
+    )
+    return calculate_unit_kupst_cost_2026(
+        mcp=mcp,
+        smp=smp,
+        source=source,
+        kupst_multiplier_default=kupst_multiplier_default,
+        kupst_floor_price=kupst_floor_price,
+        include_maintenance_penalty=include_maintenance_penalty,
+    )
+
+
+def calculate_unit_kupst_cost(
+    mcp: float,
+    smp: float,
+    kupst_multiplier: float = 0.05,
+    kupst_floor_price: float = 750.0,
+    include_maintenance_penalty: bool = False,
+    regulation_period: Literal["current", "pre_2026"] = "pre_2026",
+):
+    if regulation_period == "current":
+        return calculate_unit_kupst_cost_2026(
+            mcp=mcp,
+            smp=smp,
+            kupst_multiplier_default=kupst_multiplier,
+            kupst_floor_price=kupst_floor_price,
+            include_maintenance_penalty=include_maintenance_penalty,
+        )
+    elif regulation_period == "pre_2026":
+        return calculate_unit_kupst_cost_pre_2026(
+            mcp=mcp,
+            smp=smp,
+            kupst_multiplier=kupst_multiplier,
+            kupst_floor_price=kupst_floor_price,
+        )
+    else:
+        raise ValueError("Invalid period specified. Use 'current' or 'pre_2026'.")
+
+
+def calculate_unit_kupst_cost_2026(
+    mcp: float,
+    smp: float,
+    source: str | None = None,
+    kupst_multiplier_default: float = 0.05,
+    kupst_floor_price: float = 750.0,
+    include_maintenance_penalty: bool = False,
+):
+    """
+    Calculate unit KUPST costs based on source type according to the EPDK regulation (2026).
+    Based on draft regulation published 22 Sep 2025.
     """
 
     kupst_multiplier = 0.08 if include_maintenance_penalty else kupst_multiplier_default
@@ -36,6 +123,18 @@ def temp_calculate_draft_unit_kupst_cost(
         kupst_multiplier = source_map.get(source, kupst_multiplier_default)
 
     return max(mcp, smp, kupst_floor_price) * kupst_multiplier
+
+
+def calculate_unit_kupst_cost_pre_2026(
+    mcp: float,
+    smp: float,
+    kupst_multiplier: float = 0.03,
+    kupst_floor_price: float = 750.0,
+):
+    return max(mcp, smp, kupst_floor_price) * kupst_multiplier
+
+
+### KUPST COST FUNCTIONS END###
 
 
 def calculate_unit_imbalance_price(
@@ -55,15 +154,6 @@ def calculate_unit_imbalance_cost(mcp: float, smp: float, penalty_margin: float 
     d["neg"] = d["neg"] - mcp
 
     return d
-
-
-def calculate_unit_kupst_cost(
-    mcp: float,
-    smp: float,
-    kupst_multiplier: float = 0.03,
-    kupst_floor_price: float = 750.0,
-):
-    return max(mcp, smp, kupst_floor_price) * kupst_multiplier
 
 
 def calculate_imbalance_amounts(
@@ -113,7 +203,6 @@ def calculate_imb_cost(
     return_detail: bool = False,
     dsg_absorption_rate: float = 0.0,
 ):
-
     ## Get the net costs of per imbalance MWh
     unit_cost_d = calculate_unit_imbalance_cost(mcp=mcp, smp=smp)
 
@@ -176,11 +265,13 @@ def calculate_kupst_cost(
     kupst_multiplier: float = 0.03,
     kupst_floor_price: float = 750.0,
     return_detail: bool = False,
+    regulation_period: Literal["current", "pre_2026"] = "pre_2026",
+    include_maintenance_penalty=False,
 ):
     if tol is None:
         if source is None:
             raise Exception("Either tol(erance) or source parameter must be provided")
-        tol = get_kupst_tolerance(source)
+        tol = get_kupst_tolerance(source=source, regulation_period=regulation_period)
 
     tol_val = forecast * tol
     kupsm = max(0, abs(actual - forecast) - tol_val)
@@ -189,6 +280,8 @@ def calculate_kupst_cost(
         smp=smp,
         kupst_multiplier=kupst_multiplier,
         kupst_floor_price=kupst_floor_price,
+        regulation_period=regulation_period,
+        include_maintenance_penalty=include_maintenance_penalty,
     )
     kupst_cost = kupsm * unit_kupst
     if return_detail:
@@ -399,7 +492,43 @@ def temp_calculate_imbalance_price_and_costs_new(
     regulation: Literal["up", "down", "balanced"] = "balanced",
 ):
     """
-    Temporary function to calculate imbalance prices based on new regulation (2026)
+    .. deprecated:: 1.3.2
+        Use :func:`calculate_imbalance_price_and_costs_2026` instead.
+    """
+    warnings.warn(
+        "temp_calculate_imbalance_price_and_costs_new is deprecated, "
+        "use calculate_imbalance_price_and_costs_2026 instead",
+        DeprecationWarning,
+        stacklevel=2,
+    )
+    return calculate_imbalance_price_and_costs_2026(
+        mcp=mcp,
+        smp=smp,
+        floor_price=floor_price,
+        ceil_price=ceil_price,
+        V=V,
+        B=B,
+        low_margin=low_margin,
+        high_margin=high_margin,
+        ceil_margin=ceil_margin,
+        regulation=regulation,
+    )
+
+
+def calculate_imbalance_price_and_costs_2026(
+    mcp: float,
+    smp: float,
+    floor_price: float = 0.0,
+    ceil_price: float = 3400.0,
+    V: float = 150,
+    B: float = 100,
+    low_margin: float = 0.03,
+    high_margin: float = 0.06,
+    ceil_margin: float = 0.05,
+    regulation: Literal["up", "down", "balanced"] = "balanced",
+):
+    """
+    Function to calculate imbalance prices based on new regulation (2026)
 
     mcp: Market Clearing Price (Day-ahead price) (PTF)
     smp: System Marginal Price (Real-time price) (SMF)
@@ -444,7 +573,7 @@ def temp_calculate_imbalance_price_and_costs_new(
     pos_imb_price_raw = min(mcp, smp)
 
     if pos_imb_price_raw < V:
-        pos_imb_price = -B * (1 - pos_margin)
+        pos_imb_price = -B * (1 + pos_margin)
     else:
         pos_imb_price = pos_imb_price_raw * (1 - pos_margin)
 
