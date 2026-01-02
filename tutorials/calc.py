@@ -1,6 +1,6 @@
 import os
 from eptr2.tutorials.main import run_app
-from eptr2.util.costs import calculate_imb_cost, calculate_diff_cost
+from eptr2.util.costs import calculate_imb_cost_pre_2026, calculate_diff_cost
 from eptr2.composite.price_and_cost import get_hourly_price_and_cost_data
 
 
@@ -19,7 +19,6 @@ def map_source(source: str):
 
 
 if __name__ == "__main__":
-
     import streamlit as st
     from eptr2 import EPTR2
     from datetime import datetime, timedelta

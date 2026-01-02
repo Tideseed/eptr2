@@ -2,37 +2,72 @@ import warnings
 from typing import Literal
 
 
-### KUPST TOLERANCE FUNCTIONS ###
-def get_kupst_tolerance(
-    source: str, regulation_period: Literal["current", "pre_2026"] = "pre_2026"
+def get_regulation_period_by_contract(contract: str):
+    """
+    Get the regulation period based on the contract date.
+    Contracts starting from 2026-01-01 are considered under the 2026 regulation.
+    """
+
+    if contract < "PH26010100":
+        return "pre_2026"
+    elif contract >= "PH26010100":
+        return "26_01"
+    else:
+        return "pre_2026"
+
+
+def get_starting_contract_by_regulation_period(
+    regulation_period: Literal["current", "26_01", "pre_2026"] = "current",
 ):
-    if regulation_period == "current":
+    """
+    Get the starting contract codes based on the regulation period.
+    """
+
+    if regulation_period in ["current", "26_01"]:
+        return "PH26010100"
+    elif regulation_period == "pre_2026":
+        return "PH15010100"
+    else:
+        raise ValueError(
+            "Invalid period specified. Use 'current', '26_01' or 'pre_2026'."
+        )
+
+
+### KUPST TOLERANCE FUNCTIONS ###
+
+
+def get_kupst_tolerance_by_contract(source: str, contract: str):
+    """
+    Using a contract code, get the KUPST tolerance for the given source.
+    """
+    regulation_period = get_regulation_period_by_contract(contract)
+    return get_kupst_tolerance(source, regulation_period=regulation_period)
+
+
+def get_kupst_tolerance(
+    source: str, regulation_period: Literal["current", "26_01", "pre_2026"] = "current"
+):
+    """
+    Wrapper function to get KUPST tolerance based on regulation period.
+    """
+    if regulation_period in ["current", "26_01"]:
         return get_kupst_tolerance_2026(source)
     elif regulation_period == "pre_2026":
         return get_kupst_tolerance_pre_2026(source)
     else:
-        raise ValueError("Invalid period specified. Use 'current' or 'pre_2026'.")
+        raise ValueError(
+            "Invalid period specified. Use 'current', '26_01' or 'pre_2026'."
+        )
 
 
 def get_kupst_tolerance_pre_2026(source: str):
+    """
+    Get the tolerance values based on source type according to the EPDK regulation (pre-2026).
+    """
     alias_map = {"sun": "solar"}
 
     tol_source_map = {"wind": 0.17, "solar": 0.10}
     return tol_source_map.get(alias_map.get(source, source), 0.05)
-
-
-def temp_get_draft_kupst_tolerance(source: str):
-    """
-    .. deprecated:: 1.3.2
-        Use :func:`get_kupst_tolerance_2026` instead.
-    """
-    warnings.warn(
-        "temp_get_draft_kupst_tolerance is deprecated, "
-        "use get_kupst_tolerance_2026 instead",
-        DeprecationWarning,
-        stacklevel=2,
-    )
-    return get_kupst_tolerance_2026(source)
 
 
 def get_kupst_tolerance_2026(source: str):
@@ -49,6 +84,74 @@ def get_kupst_tolerance_2026(source: str):
 
 
 ### KUPST COST FUNCTIONS ###
+def calculate_unit_kupst_cost_by_contract(
+    contract: str,
+    mcp: float,
+    smp: float,
+    kupst_multiplier: float = None,
+    kupst_floor_price: float = None,
+    include_maintenance_penalty: bool = False,
+):
+    """
+    Using a contract code, get the KUPST tolerance for the given source.
+    """
+    regulation_period = get_regulation_period_by_contract(contract)
+    return calculate_unit_kupst_cost(
+        mcp=mcp,
+        smp=smp,
+        kupst_multiplier=kupst_multiplier,
+        kupst_floor_price=kupst_floor_price,
+        include_maintenance_penalty=include_maintenance_penalty,
+        regulation_period=regulation_period,
+    )
+
+
+def calculate_unit_kupst_cost(
+    mcp: float,
+    smp: float,
+    kupst_multiplier: float = None,
+    kupst_floor_price: float = None,
+    include_maintenance_penalty: bool = False,
+    regulation_period: Literal["current", "26_01", "pre_2026"] = "current",
+    **kwargs,
+):
+    """
+    Wrapper function to calculate unit KUPST costs based on regulation period.
+    2026 regulation is effective from Jan 1, 2026.
+    """
+    if regulation_period in ["current", "26_01"]:
+        if kupst_multiplier is None:
+            kupst_multiplier = 0.08 if include_maintenance_penalty else 0.05
+
+        if kupst_floor_price is None:
+            kupst_floor_price = 750.0
+
+        return calculate_unit_kupst_cost_2026(
+            mcp=mcp,
+            smp=smp,
+            kupst_multiplier_default=kupst_multiplier,
+            kupst_floor_price=kupst_floor_price,
+            include_maintenance_penalty=include_maintenance_penalty,
+        )
+    elif regulation_period == "pre_2026":
+        if kupst_multiplier is None:
+            kupst_multiplier = 0.05 if include_maintenance_penalty else 0.03
+
+        if kupst_floor_price is None:
+            kupst_floor_price = 750.0
+
+        return calculate_unit_kupst_cost_pre_2026(
+            mcp=mcp,
+            smp=smp,
+            kupst_multiplier=kupst_multiplier,
+            kupst_floor_price=kupst_floor_price,
+        )
+    else:
+        raise ValueError(
+            "Invalid period specified. Use 'current', '26_01' or 'pre_2026'."
+        )
+
+
 def temp_calculate_draft_unit_kupst_cost(
     mcp: float,
     smp: float,
@@ -75,33 +178,6 @@ def temp_calculate_draft_unit_kupst_cost(
         kupst_floor_price=kupst_floor_price,
         include_maintenance_penalty=include_maintenance_penalty,
     )
-
-
-def calculate_unit_kupst_cost(
-    mcp: float,
-    smp: float,
-    kupst_multiplier: float = 0.05,
-    kupst_floor_price: float = 750.0,
-    include_maintenance_penalty: bool = False,
-    regulation_period: Literal["current", "pre_2026"] = "pre_2026",
-):
-    if regulation_period == "current":
-        return calculate_unit_kupst_cost_2026(
-            mcp=mcp,
-            smp=smp,
-            kupst_multiplier_default=kupst_multiplier,
-            kupst_floor_price=kupst_floor_price,
-            include_maintenance_penalty=include_maintenance_penalty,
-        )
-    elif regulation_period == "pre_2026":
-        return calculate_unit_kupst_cost_pre_2026(
-            mcp=mcp,
-            smp=smp,
-            kupst_multiplier=kupst_multiplier,
-            kupst_floor_price=kupst_floor_price,
-        )
-    else:
-        raise ValueError("Invalid period specified. Use 'current' or 'pre_2026'.")
 
 
 def calculate_unit_kupst_cost_2026(
@@ -131,13 +207,330 @@ def calculate_unit_kupst_cost_pre_2026(
     kupst_multiplier: float = 0.03,
     kupst_floor_price: float = 750.0,
 ):
+    """
+    KUPST unit cost calculation according to EPDK regulation (pre-2026).
+    3% of the maximum of MCP, SMP and floor price.
+    750 TL/MWh floor price is used if higher.
+    """
     return max(mcp, smp, kupst_floor_price) * kupst_multiplier
+
+
+def calculate_kupsm(actual: float, forecast: float, tol: float):
+    """
+    Calculate the KÜPSM (Kesinleşmiş Üretim Planından Sapma Miktarı) given actual and forecast values and tolerance.
+    """
+    tol_val = forecast * tol
+    kupsm = max(0, abs(forecast - actual) - tol_val)
+    return kupsm
+
+
+def calculate_kupsm_list(actual_values: list, forecast_values: list, tol: float):
+    """
+    Calculate the KÜPSM (Kesinleşmiş Üretim Planından Sapma Miktarı) list given actual and forecast values and tolerance value.
+    """
+    kupsm_list = []
+    for a, f in zip(actual_values, forecast_values):
+        kupsm_list.append(calculate_kupsm(a, f, tol))
+    return kupsm_list
+
+
+def calculate_kupst_cost_by_contract(
+    contract: str,
+    actual: float,
+    forecast: float,
+    mcp: float,
+    smp: float,
+    tol: float | None = None,
+    source: str | None = None,
+    kupst_multiplier: float | None = None,
+    kupst_floor_price: float | None = None,
+    return_detail: bool = False,
+    include_maintenance_penalty=False,
+):
+    """
+    Using a contract code, get the KUPST tolerance for the given source.
+    """
+    regulation_period = get_regulation_period_by_contract(contract)
+    return calculate_kupst_cost(
+        actual=actual,
+        forecast=forecast,
+        mcp=mcp,
+        smp=smp,
+        tol=tol,
+        source=source,
+        kupst_multiplier=kupst_multiplier,
+        kupst_floor_price=kupst_floor_price,
+        return_detail=return_detail,
+        regulation_period=regulation_period,
+        include_maintenance_penalty=include_maintenance_penalty,
+    )
+
+
+def calculate_kupst_cost(
+    actual: float,
+    forecast: float,
+    mcp: float,
+    smp: float,
+    tol: float | None = None,
+    source: str | None = None,
+    kupst_multiplier: float | None = None,
+    kupst_floor_price: float | None = None,
+    return_detail: bool = False,
+    regulation_period: Literal["current", "2026_01", "pre_2026"] = "current",
+    include_maintenance_penalty=False,
+):
+    if tol is None:
+        if source is None:
+            raise Exception("Either tol(erance) or source parameter must be provided")
+        tol = get_kupst_tolerance(source=source, regulation_period=regulation_period)
+
+    kupsm = calculate_kupsm(actual=actual, forecast=forecast, tol=tol)
+
+    unit_kupst = calculate_unit_kupst_cost(
+        mcp=mcp,
+        smp=smp,
+        kupst_multiplier=kupst_multiplier,
+        kupst_floor_price=kupst_floor_price,
+        regulation_period=regulation_period,
+        include_maintenance_penalty=include_maintenance_penalty,
+    )
+    kupst_cost = kupsm * unit_kupst
+
+    if return_detail:
+        detail_d = {
+            "kupst_tol_perc": tol,
+            "kupsm_tol": tol,
+            "kupsm": kupsm,
+            "unit_kupst_cost": unit_kupst,
+            "kupst_cost": kupst_cost,
+        }
+        return detail_d
+
+    return kupst_cost
+
+
+def calculate_kupst_cost_list(
+    actual_values: list,
+    forecast_values: list,
+    mcp: list,
+    smp: list,
+    tol: float | None = None,
+    source: str | None = None,
+    kupst_multiplier: float | None = None,
+    kupst_floor_price: float | None = None,
+    regulation_period: Literal["current", "2026_01", "pre_2026"] = "current",
+    **kwargs,
+):
+    """
+    Calculates production plan difference (KUPST) costs.
+    """
+
+    if tol is None:
+        if source is None:
+            raise Exception("Either tol(erance) or source parameter must be provided")
+        tol = get_kupst_tolerance(source)
+
+    maintenance_penalty_list = kwargs.get(
+        "maintenance_penalty_list", [False] * len(actual_values)
+    )
+
+    kupst_cost_list = []
+
+    for x, y, m, s, p in zip(
+        forecast_values, actual_values, mcp, smp, maintenance_penalty_list
+    ):
+        cost = calculate_kupst_cost(
+            actual=y,
+            forecast=x,
+            mcp=m,
+            smp=s,
+            tol=tol,
+            source=source,
+            kupst_multiplier=kupst_multiplier,
+            kupst_floor_price=kupst_floor_price,
+            regulation_period=regulation_period,
+            include_maintenance_penalty=p,
+            return_detail=False,
+        )
+
+        kupst_cost_list.append(cost)
+
+    return kupst_cost_list
 
 
 ### KUPST COST FUNCTIONS END###
 
 
-def calculate_unit_imbalance_price(
+# def calculate_unit_imbalance_price(
+#     mcp: float, smp: float, penalty_margin: float = 0.03
+# ):
+#     pass
+#     return d
+
+
+def calculate_imbalance_cost_2026(
+    mcp: float,
+    smp: float,
+    floor_price: float = 0.0,
+    ceil_price: float = 3400.0,
+    V: float = 150,
+    B: float = 100,
+    low_margin: float = 0.03,
+    high_margin: float = 0.06,
+    ceil_margin: float = 0.05,
+    regulation: Literal["up", "down", "balanced"] = "balanced",
+    include_prices: bool = False,
+):
+    price_d = calculate_imbalance_price_2026(
+        mcp=mcp,
+        smp=smp,
+        floor_price=floor_price,
+        ceil_price=ceil_price,
+        V=V,
+        B=B,
+        low_margin=low_margin,
+        high_margin=high_margin,
+        ceil_margin=ceil_margin,
+        regulation=regulation,
+    )
+
+    neg_imb_cost = price_d["neg"] - mcp
+    pos_imb_cost = mcp - price_d["pos"]
+
+    cost_d = {
+        "pos": pos_imb_cost,
+        "neg": neg_imb_cost,
+    }
+
+    if include_prices:
+        detail_d = {
+            "pos_cost": pos_imb_cost,
+            "neg_cost": neg_imb_cost,
+            "pos_price": price_d["pos"],
+            "neg_price": price_d["neg"],
+        }
+        return detail_d
+
+    return cost_d
+
+
+def calculate_imbalance_price_2026(
+    mcp: float,
+    smp: float,
+    floor_price: float = 0.0,
+    ceil_price: float = 3400.0,
+    V: float = 150,
+    B: float = 100,
+    low_margin: float = 0.03,
+    high_margin: float = 0.06,
+    ceil_margin: float = 0.05,
+    regulation: Literal["up", "down", "balanced"] = "balanced",
+):
+    """
+    Function to calculate imbalance prices based on new regulation (2026)
+
+    mcp: Market Clearing Price (Day-ahead price) (PTF)
+    smp: System Marginal Price (Real-time price) (SMF)
+    floor_price: Price floor (0 TL/MWh)
+    ceil_price: Price ceiling (3400 TL/MWh)
+    V: Reference price for negative imbalance price calculation and positive imbalance threshold (150 TL/MWh)
+    B: Reference price for positive imbalance price calculation (100 TL/MWh)
+    low_margin: Margin for the opposite side of the imbalance (3%)
+    high_margin: Margin for the same side of the imbalance (6%)
+    ceil_margin: Additional margin applied when the maximum of mcp and smp is equal to ceil_price (5%)
+    regulation: Direction of system regulation ("up", "down", "balanced") when mcp == smp
+    """
+    if mcp > smp:  ## system imbalance is positive
+        neg_margin = low_margin
+        pos_margin = high_margin
+    elif mcp < smp:  ## system imbalance is negative
+        neg_margin = high_margin
+        pos_margin = low_margin
+    elif mcp == ceil_price:  ## system imbalance is still negative
+        neg_margin = high_margin
+        pos_margin = low_margin
+    elif mcp == floor_price:  ## system imbalance is still positive
+        neg_margin = low_margin
+        pos_margin = high_margin
+    ### NOTE: regulation might not be needed if we use floor and ceil price checks
+    elif regulation == "up":  ## system imbalance is still negative
+        neg_margin = high_margin
+        pos_margin = low_margin
+    elif regulation == "down":  ## system imbalance is still positive
+        neg_margin = low_margin
+        pos_margin = high_margin
+    else:  ### system is balanced
+        neg_margin = low_margin
+        pos_margin = low_margin
+
+    if max(mcp, smp) == ceil_price:
+        neg_imb_mult = 1 + ceil_margin
+    else:
+        neg_imb_mult = 1
+
+    neg_imb_price = max(mcp, smp, V) * (1 + neg_margin) * neg_imb_mult
+
+    pos_imb_price_raw = min(mcp, smp)
+
+    if pos_imb_price_raw < V:
+        pos_imb_price = -B * (1 + pos_margin)
+    else:
+        pos_imb_price = pos_imb_price_raw * (1 - pos_margin)
+
+    return {
+        "pos": pos_imb_price,
+        "neg": neg_imb_price,
+    }
+
+
+def calculate_imbalance_price_and_costs_2026(
+    mcp: float,
+    smp: float,
+    floor_price: float = 0.0,
+    ceil_price: float = 3400.0,
+    V: float = 150,
+    B: float = 100,
+    low_margin: float = 0.03,
+    high_margin: float = 0.06,
+    ceil_margin: float = 0.05,
+    regulation: Literal["up", "down", "balanced"] = "balanced",
+):
+    """
+    Function to calculate imbalance prices based on new regulation (2026)
+
+    mcp: Market Clearing Price (Day-ahead price) (PTF)
+    smp: System Marginal Price (Real-time price) (SMF)
+    floor_price: Price floor (0 TL/MWh)
+    ceil_price: Price ceiling (3400 TL/MWh)
+    V: Reference price for negative imbalance price calculation and positive imbalance threshold (150 TL/MWh)
+    B: Reference price for positive imbalance price calculation (100 TL/MWh)
+    low_margin: Margin for the opposite side of the imbalance (3%)
+    high_margin: Margin for the same side of the imbalance (6%)
+    ceil_margin: Additional margin applied when the maximum of mcp and smp is equal to ceil_price (5%)
+    regulation: Direction of system regulation ("up", "down", "balanced") when mcp == smp
+    """
+
+    price_cost_d = calculate_imbalance_cost_2026(
+        mcp=mcp,
+        smp=smp,
+        floor_price=floor_price,
+        ceil_price=ceil_price,
+        V=V,
+        B=B,
+        low_margin=low_margin,
+        high_margin=high_margin,
+        ceil_margin=ceil_margin,
+        regulation=regulation,
+        include_prices=True,
+    )
+
+    price_cost_d["mcp"] = mcp
+    price_cost_d["smp"] = smp
+
+    return price_cost_d
+
+
+def calculate_unit_imbalance_price_pre_2026(
     mcp: float, smp: float, penalty_margin: float = 0.03
 ):
     d = {
@@ -147,8 +540,12 @@ def calculate_unit_imbalance_price(
     return d
 
 
-def calculate_unit_imbalance_cost(mcp: float, smp: float, penalty_margin: float = 0.03):
-    d = calculate_unit_imbalance_price(mcp=mcp, smp=smp, penalty_margin=penalty_margin)
+def calculate_unit_imbalance_cost_pre_2026(
+    mcp: float, smp: float, penalty_margin: float = 0.03
+):
+    d = calculate_unit_imbalance_price_pre_2026(
+        mcp=mcp, smp=smp, penalty_margin=penalty_margin
+    )
 
     d["pos"] = mcp - d["pos"]
     d["neg"] = d["neg"] - mcp
@@ -156,7 +553,36 @@ def calculate_unit_imbalance_cost(mcp: float, smp: float, penalty_margin: float 
     return d
 
 
-def calculate_imbalance_amounts(
+def calculate_imbalance_prices_list_pre_2026(mcp: list, smp: list):
+    """
+    Calculates imbalance prices for positive and negative imbalances
+    """
+    d = {
+        "pos": [min(x, y) * 0.97 for x, y in zip(mcp, smp)],
+        "neg": [1.03 * max(x, y) for x, y in zip(mcp, smp)],
+    }
+
+    return d
+
+
+def calculate_imbalance_cost_values_list_pre_2026(mcp: list, smp: list):
+    """
+    Calculates imbalance costs relative to day-ahead prices (MCP) for positive and negative imbalances
+    """
+
+    d = {"pos": [], "neg": []}
+
+    for mcp_x, smp_x in zip(mcp, smp):
+        if mcp_x is None or smp_x is None:
+            raise ValueError("MCP and SMP lists must not contain None values")
+        sub_d = calculate_unit_imbalance_cost_pre_2026(mcp=mcp_x, smp=smp_x)
+        d["pos"].append(sub_d["pos"])
+        d["neg"].append(sub_d["neg"])
+
+    return d
+
+
+def calculate_imbalance_amounts_pre_2026(
     actual: float,
     forecast: float,
     is_producer: bool,
@@ -193,7 +619,7 @@ def calculate_imbalance_amounts(
     return res_d
 
 
-def calculate_imb_cost(
+def calculate_imb_cost_pre_2026(
     actual: float,
     forecast: float,
     mcp: float,
@@ -204,10 +630,10 @@ def calculate_imb_cost(
     dsg_absorption_rate: float = 0.0,
 ):
     ## Get the net costs of per imbalance MWh
-    unit_cost_d = calculate_unit_imbalance_cost(mcp=mcp, smp=smp)
+    unit_cost_d = calculate_unit_imbalance_cost_pre_2026(mcp=mcp, smp=smp)
 
     ## Calculate the imbalance amounts
-    res_d = calculate_imbalance_amounts(
+    res_d = calculate_imbalance_amounts_pre_2026(
         actual=actual,
         forecast=forecast,
         is_producer=is_producer,
@@ -242,60 +668,6 @@ def calculate_imb_cost(
         return total_imb_cost
 
 
-def calculate_kupsm(actual: float, forecast: float, tol: float):
-    tol_val = forecast * tol
-    kupsm = max(0, abs(forecast - actual) - tol_val)
-    return kupsm
-
-
-def calculate_kupsm_list(actual_values: list, forecast_values: list, tol: float):
-    kupsm_list = []
-    for a, f in zip(actual_values, forecast_values):
-        kupsm_list.append(calculate_kupsm(a, f, tol))
-    return kupsm_list
-
-
-def calculate_kupst_cost(
-    actual: float,
-    forecast: float,
-    mcp: float,
-    smp: float,
-    tol: float | None = None,
-    source: str | None = None,
-    kupst_multiplier: float = 0.03,
-    kupst_floor_price: float = 750.0,
-    return_detail: bool = False,
-    regulation_period: Literal["current", "pre_2026"] = "pre_2026",
-    include_maintenance_penalty=False,
-):
-    if tol is None:
-        if source is None:
-            raise Exception("Either tol(erance) or source parameter must be provided")
-        tol = get_kupst_tolerance(source=source, regulation_period=regulation_period)
-
-    tol_val = forecast * tol
-    kupsm = max(0, abs(actual - forecast) - tol_val)
-    unit_kupst = calculate_unit_kupst_cost(
-        mcp=mcp,
-        smp=smp,
-        kupst_multiplier=kupst_multiplier,
-        kupst_floor_price=kupst_floor_price,
-        regulation_period=regulation_period,
-        include_maintenance_penalty=include_maintenance_penalty,
-    )
-    kupst_cost = kupsm * unit_kupst
-    if return_detail:
-        return {
-            "kupst_tol_perc": tol,
-            "kupsm_tol": tol_val,
-            "kupsm": kupsm,
-            "unit_kupst_cost": unit_kupst,
-            "kupst_cost": kupst_cost,
-        }
-
-    return kupst_cost
-
-
 def calculate_diff_cost(
     actual: float,
     forecast: float,
@@ -307,7 +679,7 @@ def calculate_diff_cost(
 ):
     is_producer = prod_source is not None
 
-    res_d = calculate_imb_cost(
+    res_d = calculate_imb_cost_pre_2026(
         actual=actual,
         forecast=forecast,
         mcp=mcp,
@@ -337,62 +709,6 @@ def calculate_diff_cost(
         res_d["kupst"] = kupst_d
 
     return res_d
-
-
-def calculate_imbalance_prices_list(mcp: list, smp: list):
-    """
-    Calculates imbalance prices for positive and negative imbalances
-    """
-    d = {
-        "pos": [min(x, y) * 0.97 for x, y in zip(mcp, smp)],
-        "neg": [1.03 * max(x, y) for x, y in zip(mcp, smp)],
-    }
-
-    return d
-
-
-def calculate_imbalance_cost_values_list(mcp: list, smp: list):
-    """
-    Calculates imbalance costs relative to day-ahead prices (MCP) for positive and negative imbalances
-    """
-    d = calculate_imbalance_prices_list(mcp, smp)
-    d["pos"] = [x - y for x, y in zip(mcp, d["pos"])]
-    d["neg"] = [y - x for x, y in zip(mcp, d["neg"])]
-
-    return d
-
-
-def calculate_kupst_cost_list(
-    actual_values: list,
-    forecast_values: list,
-    mcp: list,
-    smp: list,
-    tol: float | None = None,
-    source: str | None = None,
-    kupst_multiplier: float = 0.03,
-    kupst_floor_price: float = 750.0,
-):
-    """
-    Calculates production plan difference (KUPST) costs.
-    """
-
-    if tol is None:
-        if source is None:
-            raise Exception("Either tol(erance) or source parameter must be provided")
-        tol = get_kupst_tolerance(source)
-
-    kupst_cost_list = []
-
-    for x, y, m, s in zip(forecast_values, actual_values, mcp, smp):
-        cost = (
-            max(abs(x - y) - tol * x, 0)
-            * max(m, s, kupst_floor_price)
-            * kupst_multiplier
-        )
-
-        kupst_cost_list.append(cost)
-
-    return kupst_cost_list
 
 
 def calculate_imbalance_cost_list(
@@ -444,7 +760,7 @@ def calculate_diff_costs_list(
     """
     res_d = {"actual": actual_values, "forecast": forecast_values}
 
-    cost_d = calculate_imbalance_cost_values_list(mcp, smp)
+    cost_d = calculate_imbalance_cost_values_list_pre_2026(mcp, smp)
     res_d["diff"] = [x - y for x, y in zip(forecast_values, actual_values)]
 
     if is_producer:
@@ -477,6 +793,21 @@ def calculate_diff_costs_list(
         )
 
     return res_d
+
+
+### DEPRECATED
+def temp_get_draft_kupst_tolerance(source: str):
+    """
+    .. deprecated:: 1.3.2
+        Use :func:`get_kupst_tolerance_2026` instead.
+    """
+    warnings.warn(
+        "temp_get_draft_kupst_tolerance is deprecated, "
+        "use get_kupst_tolerance_2026 instead",
+        DeprecationWarning,
+        stacklevel=2,
+    )
+    return get_kupst_tolerance_2026(source)
 
 
 def temp_calculate_imbalance_price_and_costs_new(
@@ -513,78 +844,3 @@ def temp_calculate_imbalance_price_and_costs_new(
         ceil_margin=ceil_margin,
         regulation=regulation,
     )
-
-
-def calculate_imbalance_price_and_costs_2026(
-    mcp: float,
-    smp: float,
-    floor_price: float = 0.0,
-    ceil_price: float = 3400.0,
-    V: float = 150,
-    B: float = 100,
-    low_margin: float = 0.03,
-    high_margin: float = 0.06,
-    ceil_margin: float = 0.05,
-    regulation: Literal["up", "down", "balanced"] = "balanced",
-):
-    """
-    Function to calculate imbalance prices based on new regulation (2026)
-
-    mcp: Market Clearing Price (Day-ahead price) (PTF)
-    smp: System Marginal Price (Real-time price) (SMF)
-    floor_price: Price floor (0 TL/MWh)
-    ceil_price: Price ceiling (3400 TL/MWh)
-    V: Reference price for negative imbalance price calculation and positive imbalance threshold (150 TL/MWh)
-    B: Reference price for positive imbalance price calculation (100 TL/MWh)
-    low_margin: Margin for the opposite side of the imbalance (3%)
-    high_margin: Margin for the same side of the imbalance (6%)
-    ceil_margin: Additional margin applied when the maximum of mcp and smp is equal to ceil_price (5%)
-    regulation: Direction of system regulation ("up", "down", "balanced") when mcp == smp
-    """
-    if mcp > smp:  ## system imbalance is positive
-        neg_margin = low_margin
-        pos_margin = high_margin
-    elif mcp < smp:  ## system imbalance is negative
-        neg_margin = high_margin
-        pos_margin = low_margin
-    elif mcp == ceil_price:  ## system imbalance is still negative
-        neg_margin = high_margin
-        pos_margin = low_margin
-    elif mcp == floor_price:  ## system imbalance is still positive
-        neg_margin = low_margin
-        pos_margin = high_margin
-    elif regulation == "up":  ## system imbalance is still negative
-        neg_margin = high_margin
-        pos_margin = low_margin
-    elif regulation == "down":  ## system imbalance is still positive
-        neg_margin = low_margin
-        pos_margin = high_margin
-    else:  ### system is balanced
-        neg_margin = low_margin
-        pos_margin = low_margin
-
-    if max(mcp, smp) == ceil_price:
-        neg_imb_mult = 1 + ceil_margin
-    else:
-        neg_imb_mult = 1
-
-    neg_imb_price = max(mcp, smp, V) * (1 + neg_margin) * neg_imb_mult
-
-    pos_imb_price_raw = min(mcp, smp)
-
-    if pos_imb_price_raw < V:
-        pos_imb_price = -B * (1 + pos_margin)
-    else:
-        pos_imb_price = pos_imb_price_raw * (1 - pos_margin)
-
-    neg_imb_cost = neg_imb_price - mcp
-    pos_imb_cost = mcp - pos_imb_price
-
-    return {
-        "mcp": mcp,
-        "smp": smp,
-        "pos_cost": pos_imb_cost,
-        "neg_cost": neg_imb_cost,
-        "pos_price": pos_imb_price,
-        "neg_price": neg_imb_price,
-    }
