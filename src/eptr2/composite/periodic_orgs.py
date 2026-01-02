@@ -11,7 +11,8 @@ def get_generation_organization_list(period: str, **kwargs):
     Get a list of generation organizations active during the specified period's year. It checks for organizations that were active at any point during that year.
     """
 
-    if kwargs.get("eptr") is None:
+    eptr = kwargs.get("eptr", None)
+    if eptr is None:
         eptr = EPTR2(recycle_tgt=True)
 
     period_range = kwargs.get("period_range", "year")
@@ -61,7 +62,8 @@ def get_uevcb_ids(org_df: pd.DataFrame, period: str, **kwargs):
     Get UEVCB IDs for the given organization DataFrame and period. The difference of this function is it checks both the start and end dates of the period to ensure capturing all relevant UEVCB IDs. It also uses the latest bulk function for efficiency.
     """
 
-    if kwargs.get("eptr") is None:
+    eptr = kwargs.get("eptr", None)
+    if eptr is None:
         eptr = EPTR2(recycle_tgt=True)
 
     start_date = transform_date(period, key="start_of_month", to_str=True)
@@ -228,5 +230,33 @@ def get_multiperiod_generation_org_and_uevcb_wrapper(
         df_res = get_generation_org_and_uevcb_wrapper(period=period, **kwargs)
         df = pd.concat([df, df_res], ignore_index=True)
         time.sleep(1)
+
+    return df
+
+
+def get_aggregators_data_for_period(
+    period: str | None = None, **kwargs
+) -> pd.DataFrame:
+    """
+    Get a list of aggregators with their units (UEVCB) for the specified period (month).
+    """
+
+    eptr = kwargs.pop("eptr", None)
+    if eptr is None:
+        eptr = EPTR2(recycle_tgt=True)
+
+    if period is None:
+        print("No period provided. Using current month as default.")
+        period = get_utc3_now().replace(day=1).strftime("%Y-%m-%d")
+
+    df: pd.DataFrame = get_generation_org_and_uevcb_wrapper(
+        period=period, eptr=eptr, **kwargs
+    )
+
+    df = (
+        df[df["org_name"].str.contains("TOPLAYICI", case=True, na=False)]
+        .sort_values(["org_name", "uevcb_name"])
+        .reset_index(drop=True)
+    )
 
     return df

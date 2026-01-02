@@ -28,7 +28,7 @@ class EPTR2:
         self,
         username: str = None,
         password: str = None,
-        recycle_tgt: bool = False,
+        recycle_tgt: bool = True,
         use_dotenv: bool = True,
         dotenv_path: str = ".env",
         **kwargs,
