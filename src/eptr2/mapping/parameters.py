@@ -33,7 +33,6 @@ def get_param_label(key):
         "dist_org_id": {
             "label": "distrubutionOrganization"
         },  ## TYPO is intentional (same as api)
-        "province_id": {"label": "provinceId"},
         "profile_group_id": {"label": "profileGroupId"},
         "distribution_id": {"label": "distributionId"},
         "spg_name": {"label": "subscriberProfileGroupName"},

@@ -360,61 +360,57 @@ def calculate_kupst_cost_list(
 
 ### KUPST COST FUNCTIONS END###
 
+### UNIT IMBALANCE PRICE AND COST FUNCTIONS START###
 
-# def calculate_unit_imbalance_price(
-#     mcp: float, smp: float, penalty_margin: float = 0.03
-# ):
-#     pass
-#     return d
+### UNIT IMBALANCE PRICE FUNCTIONS START###
 
 
-def calculate_imbalance_cost_2026(
+def calculate_unit_imbalance_price_by_contract(
+    contract: str,
     mcp: float,
     smp: float,
-    floor_price: float = 0.0,
-    ceil_price: float = 3400.0,
-    V: float = 150,
-    B: float = 100,
-    low_margin: float = 0.03,
-    high_margin: float = 0.06,
-    ceil_margin: float = 0.05,
-    regulation: Literal["up", "down", "balanced"] = "balanced",
-    include_prices: bool = False,
+    **kwargs,
 ):
-    price_d = calculate_imbalance_price_2026(
+    """
+    Wrapper function to calculate unit imbalance prices based on contract.
+    """
+
+    regulation_period = get_regulation_period_by_contract(contract)
+
+    d = calculate_unit_imbalance_price(
         mcp=mcp,
         smp=smp,
-        floor_price=floor_price,
-        ceil_price=ceil_price,
-        V=V,
-        B=B,
-        low_margin=low_margin,
-        high_margin=high_margin,
-        ceil_margin=ceil_margin,
-        regulation=regulation,
+        regulation_period=regulation_period,
+        **kwargs,
     )
 
-    neg_imb_cost = price_d["neg"] - mcp
-    pos_imb_cost = mcp - price_d["pos"]
-
-    cost_d = {
-        "pos": pos_imb_cost,
-        "neg": neg_imb_cost,
-    }
-
-    if include_prices:
-        detail_d = {
-            "pos_cost": pos_imb_cost,
-            "neg_cost": neg_imb_cost,
-            "pos_price": price_d["pos"],
-            "neg_price": price_d["neg"],
-        }
-        return detail_d
-
-    return cost_d
+    return d
 
 
-def calculate_imbalance_price_2026(
+def calculate_unit_imbalance_price(
+    mcp: float,
+    smp: float,
+    regulation_period: Literal["current", "2026_01", "pre_2026"] = "current",
+    **kwargs,
+):
+    """
+    Wrapper function to calculate unit imbalance prices based on regulation period.
+    2026 regulation is effective from Jan 1, 2026.
+    """
+
+    if regulation_period in ["current", "26_01"]:
+        d = calculate_unit_imbalance_price_2026(mcp=mcp, smp=smp, **kwargs)
+    elif regulation_period == "pre_2026":
+        d = calculate_unit_imbalance_price_pre_2026(
+            mcp=mcp,
+            smp=smp,
+            **{k: v for k, v in kwargs.items() if k in ["penalty_margin"]},
+        )
+
+    return d
+
+
+def calculate_unit_imbalance_price_2026(
     mcp: float,
     smp: float,
     floor_price: float = 0.0,
@@ -424,7 +420,7 @@ def calculate_imbalance_price_2026(
     low_margin: float = 0.03,
     high_margin: float = 0.06,
     ceil_margin: float = 0.05,
-    regulation: Literal["up", "down", "balanced"] = "balanced",
+    **kwargs,
 ):
     """
     Function to calculate imbalance prices based on new regulation (2026)
@@ -438,7 +434,6 @@ def calculate_imbalance_price_2026(
     low_margin: Margin for the opposite side of the imbalance (3%)
     high_margin: Margin for the same side of the imbalance (6%)
     ceil_margin: Additional margin applied when the maximum of mcp and smp is equal to ceil_price (5%)
-    regulation: Direction of system regulation ("up", "down", "balanced") when mcp == smp
     """
     if mcp > smp:  ## system imbalance is positive
         neg_margin = low_margin
@@ -452,16 +447,6 @@ def calculate_imbalance_price_2026(
     elif mcp == floor_price:  ## system imbalance is still positive
         neg_margin = low_margin
         pos_margin = high_margin
-    ### NOTE: regulation might not be needed if we use floor and ceil price checks
-    elif regulation == "up":  ## system imbalance is still negative
-        neg_margin = high_margin
-        pos_margin = low_margin
-    elif regulation == "down":  ## system imbalance is still positive
-        neg_margin = low_margin
-        pos_margin = high_margin
-    else:  ### system is balanced
-        neg_margin = low_margin
-        pos_margin = low_margin
 
     if max(mcp, smp) == ceil_price:
         neg_imb_mult = 1 + ceil_margin
@@ -481,6 +466,182 @@ def calculate_imbalance_price_2026(
         "pos": pos_imb_price,
         "neg": neg_imb_price,
     }
+
+
+def calculate_unit_imbalance_price_pre_2026(
+    mcp: float, smp: float, penalty_margin: float = 0.03
+):
+    """
+    Calculates imbalance prices for positive and negative imbalances based on pre-2026 regulation. Much simplified compared to 2026 regulation.
+    """
+    d = {
+        "pos": (1 - penalty_margin) * min(mcp, smp),
+        "neg": (1 + penalty_margin) * max(mcp, smp),
+    }
+    return d
+
+
+### UNIT IMBALANCE PRICE FUNCTIONS END###
+
+### UNIT IMBALANCE COST FUNCTIONS START###
+
+
+def calculate_unit_imbalance_cost_by_contract(
+    contract: str,
+    mcp: float,
+    smp: float,
+    include_prices: bool = False,
+    **kwargs,
+):
+    """
+    Using a contract code, get the regulation period and calculate unit imbalance costs automatically.
+    """
+
+    regulation_period = get_regulation_period_by_contract(contract)
+
+    return calculate_unit_imbalance_cost(
+        mcp=mcp,
+        smp=smp,
+        include_prices=include_prices,
+        regulation_period=regulation_period,
+        **kwargs,
+    )
+
+
+def calculate_unit_imbalance_cost(
+    mcp: float,
+    smp: float,
+    include_prices: bool = False,
+    regulation_period: Literal["current", "2026_01", "pre_2026"] = "current",
+    **kwargs,
+):
+    """
+    Wrapper function to calculate unit imbalance prices based on regulation period.
+    2026 regulation is effective from Jan 1, 2026.
+    """
+
+    if regulation_period in ["current", "26_01"]:
+        d = calculate_unit_imbalance_cost_2026(
+            mcp=mcp, smp=smp, include_prices=include_prices, **kwargs
+        )
+    elif regulation_period == "pre_2026":
+        d = calculate_unit_imbalance_cost_pre_2026(
+            mcp=mcp,
+            smp=smp,
+            include_prices=include_prices,
+            **{k: v for k, v in kwargs.items() if k in ["penalty_margin"]},
+        )
+
+    return d
+
+
+def calculate_unit_imbalance_cost_2026(
+    mcp: float,
+    smp: float,
+    floor_price: float = 0.0,
+    ceil_price: float = 3400.0,
+    V: float = 150,
+    B: float = 100,
+    low_margin: float = 0.03,
+    high_margin: float = 0.06,
+    ceil_margin: float = 0.05,
+    include_prices: bool = False,
+    **kwargs,
+):
+    price_d = calculate_unit_imbalance_price_2026(
+        mcp=mcp,
+        smp=smp,
+        floor_price=floor_price,
+        ceil_price=ceil_price,
+        V=V,
+        B=B,
+        low_margin=low_margin,
+        high_margin=high_margin,
+        ceil_margin=ceil_margin,
+        **kwargs,
+    )
+
+    neg_imb_cost = price_d["neg"] - mcp
+    pos_imb_cost = mcp - price_d["pos"]
+
+    cost_d = {
+        "pos": pos_imb_cost,
+        "neg": neg_imb_cost,
+    }
+
+    if include_prices:
+        cost_d = {"pos_price": price_d["pos"], "neg_price": price_d["neg"], **cost_d}
+
+    return cost_d
+
+
+def calculate_unit_imbalance_cost_pre_2026(
+    mcp: float, smp: float, penalty_margin: float = 0.03, include_prices: bool = False
+):
+    d = calculate_unit_imbalance_price_pre_2026(
+        mcp=mcp, smp=smp, penalty_margin=penalty_margin
+    )
+
+    d["pos"] = mcp - d["pos"]
+    d["neg"] = d["neg"] - mcp
+
+    if include_prices:
+        d = {"pos_price": d["pos"], "neg_price": d["neg"], **d}
+
+    return d
+
+
+def calculate_imb_cost_pre_2026(
+    actual: float,
+    forecast: float,
+    mcp: float,
+    smp: float,
+    is_producer: bool,
+    imb_tol: float = 0.1,
+    return_detail: bool = False,
+    dsg_absorption_rate: float = 0.0,
+):
+    ## Get the net costs of per imbalance MWh
+    unit_cost_d = calculate_unit_imbalance_cost_pre_2026(mcp=mcp, smp=smp)
+
+    ## Calculate the imbalance amounts
+    res_d = calculate_imbalance_amounts_pre_2026(
+        actual=actual,
+        forecast=forecast,
+        is_producer=is_producer,
+        imb_tol=imb_tol,
+        dsg_absorption_rate=dsg_absorption_rate,
+    )
+
+    dsg_imbalance = res_d["dsg_imbalance"]
+    net_dsg_imbalance = res_d["net_dsg_imbalance"]
+    individual_imbalance = res_d["individual_imbalance"]
+
+    imb_side = "neg" if individual_imbalance < 0 else "pos"
+    unit_cost = unit_cost_d[imb_side]
+
+    dsg_imb_cost = abs(dsg_imbalance) * unit_cost
+    net_dsg_imb_cost = abs(net_dsg_imbalance) * unit_cost
+    individual_imb_cost = abs(individual_imbalance) * unit_cost
+    total_imb_cost = individual_imb_cost + net_dsg_imb_cost
+
+    if return_detail:
+        return {
+            "imbalances": res_d,
+            "imb_side": imb_side,
+            "costs": {
+                "ind_imbalance_cost": individual_imb_cost,
+                "dsg_imb_cost": dsg_imb_cost,
+                "net_dsg_imb_cost": net_dsg_imb_cost,
+                "total_imb_cost": total_imb_cost,
+            },
+        }
+    else:
+        return total_imb_cost
+
+
+### UNIT IMBALANCE COST FUNCTIONS END###
+### UNIT IMBALANCE PRICE AND COST FUNCTIONS END###
 
 
 def calculate_imbalance_price_and_costs_2026(
@@ -510,7 +671,7 @@ def calculate_imbalance_price_and_costs_2026(
     regulation: Direction of system regulation ("up", "down", "balanced") when mcp == smp
     """
 
-    price_cost_d = calculate_imbalance_cost_2026(
+    price_cost_d = calculate_unit_imbalance_cost_2026(
         mcp=mcp,
         smp=smp,
         floor_price=floor_price,
@@ -520,7 +681,7 @@ def calculate_imbalance_price_and_costs_2026(
         low_margin=low_margin,
         high_margin=high_margin,
         ceil_margin=ceil_margin,
-        regulation=regulation,
+        imb_side=regulation,
         include_prices=True,
     )
 
@@ -528,29 +689,6 @@ def calculate_imbalance_price_and_costs_2026(
     price_cost_d["smp"] = smp
 
     return price_cost_d
-
-
-def calculate_unit_imbalance_price_pre_2026(
-    mcp: float, smp: float, penalty_margin: float = 0.03
-):
-    d = {
-        "pos": (1 - penalty_margin) * min(mcp, smp),
-        "neg": (1 + penalty_margin) * max(mcp, smp),
-    }
-    return d
-
-
-def calculate_unit_imbalance_cost_pre_2026(
-    mcp: float, smp: float, penalty_margin: float = 0.03
-):
-    d = calculate_unit_imbalance_price_pre_2026(
-        mcp=mcp, smp=smp, penalty_margin=penalty_margin
-    )
-
-    d["pos"] = mcp - d["pos"]
-    d["neg"] = d["neg"] - mcp
-
-    return d
 
 
 def calculate_imbalance_prices_list_pre_2026(mcp: list, smp: list):
@@ -617,55 +755,6 @@ def calculate_imbalance_amounts_pre_2026(
     }
 
     return res_d
-
-
-def calculate_imb_cost_pre_2026(
-    actual: float,
-    forecast: float,
-    mcp: float,
-    smp: float,
-    is_producer: bool,
-    imb_tol: float = 0.1,
-    return_detail: bool = False,
-    dsg_absorption_rate: float = 0.0,
-):
-    ## Get the net costs of per imbalance MWh
-    unit_cost_d = calculate_unit_imbalance_cost_pre_2026(mcp=mcp, smp=smp)
-
-    ## Calculate the imbalance amounts
-    res_d = calculate_imbalance_amounts_pre_2026(
-        actual=actual,
-        forecast=forecast,
-        is_producer=is_producer,
-        imb_tol=imb_tol,
-        dsg_absorption_rate=dsg_absorption_rate,
-    )
-
-    dsg_imbalance = res_d["dsg_imbalance"]
-    net_dsg_imbalance = res_d["net_dsg_imbalance"]
-    individual_imbalance = res_d["individual_imbalance"]
-
-    imb_side = "neg" if individual_imbalance < 0 else "pos"
-    unit_cost = unit_cost_d[imb_side]
-
-    dsg_imb_cost = abs(dsg_imbalance) * unit_cost
-    net_dsg_imb_cost = abs(net_dsg_imbalance) * unit_cost
-    individual_imb_cost = abs(individual_imbalance) * unit_cost
-    total_imb_cost = individual_imb_cost + net_dsg_imb_cost
-
-    if return_detail:
-        return {
-            "imbalances": res_d,
-            "imb_side": imb_side,
-            "costs": {
-                "ind_imbalance_cost": individual_imb_cost,
-                "dsg_imb_cost": dsg_imb_cost,
-                "net_dsg_imb_cost": net_dsg_imb_cost,
-                "total_imb_cost": total_imb_cost,
-            },
-        }
-    else:
-        return total_imb_cost
 
 
 def calculate_diff_cost(
@@ -795,7 +884,7 @@ def calculate_diff_costs_list(
     return res_d
 
 
-### DEPRECATED
+### DEPRECATED FUNCTIONS BELOW
 def temp_get_draft_kupst_tolerance(source: str):
     """
     .. deprecated:: 1.3.2
