@@ -4,8 +4,27 @@ from typing import Literal
 
 def get_regulation_period_by_contract(contract: str):
     """
-    Get the regulation period based on the contract date.
-    Contracts starting from 2026-01-01 are considered under the 2026 regulation.
+    Determine the regulation period from a contract code.
+
+    The Turkish electricity market regulations changed on January 1, 2026.
+    Contract codes are lexicographically ordered by date, allowing for direct comparison.
+
+    Parameters
+    ----------
+    contract : str
+        Contract code in format 'PHYYMMDDhh' (e.g., 'PH26010100' for 2026-01-01 00:00).
+
+    Returns
+    -------
+    str
+        Either 'pre_2026' for contracts before 2026-01-01, or '26_01' for 2026 onwards.
+
+    Examples
+    --------
+    >>> get_regulation_period_by_contract('PH25123100')
+    'pre_2026'
+    >>> get_regulation_period_by_contract('PH26010100')
+    '26_01'
     """
 
     if contract < "PH26010100":
@@ -20,7 +39,31 @@ def get_starting_contract_by_regulation_period(
     regulation_period: Literal["current", "26_01", "pre_2026"] = "current",
 ):
     """
-    Get the starting contract codes based on the regulation period.
+    Get the first contract code for a given regulation period.
+
+    Parameters
+    ----------
+    regulation_period : {'current', '26_01', 'pre_2026'}, default 'current'
+        The regulation period. 'current' and '26_01' both refer to 2026 regulation.
+
+    Returns
+    -------
+    str
+        The first contract code of the period:
+        - '26_01'/'current': 'PH26010100' (2026 regulation)
+        - 'pre_2026': 'PH15010100' (pre-2026 regulation)
+
+    Raises
+    ------
+    ValueError
+        If regulation_period is invalid.
+
+    Examples
+    --------
+    >>> get_starting_contract_by_regulation_period('current')
+    'PH26010100'
+    >>> get_starting_contract_by_regulation_period('pre_2026')
+    'PH15010100'
     """
 
     if regulation_period in ["current", "26_01"]:
@@ -36,19 +79,80 @@ def get_starting_contract_by_regulation_period(
 ### KUPST TOLERANCE FUNCTIONS ###
 
 
-def get_kupst_tolerance_by_contract(source: str, contract: str):
+def get_kupst_tolerance_by_contract(
+    contract: str,
+    source: Literal["wind", "solar", "sun", "unlicensed", "other"] = "other",
+):
     """
-    Using a contract code, get the KUPST tolerance for the given source.
+    Get KUPST tolerance for a given source and contract code.
+
+    KUPST (Kesinlestirilmis Uretim Planından Sapma Tutarı - Production Plan Deviation Cost)
+    tolerance determines the allowable deviation between forecasted and actual production
+    before deviation costs are applied.
+
+    Parameters
+    ----------
+    source : {'wind', 'solar', 'sun', 'unlicensed', 'other'}, default 'other'
+        Energy source type. 'sun' is aliased to 'solar'.
+    contract : str
+        Contract code to determine the applicable regulation period.
+
+    Returns
+    -------
+    float
+        Tolerance as a decimal (e.g., 0.15 for 15%). Higher values allow larger deviations.
+
+    Notes
+    -----
+    Tolerance values differ by regulation period:
+    - Wind: 17% (pre-2026) → 15% (2026+)
+    - Solar: 10% (pre-2026) → 8% (2026+)
+    - Default: 5% for sources not specifically listed
+
+    Examples
+    --------
+    >>> get_kupst_tolerance_by_contract('wind', 'PH26010100')
+    0.15
+    >>> get_kupst_tolerance_by_contract('wind', 'PH25123100')
+    0.17
     """
     regulation_period = get_regulation_period_by_contract(contract)
     return get_kupst_tolerance(source, regulation_period=regulation_period)
 
 
 def get_kupst_tolerance(
-    source: str, regulation_period: Literal["current", "26_01", "pre_2026"] = "current"
+    source: Literal["wind", "solar", "sun", "unlicensed", "other"] = "other",
+    regulation_period: Literal["current", "26_01", "pre_2026"] = "current",
 ):
     """
-    Wrapper function to get KUPST tolerance based on regulation period.
+    Get KUPST tolerance for a given source and regulation period.
+
+    This is a dispatcher function that selects the appropriate tolerance calculation
+    based on the regulation period and delegates to regulation-specific implementations.
+
+    Parameters
+    ----------
+    source : {'wind', 'solar', 'sun', 'unlicensed', 'other'}, default 'other'
+        Energy source type. 'sun' is aliased to 'solar'.
+    regulation_period : {'current', '26_01', 'pre_2026'}, default 'current'
+        The regulation period. 'current' and '26_01' both refer to 2026 regulation.
+
+    Returns
+    -------
+    float
+        Tolerance as a decimal (e.g., 0.15 for 15%).
+
+    Raises
+    ------
+    ValueError
+        If regulation_period is not one of the valid values.
+
+    Examples
+    --------
+    >>> get_kupst_tolerance('wind', 'current')
+    0.15
+    >>> get_kupst_tolerance('wind', 'pre_2026')
+    0.17
     """
     if regulation_period in ["current", "26_01"]:
         return get_kupst_tolerance_2026(source)
@@ -60,9 +164,28 @@ def get_kupst_tolerance(
         )
 
 
-def get_kupst_tolerance_pre_2026(source: str):
+def get_kupst_tolerance_pre_2026(
+    source: Literal["wind", "solar", "sun", "other"] = "other",
+):
     """
-    Get the tolerance values based on source type according to the EPDK regulation (pre-2026).
+    Get KUPST tolerance for pre-2026 EPDK regulation.
+
+    Parameters
+    ----------
+    source : {'wind', 'solar', 'sun', 'other'}, default 'other'
+        Energy source type.
+
+    Returns
+    -------
+    float
+        Tolerance value as decimal:
+        - Wind: 17% (0.17)
+        - Solar/Sun: 10% (0.10)
+        - Other sources: 5% (0.05, default)
+
+    Notes
+    -----
+    Source 'sun' is aliased to 'solar' for convenience.
     """
     alias_map = {"sun": "solar"}
 
@@ -70,9 +193,31 @@ def get_kupst_tolerance_pre_2026(source: str):
     return tol_source_map.get(alias_map.get(source, source), 0.05)
 
 
-def get_kupst_tolerance_2026(source: str):
+def get_kupst_tolerance_2026(
+    source: Literal["wind", "solar", "sun", "unlicensed", "other"] = "other",
+):
     """
-    Get the tolerance values based on source type according to the EPDK regulation (valid from Jan 1, 2026).
+    Get KUPST tolerance for 2026 EPDK regulation (effective 2026-01-01).
+
+    Parameters
+    ----------
+    source : {'wind', 'solar', 'sun', 'unlicensed', 'other'}, default 'other'
+        Energy source type.
+
+    Returns
+    -------
+    float
+        Tolerance value as decimal:
+        - Wind: 15% (0.15)
+        - Solar/Sun: 8% (0.08)
+        - Unlicensed: 20% (0.20)
+        - Other sources: 5% (0.05, default)
+
+    Notes
+    -----
+    Source 'sun' is aliased to 'solar' for convenience.
+    The 2026 regulation tightened tolerances for wind and solar,
+    while introducing a higher tolerance for unlicensed production.
     """
     alias_map = {"sun": "solar"}
 
@@ -116,8 +261,58 @@ def calculate_unit_kupst_cost(
     **kwargs,
 ):
     """
-    Wrapper function to calculate unit KUPST costs based on regulation period.
-    2026 regulation is effective from Jan 1, 2026.
+    Calculate unit KUPST (Production Plan Deviation Cost) per MWh based on regulation period.
+
+    This function dispatches to regulation-specific implementations and returns the cost per
+    MWh of deviation. The cost is calculated as a multiplier of the maximum of MCP and SMP,
+    with a floor price applied.
+
+    Parameters
+    ----------
+    mcp : float
+        Market Clearing Price (day-ahead market price) in TL/MWh.
+    smp : float
+        System Marginal Price (real-time/balancing price) in TL/MWh.
+    kupst_multiplier : float, optional
+        Multiplier for KUPST cost calculation. Defaults based on regulation period and
+        maintenance penalty status:
+        - 2026 regulation: 0.05 (0.08 with maintenance penalty)
+        - Pre-2026 regulation: 0.03 (0.05 with maintenance penalty)
+    kupst_floor_price : float, optional
+        Floor price for KUPST calculation in TL/MWh. Default is 750.0 TL/MWh.
+    include_maintenance_penalty : bool, default False
+        If True, applies higher multiplier (maintenance penalty rate) to reflect
+        additional deviation costs from lack of maintenance.
+    regulation_period : {'current', '26_01', 'pre_2026'}, default 'current'
+        Regulation period. 'current' and '26_01' both refer to 2026 regulation.
+    **kwargs
+        Additional keyword arguments (unused, for compatibility).
+
+    Returns
+    -------
+    float
+        Unit KUPST cost in TL/MWh.
+
+    Raises
+    ------
+    ValueError
+        If regulation_period is not one of the valid values.
+
+    Notes
+    -----
+    The calculation follows:
+    unit_kupst = max(mcp, smp, floor_price) * multiplier
+
+    Multiplier values differ by regulation period and maintenance penalty:
+    - 2026 regulation: 5% (8% maintenance) of the maximum reference price
+    - Pre-2026 regulation: 3% (5% maintenance) of the maximum reference price
+
+    Examples
+    --------
+    >>> calculate_unit_kupst_cost(mcp=100, smp=110, regulation_period='current')
+    5.5
+    >>> calculate_unit_kupst_cost(mcp=100, smp=110, include_maintenance_penalty=True, regulation_period='current')
+    8.8
     """
     if regulation_period in ["current", "26_01"]:
         if kupst_multiplier is None:
@@ -238,7 +433,66 @@ def calculate_kupst_cost_by_contract(
     include_maintenance_penalty=False,
 ):
     """
-    Using a contract code, get the KUPST tolerance for the given source.
+    Calculate KUPST (Production Plan Deviation Cost) using a contract code.
+
+    This function determines the regulation period from the contract code and calculates
+    the total KUPST cost based on the deviation between actual and forecasted production.
+
+    Parameters
+    ----------
+    contract : str
+        Contract code in format 'PHYYMMDDhh' (e.g., 'PH26010100'). Used to determine
+        the applicable regulation period.
+    actual : float
+        Actual generated production in MWh.
+    forecast : float
+        Forecasted/planned production in MWh.
+    mcp : float
+        Market Clearing Price in TL/MWh.
+    smp : float
+        System Marginal Price in TL/MWh.
+    tol : float, optional
+        KUPST tolerance as a decimal (e.g., 0.15 for 15%). If None, calculated from source.
+    source : str, optional
+        Energy source type (e.g., 'wind', 'solar', 'hydro'). Required if tol is None.
+    kupst_multiplier : float, optional
+        Multiplier for unit KUPST calculation. If None, uses regulation default.
+    kupst_floor_price : float, optional
+        Floor price for KUPST calculation in TL/MWh. Default 750.0 TL/MWh.
+    return_detail : bool, default False
+        If True, returns dictionary with breakdown of tolerance, deviation, unit cost, and total cost.
+        If False, returns only the total KUPST cost.
+    include_maintenance_penalty : bool, default False
+        If True, applies maintenance penalty to multiplier.
+
+    Returns
+    -------
+    float or dict
+        If return_detail=False: Total KUPST cost in TL.
+        If return_detail=True: Dictionary with keys:
+        - 'kupst_tol_perc': Applied tolerance percentage
+        - 'kupsm': Production plan deviation (after tolerance) in MWh
+        - 'unit_kupst_cost': KUPST cost per MWh in TL/MWh
+        - 'kupst_cost': Total KUPST cost in TL
+
+    Raises
+    ------
+    Exception
+        If neither tol nor source is provided.
+    ValueError
+        If contract code is invalid.
+
+    Examples
+    --------
+    >>> calculate_kupst_cost_by_contract(
+    ...     contract='PH26010100',
+    ...     actual=100,
+    ...     forecast=120,
+    ...     mcp=100,
+    ...     smp=110,
+    ...     source='wind'
+    ... )
+    90.0
     """
     regulation_period = get_regulation_period_by_contract(contract)
     return calculate_kupst_cost(
@@ -269,6 +523,90 @@ def calculate_kupst_cost(
     regulation_period: Literal["current", "2026_01", "pre_2026"] = "current",
     include_maintenance_penalty=False,
 ):
+    """
+    Calculate KUPST (Production Plan Deviation Cost) for a single period.
+
+    This function calculates the total deviation cost based on the difference between
+    actual and forecasted production. The deviation is only penalized if it exceeds
+    the source-specific tolerance level.
+
+    Parameters
+    ----------
+    actual : float
+        Actual generated production in MWh.
+    forecast : float
+        Forecasted/planned production in MWh.
+    mcp : float
+        Market Clearing Price in TL/MWh.
+    smp : float
+        System Marginal Price in TL/MWh.
+    tol : float, optional
+        KUPST tolerance as a decimal (e.g., 0.15 for 15%). If None, retrieved from source.
+        Tolerance is applied as: tolerance_amount = forecast * tol
+    source : str, optional
+        Energy source type (e.g., 'wind', 'solar', 'hydro'). Required if tol is None.
+    kupst_multiplier : float, optional
+        Multiplier for unit KUPST calculation. If None, uses regulation default.
+    kupst_floor_price : float, optional
+        Floor price for KUPST calculation in TL/MWh. Default 750.0 TL/MWh.
+    return_detail : bool, default False
+        If True, returns dictionary with detailed breakdown of calculation.
+        If False, returns only total cost.
+    regulation_period : {'current', '2026_01', 'pre_2026'}, default 'current'
+        Regulation period for determining multiplier and tolerance values.
+    include_maintenance_penalty : bool, default False
+        If True, applies maintenance penalty rate to multiplier.
+
+    Returns
+    -------
+    float or dict
+        If return_detail=False: Total KUPST cost in TL.
+        If return_detail=True: Dictionary with:
+        - 'kupst_tol_perc': Applied tolerance percentage (decimal)
+        - 'kupsm_tol': Tolerance amount in MWh (forecast * tol)
+        - 'kupsm': Deviation after tolerance in MWh (max(0, |deviation| - tolerance))
+        - 'unit_kupst_cost': Cost per MWh of deviation in TL/MWh
+        - 'kupst_cost': Total KUPST cost in TL
+
+    Raises
+    ------
+    Exception
+        If neither tol nor source parameter is provided.
+    ValueError
+        If regulation_period is invalid.
+
+    Notes
+    -----
+    Calculation steps:
+    1. Determine tolerance: tol_amount = forecast * tolerance_percentage
+    2. Calculate deviation: deviation = |actual - forecast|
+    3. Calculate penalized deviation: KUPSM = max(0, deviation - tol_amount)
+    4. Calculate unit cost: unit_kupst = max(mcp, smp, floor_price) * multiplier
+    5. Total cost: KUPST = KUPSM * unit_kupst
+
+    Examples
+    --------
+    >>> calculate_kupst_cost(
+    ...     actual=100,
+    ...     forecast=120,
+    ...     mcp=100,
+    ...     smp=110,
+    ...     source='wind',
+    ...     regulation_period='current'
+    ... )
+    90.0
+
+    >>> calculate_kupst_cost(
+    ...     actual=100,
+    ...     forecast=120,
+    ...     mcp=100,
+    ...     smp=110,
+    ...     source='wind',
+    ...     return_detail=True,
+    ...     regulation_period='current'
+    ... )
+    {'kupst_tol_perc': 0.15, 'kupsm_tol': 18.0, 'kupsm': 2.0, 'unit_kupst_cost': 5.5, 'kupst_cost': 11.0}
+    """
     if tol is None:
         if source is None:
             raise Exception("Either tol(erance) or source parameter must be provided")
@@ -312,7 +650,66 @@ def calculate_kupst_cost_list(
     **kwargs,
 ):
     """
-    Calculates production plan difference (KUPST) costs.
+    Calculate KUPST (Production Plan Deviation Cost) for multiple periods.
+
+    This function efficiently calculates KUPST costs for a list of periods, allowing
+    per-period variations in MCP, SMP, and optionally maintenance penalty status.
+
+    Parameters
+    ----------
+    actual_values : list
+        List of actual generated production values in MWh for each period.
+    forecast_values : list
+        List of forecasted/planned production values in MWh for each period.
+    mcp : list
+        List of Market Clearing Prices in TL/MWh for each period.
+    smp : list
+        List of System Marginal Prices in TL/MWh for each period.
+    tol : float, optional
+        KUPST tolerance as a decimal (e.g., 0.15 for 15%). Applied uniformly to all periods.
+        If None, retrieved from source parameter.
+    source : {'wind', 'solar', 'sun', 'unlicensed', 'other'}, optional
+        Energy source type. Required if tol is None. 'sun' is aliased to 'solar'.
+    kupst_multiplier : float, optional
+        Multiplier for unit KUPST calculation. If None, uses regulation default.
+    kupst_floor_price : float, optional
+        Floor price for KUPST calculation in TL/MWh. Default 750.0 TL/MWh.
+    regulation_period : {'current', '2026_01', 'pre_2026'}, default 'current'
+        Regulation period for determining multiplier and tolerance values.
+    **kwargs
+        Additional keyword arguments:
+        - maintenance_penalty_list : list of bool
+            Per-period maintenance penalty flags. Defaults to [False] * num_periods.
+
+    Returns
+    -------
+    list
+        List of KUPST costs in TL for each period. List length matches input lists.
+
+    Raises
+    ------
+    Exception
+        If neither tol nor source parameter is provided.
+    ValueError
+        If input lists have mismatched lengths.
+
+    Notes
+    -----
+    Each period's cost is calculated independently using calculate_kupst_cost().
+    The tolerance value is fixed across all periods, but MCP, SMP, and maintenance
+    penalty status can vary by period.
+
+    Examples
+    --------
+    >>> calculate_kupst_cost_list(
+    ...     actual_values=[100, 105],
+    ...     forecast_values=[120, 110],
+    ...     mcp=[100, 95],
+    ...     smp=[110, 105],
+    ...     source='wind',
+    ...     regulation_period='current'
+    ... )
+    [90.0, 12.5]
     """
 
     if tol is None:
@@ -360,7 +757,45 @@ def calculate_unit_imbalance_price_by_contract(
     **kwargs,
 ):
     """
-    Wrapper function to calculate unit imbalance prices based on contract.
+    Calculate unit imbalance prices using a contract code.
+
+    This function determines the regulation period from the contract code and calculates
+    the imbalance prices for positive and negative imbalances according to the applicable rules.
+
+    Parameters
+    ----------
+    contract : str
+        Contract code in format 'PHYYMMDDhh' (e.g., 'PH26010100'). Used to determine
+        the applicable regulation period.
+    mcp : float
+        Market Clearing Price in TL/MWh.
+    smp : float
+        System Marginal Price in TL/MWh.
+    **kwargs
+        Regulation-specific parameters passed to underlying functions:
+        - For 2026 regulation: floor_price, ceil_price, V, B, low_margin, high_margin, ceil_margin
+        - For pre-2026 regulation: penalty_margin
+
+    Returns
+    -------
+    dict
+        Dictionary with keys:
+        - 'pos': Price for positive imbalance (sell at this price) in TL/MWh
+        - 'neg': Price for negative imbalance (buy at this price) in TL/MWh
+
+    Notes
+    -----
+    The interpretation of 'pos' and 'neg' depends on whether you have a surplus
+    or deficit relative to your plan. This is a price, not a cost.
+
+    Examples
+    --------
+    >>> calculate_unit_imbalance_price_by_contract(
+    ...     contract='PH26010100',
+    ...     mcp=100,
+    ...     smp=110
+    ... )
+    {'pos': 94.0, 'neg': 116.5}
     """
 
     regulation_period = get_regulation_period_by_contract(contract)
@@ -382,8 +817,45 @@ def calculate_unit_imbalance_price(
     **kwargs,
 ):
     """
-    Wrapper function to calculate unit imbalance prices based on regulation period.
-    2026 regulation is effective from Jan 1, 2026.
+    Calculate unit imbalance prices based on regulation period.
+
+    This dispatcher function routes to regulation-specific implementations to calculate
+    the prices at which imbalances are traded (positive and negative).
+
+    Parameters
+    ----------
+    mcp : float
+        Market Clearing Price in TL/MWh.
+    smp : float
+        System Marginal Price in TL/MWh.
+    regulation_period : {'current', '26_01', 'pre_2026'}, default 'current'
+        Regulation period. 'current' and '26_01' both refer to 2026 regulation.
+    **kwargs
+        Regulation-specific parameters passed to underlying functions:
+        - For 2026 regulation: floor_price, ceil_price, V, B, low_margin, high_margin, ceil_margin
+        - For pre-2026 regulation: penalty_margin
+
+    Returns
+    -------
+    dict
+        Dictionary with keys:
+        - 'pos': Price for positive imbalance in TL/MWh
+        - 'neg': Price for negative imbalance in TL/MWh
+
+    Raises
+    ------
+    ValueError
+        If regulation_period is not one of the valid values.
+
+    Notes
+    -----
+    The 2026 regulation uses a more complex pricing model with multiple parameters,
+    while pre-2026 uses a simplified margin-based approach.
+
+    Examples
+    --------
+    >>> calculate_unit_imbalance_price(mcp=100, smp=110, regulation_period='current')
+    {'pos': 94.0, 'neg': 116.5}
     """
 
     if regulation_period in ["current", "26_01"]:
@@ -411,17 +883,69 @@ def calculate_unit_imbalance_price_2026(
     **kwargs,
 ):
     """
-    Function to calculate imbalance prices based on new regulation (2026)
+    Calculate imbalance prices under 2026 EPDK regulation (effective 2026-01-01).
 
-    mcp: Market Clearing Price (Day-ahead price) (PTF)
-    smp: System Marginal Price (Real-time price) (SMF)
-    floor_price: Price floor (0 TL/MWh)
-    ceil_price: Price ceiling (3400 TL/MWh)
-    V: Reference price for negative imbalance price calculation and positive imbalance threshold (150 TL/MWh)
-    B: Reference price for positive imbalance price calculation (100 TL/MWh)
-    low_margin: Margin for the opposite side of the imbalance (3%)
-    high_margin: Margin for the same side of the imbalance (6%)
-    ceil_margin: Additional margin applied when the maximum of mcp and smp is equal to ceil_price (5%)
+    This function implements the complex 2026 imbalance pricing model which applies
+    different margins based on system imbalance direction and price levels.
+
+    Parameters
+    ----------
+    mcp : float
+        Market Clearing Price (day-ahead price) in TL/MWh.
+    smp : float
+        System Marginal Price (real-time balancing price) in TL/MWh.
+    floor_price : float, default 0.0
+        Minimum price floor in TL/MWh. Prices cannot fall below this value.
+    ceil_price : float, default 3400.0
+        Maximum price ceiling in TL/MWh. When this is reached, additional margins apply.
+    V : float, default 150
+        Reference/threshold price in TL/MWh. Used for:
+        - Calculating negative imbalance price (floor for price calculation)
+        - Determining positive imbalance price threshold
+    B : float, default 100
+        Reference price for positive imbalance in TL/MWh. Applied when imbalance price
+        would fall below V.
+    low_margin : float, default 0.03
+        Margin (3%) applied to the opposite side of system imbalance.
+        - If SMP > MCP (negative system imbalance), applied to positive imbalance price
+        - If MCP > SMP (positive system imbalance), applied to negative imbalance price
+    high_margin : float, default 0.06
+        Margin (6%) applied to the same side as system imbalance.
+        - If SMP > MCP, applied to negative imbalance price
+        - If MCP > SMP, applied to positive imbalance price
+    ceil_margin : float, default 0.05
+        Additional margin (5%) applied when max(MCP, SMP) equals ceil_price,
+        only to negative imbalance price.
+    **kwargs
+        Additional keyword arguments (unused, for compatibility).
+
+    Returns
+    -------
+    dict
+        Dictionary with keys:
+        - 'pos': Price for positive imbalance (TL/MWh) - price at which positive imbalances are settled
+        - 'neg': Price for negative imbalance (TL/MWh) - price at which negative imbalances are settled
+
+    Notes
+    -----
+    Margin assignment depends on system imbalance direction:
+    - Positive system imbalance (MCP > SMP): System has surplus
+      - Producers with surplus (positive imbalance) get low margin (less penalty)
+      - Consumers needing energy (negative imbalance) pay high margin (higher cost)
+    - Negative system imbalance (SMP > MCP): System has deficit
+      - Producers needed (negative imbalance) get high margin (incentive)
+      - Consumers with surplus (positive imbalance) get low margin (less reward)
+
+    The negative imbalance price has a floor at max(MCP, SMP, V).
+    The positive imbalance price has a special rule: if less than V, it becomes -B.
+
+    Examples
+    --------
+    >>> calculate_unit_imbalance_price_2026(mcp=100, smp=110)
+    {'pos': 94.0, 'neg': 116.5}
+
+    >>> calculate_unit_imbalance_price_2026(mcp=100, smp=90)
+    {'pos': 84.3, 'neg': 109.0}
     """
     if mcp > smp:  ## system imbalance is positive
         neg_margin = low_margin
@@ -460,7 +984,42 @@ def calculate_unit_imbalance_price_pre_2026(
     mcp: float, smp: float, penalty_margin: float = 0.03
 ):
     """
-    Calculates imbalance prices for positive and negative imbalances based on pre-2026 regulation. Much simplified compared to 2026 regulation.
+    Calculate imbalance prices under pre-2026 EPDK regulation.
+
+    This function implements the simplified pre-2026 imbalance pricing model where
+    a uniform penalty margin is applied to both positive and negative imbalances.
+
+    Parameters
+    ----------
+    mcp : float
+        Market Clearing Price (day-ahead price) in TL/MWh.
+    smp : float
+        System Marginal Price (real-time balancing price) in TL/MWh.
+    penalty_margin : float, default 0.03
+        Penalty margin (3%) applied symmetrically to both imbalance sides:
+        - Positive imbalance price: min(MCP, SMP) * (1 - margin)
+        - Negative imbalance price: max(MCP, SMP) * (1 + margin)
+
+    Returns
+    -------
+    dict
+        Dictionary with keys:
+        - 'pos': Price for positive imbalance in TL/MWh = min(mcp, smp) * (1 - penalty_margin)
+        - 'neg': Price for negative imbalance in TL/MWh = max(mcp, smp) * (1 + penalty_margin)
+
+    Notes
+    -----
+    This simplified model applies:
+    - Positive imbalances (surplus): Penalized at lower of MCP or SMP, with 3% discount
+    - Negative imbalances (deficit): Penalized at higher of MCP or SMP, with 3% surcharge
+
+    This approach is much simpler than 2026 regulation, which uses directional margins
+    and price thresholds.
+
+    Examples
+    --------
+    >>> calculate_unit_imbalance_price_pre_2026(mcp=100, smp=110)
+    {'pos': 97.0, 'neg': 113.3}
     """
     d = {
         "pos": (1 - penalty_margin) * min(mcp, smp),
@@ -481,7 +1040,56 @@ def calculate_unit_imbalance_cost_by_contract(
     **kwargs,
 ):
     """
-    Using a contract code, get the regulation period and calculate unit imbalance costs automatically.
+    Calculate unit imbalance costs using a contract code.
+
+    This function determines the regulation period from the contract code and calculates
+    the imbalance costs (price differential from MCP) for positive and negative imbalances.
+
+    Parameters
+    ----------
+    contract : str
+        Contract code in format 'PHYYMMDDhh' (e.g., 'PH26010100'). Used to determine
+        the applicable regulation period.
+    mcp : float
+        Market Clearing Price in TL/MWh.
+    smp : float
+        System Marginal Price in TL/MWh.
+    include_prices : bool, default False
+        If True, returned dictionary includes both prices and costs.
+        If False, returns only costs.
+    **kwargs
+        Regulation-specific parameters passed to underlying functions.
+
+    Returns
+    -------
+    dict
+        If include_prices=False:
+        - 'pos': Cost of positive imbalance in TL/MWh (MCP - positive_imbalance_price)
+        - 'neg': Cost of negative imbalance in TL/MWh (negative_imbalance_price - MCP)
+
+        If include_prices=True, also includes:
+        - 'pos_price': Price for positive imbalance in TL/MWh
+        - 'neg_price': Price for negative imbalance in TL/MWh
+        - 'pos_cost': Cost of positive imbalance in TL/MWh
+        - 'neg_cost': Cost of negative imbalance in TL/MWh
+
+    Notes
+    -----
+    Cost is defined as the difference between the imbalance price and MCP:
+    - Positive imbalance cost = MCP - (positive imbalance price)
+    - Negative imbalance cost = (negative imbalance price) - MCP
+
+    A positive cost indicates the imbalance is penalized (unfavorable).
+
+    Examples
+    --------
+    >>> calculate_unit_imbalance_cost_by_contract(
+    ...     contract='PH26010100',
+    ...     mcp=100,
+    ...     smp=110,
+    ...     include_prices=True
+    ... )
+    {'pos_price': 94.0, 'neg_price': 116.5, 'pos_cost': 6.0, 'neg_cost': 16.5}
     """
 
     regulation_period = get_regulation_period_by_contract(contract)
@@ -503,8 +1111,44 @@ def calculate_unit_imbalance_cost(
     **kwargs,
 ):
     """
-    Wrapper function to calculate unit imbalance prices based on regulation period.
-    2026 regulation is effective from Jan 1, 2026.
+    Calculate unit imbalance costs based on regulation period.
+
+    This dispatcher function routes to regulation-specific implementations to calculate
+    the imbalance costs (penalty or benefit) relative to the day-ahead market price.
+
+    Parameters
+    ----------
+    mcp : float
+        Market Clearing Price in TL/MWh.
+    smp : float
+        System Marginal Price in TL/MWh.
+    include_prices : bool, default False
+        If True, returned dictionary includes both prices and costs.
+        If False, returns only costs.
+    regulation_period : {'current', '26_01', 'pre_2026'}, default 'current'
+        Regulation period. 'current' and '26_01' both refer to 2026 regulation.
+    **kwargs
+        Regulation-specific parameters passed to underlying functions.
+
+    Returns
+    -------
+    dict
+        Dictionary with imbalance costs. Format depends on include_prices parameter.
+
+    Raises
+    ------
+    ValueError
+        If regulation_period is not one of the valid values.
+
+    Notes
+    -----
+    The 2026 regulation is effective from January 1, 2026. Before that date,
+    the pre-2026 regulation applies.
+
+    Examples
+    --------
+    >>> calculate_unit_imbalance_cost(mcp=100, smp=110, regulation_period='current')
+    {'pos': 6.0, 'neg': 16.5}
     """
 
     if regulation_period in ["current", "26_01"]:
@@ -535,6 +1179,66 @@ def calculate_unit_imbalance_cost_2026(
     include_prices: bool = False,
     **kwargs,
 ):
+    """
+    Calculate unit imbalance costs under 2026 EPDK regulation.
+
+    This function calculates the cost differential between the imbalance price and
+    the day-ahead market clearing price (MCP) for both positive and negative imbalances.
+
+    Parameters
+    ----------
+    mcp : float
+        Market Clearing Price in TL/MWh.
+    smp : float
+        System Marginal Price in TL/MWh.
+    floor_price : float, default 0.0
+        Minimum price floor in TL/MWh.
+    ceil_price : float, default 3400.0
+        Maximum price ceiling in TL/MWh.
+    V : float, default 150
+        Reference/threshold price in TL/MWh.
+    B : float, default 100
+        Reference price for positive imbalance in TL/MWh.
+    low_margin : float, default 0.03
+        Margin for opposite imbalance side (3%).
+    high_margin : float, default 0.06
+        Margin for same imbalance side (6%).
+    ceil_margin : float, default 0.05
+        Additional margin when max(MCP, SMP) equals ceil_price (5%).
+    include_prices : bool, default False
+        If True, returned dictionary includes both prices and costs.
+    **kwargs
+        Additional keyword arguments (unused, for compatibility).
+
+    Returns
+    -------
+    dict
+        If include_prices=False:
+        - 'pos': Positive imbalance cost in TL/MWh (MCP - positive_price)
+        - 'neg': Negative imbalance cost in TL/MWh (negative_price - MCP)
+
+        If include_prices=True:
+        - 'pos_price': Positive imbalance price in TL/MWh
+        - 'neg_price': Negative imbalance price in TL/MWh
+        - 'pos_cost': Positive imbalance cost in TL/MWh
+        - 'neg_cost': Negative imbalance cost in TL/MWh
+
+    Notes
+    -----
+    Costs are derived from prices:
+    - pos_cost = MCP - pos_price (positive is costlier if result > 0)
+    - neg_cost = neg_price - MCP (negative is costlier if result > 0)
+
+    See calculate_unit_imbalance_price_2026() for details on price calculation.
+
+    Examples
+    --------
+    >>> calculate_unit_imbalance_cost_2026(mcp=100, smp=110)
+    {'pos': 6.0, 'neg': 16.5}
+
+    >>> calculate_unit_imbalance_cost_2026(mcp=100, smp=110, include_prices=True)
+    {'pos_price': 94.0, 'neg_price': 116.5, 'pos_cost': 6.0, 'neg_cost': 16.5}
+    """
     price_d = calculate_unit_imbalance_price_2026(
         mcp=mcp,
         smp=smp,
@@ -567,7 +1271,51 @@ def calculate_unit_imbalance_cost_pre_2026(
     mcp: float, smp: float, penalty_margin: float = 0.03, include_prices: bool = False
 ):
     """
-    Calculates imbalance costs for positive and negative imbalances based on pre-2026 regulation. Much simplified compared to 2026 regulation.
+    Calculate unit imbalance costs under pre-2026 EPDK regulation.
+
+    This function calculates the cost differential between the imbalance price and
+    the day-ahead market clearing price (MCP) using the simplified pre-2026 model.
+
+    Parameters
+    ----------
+    mcp : float
+        Market Clearing Price in TL/MWh.
+    smp : float
+        System Marginal Price in TL/MWh.
+    penalty_margin : float, default 0.03
+        Penalty margin (3%) applied symmetrically to both imbalance sides.
+    include_prices : bool, default False
+        If True, returned dictionary includes both prices and costs.
+        If False, returns only costs.
+
+    Returns
+    -------
+    dict
+        If include_prices=False:
+        - 'pos': Positive imbalance cost in TL/MWh
+        - 'neg': Negative imbalance cost in TL/MWh
+
+        If include_prices=True:
+        - 'pos_price': Positive imbalance price in TL/MWh
+        - 'neg_price': Negative imbalance price in TL/MWh
+        - 'pos_cost': Positive imbalance cost in TL/MWh
+        - 'neg_cost': Negative imbalance cost in TL/MWh
+
+    Notes
+    -----
+    The pre-2026 model applies uniform margins:
+    - Positive imbalance: min(MCP, SMP) * (1 - margin)
+    - Negative imbalance: max(MCP, SMP) * (1 + margin)
+
+    This is significantly simpler than the 2026 regulation which uses directional margins.
+
+    Examples
+    --------
+    >>> calculate_unit_imbalance_cost_pre_2026(mcp=100, smp=110)
+    {'pos': 3.0, 'neg': 3.3}
+
+    >>> calculate_unit_imbalance_cost_pre_2026(mcp=100, smp=110, include_prices=True)
+    {'pos_price': 97.0, 'neg_price': 113.3, 'pos_cost': 3.0, 'neg_cost': 3.3}
     """
 
     d = calculate_unit_imbalance_price_pre_2026(
@@ -594,7 +1342,53 @@ def calculate_unit_price_and_costs_by_contract(
     **kwargs,
 ):
     """
-    Using a contract code, get the regulation period and calculate unit imbalance prices and costs automatically.
+    Calculate unit imbalance prices, costs, and optionally KUPST cost using a contract code.
+
+    This function determines the regulation period from the contract code and provides
+    a comprehensive breakdown of both imbalance and production plan deviation costs.
+
+    Parameters
+    ----------
+    contract : str
+        Contract code in format 'PHYYMMDDhh' (e.g., 'PH26010100'). Used to determine
+        the applicable regulation period.
+    mcp : float
+        Market Clearing Price in TL/MWh.
+    smp : float
+        System Marginal Price in TL/MWh.
+    include_kupst : bool, default True
+        If True, includes unit KUPST cost in the result.
+    **kwargs
+        Regulation-specific parameters and KUPST parameters:
+        - kupst_floor_price : float, default 750.0
+        - kupst_multiplier : float, default varies by regulation
+        - include_maintenance_penalty : bool, default False
+        - For 2026: floor_price, ceil_price, V, B, low_margin, high_margin, ceil_margin
+        - For pre-2026: penalty_margin
+
+    Returns
+    -------
+    dict
+        Dictionary containing:
+        - 'pos_price': Price for positive imbalance in TL/MWh
+        - 'neg_price': Price for negative imbalance in TL/MWh
+        - 'pos_cost': Cost of positive imbalance in TL/MWh
+        - 'neg_cost': Cost of negative imbalance in TL/MWh
+        - 'unit_kupst': Unit KUPST cost in TL/MWh (only if include_kupst=True)
+
+    Notes
+    -----
+    This is a convenience function that returns both imbalance and KUPST costs
+    in a single call. Useful for analyzing total deviation costs.
+
+    Examples
+    --------
+    >>> calculate_unit_price_and_costs_by_contract(
+    ...     contract='PH26010100',
+    ...     mcp=100,
+    ...     smp=110
+    ... )
+    {'pos_price': 94.0, 'neg_price': 116.5, 'pos_cost': 6.0, 'neg_cost': 16.5, 'unit_kupst': 5.5}
     """
     regulation_period = get_regulation_period_by_contract(contract=contract)
 
@@ -617,8 +1411,54 @@ def calculate_unit_price_and_costs(
     **kwargs,
 ):
     """
-    Wrapper function to calculate unit imbalance prices and costs based on regulation period.
-    2026 regulation is effective from Jan 1, 2026.
+    Calculate unit imbalance prices, costs, and optionally KUPST cost by regulation period.
+
+    This dispatcher function calculates both imbalance prices/costs and optionally
+    production plan deviation costs in a single comprehensive call.
+
+    Parameters
+    ----------
+    mcp : float
+        Market Clearing Price in TL/MWh.
+    smp : float
+        System Marginal Price in TL/MWh.
+    include_kupst : bool, default True
+        If True, includes unit KUPST cost in the result dictionary.
+    regulation_period : {'current', '26_01', 'pre_2026'}, default 'current'
+        Regulation period. 'current' and '26_01' both refer to 2026 regulation.
+    **kwargs
+        Regulation-specific parameters and KUPST parameters:
+        - kupst_floor_price : float, default 750.0
+        - kupst_multiplier : float, default varies by regulation
+        - include_maintenance_penalty : bool, default False
+        - For 2026: floor_price, ceil_price, V, B, low_margin, high_margin, ceil_margin
+        - For pre-2026: penalty_margin
+
+    Returns
+    -------
+    dict
+        Dictionary containing imbalance prices, costs, and optionally KUPST:
+        - 'pos_price': Price for positive imbalance in TL/MWh
+        - 'neg_price': Price for negative imbalance in TL/MWh
+        - 'pos_cost': Cost of positive imbalance in TL/MWh
+        - 'neg_cost': Cost of negative imbalance in TL/MWh
+        - 'unit_kupst': Unit KUPST cost in TL/MWh (only if include_kupst=True)
+
+    Raises
+    ------
+    ValueError
+        If regulation_period is not one of the valid values.
+
+    Notes
+    -----
+    This function provides a comprehensive breakdown of all unit-level costs that apply
+    to deviations from a production or consumption plan. It's useful for cost modeling
+    and total cost analysis.
+
+    Examples
+    --------
+    >>> calculate_unit_price_and_costs(mcp=100, smp=110, regulation_period='current')
+    {'pos_price': 94.0, 'neg_price': 116.5, 'pos_cost': 6.0, 'neg_cost': 16.5, 'unit_kupst': 5.5}
     """
 
     if regulation_period in ["current", "26_01"]:
@@ -671,21 +1511,66 @@ def calculate_imbalance_amount(
     **kwargs,
 ) -> dict | float:
     """
-    This function returns the imbalance amount given actual and forecast values. Imbalance sign is the same with the wording. Positive imbalance means a positive value and negative imbalance means a negative value. If is_producer, then actual > forecast means positive imbalance. Else (i.e. a demand/consumption unit) actual < forecast means positive imbalance. For negative imbalance, the opposite logic applies.
+    Calculate the imbalance amount and DSG (Balancing Responsible Group) tolerance effects.
 
-    DSG (Dengeden Sorumlu Grup / Balancing Responsible Group) can absorb imbalances by the dsg_tolerance proportion (default 5% as the regulatory standard). tolerance_multiplier can be used to adjust the effective tolerance. For instance, if tolerance_multiplier is 0.5, then only half of the DSG tolerance is considered effective.
+    This function calculates how much deviation from plan constitutes an imbalance
+    that must be settled, accounting for DSG tolerance absorption (regulatory protection).
 
-    Parameters:
-    actual: Actual measured value (MWh)
-    forecast: Forecasted/planned value (MWh)
-    is_producer: True if the unit is a producer, False if it is a consumer
-    dsg_tolerance: DSG tolerance proportion (default 0.05 for 5%)
-    tolerance_multiplier: Multiplier for the DSG tolerance to get effective tolerance (default 1.0)
-    just_raw_imbalance: If True, only the raw imbalance is returned (no tolerance calculations)
+    Parameters
+    ----------
+    actual : float
+        Actual measured value in MWh.
+    forecast : float
+        Forecasted/planned value in MWh.
+    is_producer : bool
+        True if the unit is a producer, False if it is a consumer.
+        Determines how deviation sign is interpreted.
+    tolerance_multiplier : float, default 1.0
+        Multiplier for DSG tolerance to get effective tolerance (0.0 to 1.0+).
+        E.g., 0.5 means only 50% of DSG tolerance is effective.
+    just_raw_imbalance : bool, default False
+        If True, only returns the raw imbalance as float (faster, for internal use).
+    regulation_period : {'current', '26_01', 'pre_2026'}, default 'current'
+        Regulation period determining DSG tolerance:
+        - 2026 regulation: 5% DSG tolerance
+        - Pre-2026 regulation: 10% DSG tolerance
+    **kwargs
+        Additional parameters:
+        - dsg_tolerance : float
+            Override default DSG tolerance value.
 
-    Returns:
-    dict: A dictionary containing raw imbalance, DSG raw tolerance, DSG raw imbalance, DSG effective tolerance, and DSG effective imbalance.
-    float: If just_raw_imbalance is True, returns only the raw imbalance as a float.
+    Returns
+    -------
+    float or dict
+        If just_raw_imbalance=True: Raw imbalance amount (float) in MWh.
+
+        Otherwise, returns dict with:
+        - 'raw_imb': Raw imbalance (actual - forecast for producers, inverse for consumers) in MWh
+        - 'dsg_raw_tol': DSG tolerance amount (raw, without multiplier) in MWh = |actual| * tolerance
+        - 'dsg_raw_imb': Imbalance after raw DSG tolerance absorption in MWh
+        - 'dsg_eff_tol': DSG tolerance amount (after multiplier) in MWh = dsg_raw_tol * multiplier
+        - 'dsg_eff_imb': Imbalance after effective DSG tolerance absorption in MWh (penalized imbalance)
+
+    Notes
+    -----
+    Imbalance sign interpretation:
+    - For producers: positive if actual > forecast (surplus), negative if actual < forecast (deficit)
+    - For consumers: positive if actual < forecast (deficit), negative if actual > forecast (surplus)
+
+    DSG tolerance is applied to reduce the penalized imbalance:
+    - If imbalance is positive (surplus/deficit depending on producer/consumer):
+        effective_imbalance = max(0, raw_imbalance - dsg_effective_tolerance)
+    - If imbalance is negative (deficit/surplus depending on producer/consumer):
+        effective_imbalance = min(0, raw_imbalance + dsg_effective_tolerance)
+
+    Examples
+    --------
+    For a producer with actual=105, forecast=100, tolerance_multiplier=1.0:
+    >>> calculate_imbalance_amount(actual=105, forecast=100, is_producer=True)
+    {'raw_imb': 5.0, 'dsg_raw_tol': 5.25, 'dsg_raw_imb': 0.0, 'dsg_eff_tol': 5.25, 'dsg_eff_imb': 0.0}
+
+    >>> calculate_imbalance_amount(actual=105, forecast=100, is_producer=True, just_raw_imbalance=True)
+    5.0
     """
 
     if kwargs.get("dsg_tolerance") is not None:
@@ -737,7 +1622,93 @@ def calculate_diff_costs(
     **kwargs,
 ) -> dict | float:
     """
-    Calculates imbalance and kupst costs for given actual and forecast values.
+    Calculate total imbalance and KUPST costs for a single period.
+
+    This is a comprehensive function that calculates both imbalance costs (from deviations
+    relative to the day-ahead plan) and KUPST costs (for production plan deviations that
+    exceed tolerance). It's the highest-level cost calculation function.
+
+    Parameters
+    ----------
+    forecast : float
+        Forecasted/planned quantity in MWh (production for producers, consumption for consumers).
+    actual : float
+        Actual realized quantity in MWh.
+    is_producer : bool
+        True if this is a production unit, False if it's a consumption unit.
+        This affects how deviations are interpreted (producer surplus vs. consumer deficit).
+    mcp : float
+        Market Clearing Price in TL/MWh.
+    smp : float
+        System Marginal Price in TL/MWh.
+    production_source : {'wind', 'solar', 'sun', 'unlicensed', 'other'}, optional
+        Energy source type. Required for producers to determine KUPST tolerance.
+        Not needed for consumers. 'sun' is aliased to 'solar'.
+    regulation_period : {'current', '2026_01', 'pre_2026'}, default 'current'
+        Regulation period for cost calculations.
+    include_quantities : bool, default False
+        If True, returned dictionary includes imbalance quantity and KUPST deviation quantity.
+    **kwargs
+        Additional parameters:
+        - return_imbalance_cost : bool (hidden option to return only imbalance cost as float)
+        - All other regulation-specific parameters passed to underlying functions
+
+    Returns
+    -------
+    dict or float
+        If return_imbalance_cost=True: Returns only imbalance cost as float (hidden option).
+
+        Otherwise, returns dict with:
+        - 'imb_cost': Total imbalance cost in TL
+        - 'kupst_cost': KUPST cost in TL (only for producers)
+        - 'total_cost': Total cost = imb_cost + kupst_cost (only for producers)
+
+        If include_quantities=True, also includes:
+        - 'imb_qty': Signed imbalance quantity in MWh (positive/negative)
+        - 'kupsm': Production plan deviation after tolerance in MWh (only for producers)
+
+    Raises
+    ------
+    Exception
+        If is_producer=True but production_source is not provided (when KUPST tolerance cannot be determined).
+    ValueError
+        If regulation_period is invalid.
+
+    Notes
+    -----
+    For producers:
+    - Imbalance sign: positive if actual > forecast (surplus), negative if actual < forecast (deficit)
+    - KUPST applies to both positive and negative deviations beyond tolerance
+    - Total cost = imbalance cost + KUPST cost
+
+    For consumers:
+    - Imbalance sign: positive if actual < forecast (deficit), negative if actual > forecast (surplus)
+    - No KUPST applied (only imbalance cost calculated)
+
+    Examples
+    --------
+    >>> calculate_diff_costs(
+    ...     forecast=120,
+    ...     actual=100,
+    ...     is_producer=True,
+    ...     mcp=100,
+    ...     smp=110,
+    ...     production_source='wind',
+    ...     regulation_period='current'
+    ... )
+    {'imb_cost': 100.0, 'kupst_cost': 90.0, 'total_cost': 190.0}
+
+    >>> calculate_diff_costs(
+    ...     forecast=120,
+    ...     actual=100,
+    ...     is_producer=True,
+    ...     mcp=100,
+    ...     smp=110,
+    ...     production_source='wind',
+    ...     include_quantities=True,
+    ...     regulation_period='current'
+    ... )
+    {'imb_cost': 100.0, 'kupst_cost': 90.0, 'total_cost': 190.0, 'imb_qty': -20.0, 'kupsm': 2.0}
     """
 
     signed_imb_qty = calculate_imbalance_amount(

@@ -1,6 +1,8 @@
 ![PyPI - Version](https://img.shields.io/pypi/v/eptr2) ![PyPI - Downloads](https://img.shields.io/pypi/dm/eptr2) ![PyPI - Python Version](https://img.shields.io/python/required-version-toml?tomlFilePath=https%3A%2F%2Fraw.githubusercontent.com%2Ftideseed%2Feptr2%2Fmain%2Fpyproject.toml
 ) ![PyPI - License](https://img.shields.io/pypi/l/eptr2)
 
+**!! IMPORTANT: Starting from 1.3.3 there will be some breaking changes due to regulatory changes by EPDK. Overhaul is planned to finish with the next mid release 1.4.0**
+
 **!! CRITICAL: Due to authentication method changes you are strongly recommended to update the eptr2 version to 1.2.4+**
 
 **Note: From 1.3.0 and onwards, eptr2 starts to evolve to be an AI oriented tool. You can use it as an MCP server, directly use them in your LLMs and AI agents to write your code for you.**

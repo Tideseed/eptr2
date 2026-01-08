@@ -146,11 +146,11 @@ class TestKUPSTTolerance:
 
     def test_get_kupst_tolerance_by_contract_pre_2026(self):
         """Test getting tolerance from contract code (pre-2026)."""
-        assert get_kupst_tolerance_by_contract("wind", "PH15010100") == 0.17
+        assert get_kupst_tolerance_by_contract("PH15010100", "wind") == 0.17
 
     def test_get_kupst_tolerance_by_contract_2026(self):
         """Test getting tolerance from contract code (2026)."""
-        assert get_kupst_tolerance_by_contract("wind", "PH26010100") == 0.15
+        assert get_kupst_tolerance_by_contract("PH26010100", "wind") == 0.15
 
     def test_get_kupst_tolerance_wrapper_invalid(self):
         """Test wrapper function with invalid regulation raises ValueError."""
