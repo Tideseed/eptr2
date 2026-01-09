@@ -4,9 +4,9 @@ import pandas as pd
 
 
 def get_mms_detail(
-    eptr: EPTR2,
     start_date: str,
     end_date: str,
+    eptr: EPTR2 | None = None,
     org_id: str | None = None,
     uevcb_id: str | None = None,
     pp_id: str | None = None,
@@ -14,10 +14,14 @@ def get_mms_detail(
     include_contract_symbol: bool = False,
     include_summary: bool = False,
     verbose: bool = False,
+    **kwargs,
 ):
     """
     This composite function gets market message system (MMS) data, expands it and adds the contract symbols (optional).
     """
+
+    if eptr is None:
+        eptr = EPTR2(dotenv_path=kwargs.get("dotenv_path", ".env"))
 
     df: pd.DataFrame = eptr.call(
         "mms",

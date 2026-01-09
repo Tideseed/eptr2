@@ -26,13 +26,13 @@ def postprocess_plant_cost_df(df: pd.DataFrame):
 
 
 def gather_and_calculate_plant_costs(
-    eptr: EPTR2,
     start_date: str,
     end_date: str,
     pp_id: int | str,
     org_id: int | str,
     uevcb_id: int | str,
     plant_type: str,
+    eptr: EPTR2 | None = None,
     forecast_source: Literal["kgup_v1", "kgup", "kudup"] = "kudup",
     actual_source: Literal["rt", "uevm"] = "uevm",
     verbose=False,
@@ -49,6 +49,9 @@ def gather_and_calculate_plant_costs(
     uevcb_id=3204384,  ## BOZCAADA RES
     plant_type="wind",
     """
+
+    if eptr is None:
+        eptr = EPTR2(dotenv_path=kwargs.get("dotenv_path", ".env"))
 
     ### Regulate skips
     params = dict(
@@ -71,9 +74,9 @@ def gather_and_calculate_plant_costs(
         params["uevm_pp_id"] = pp_id
 
     df = wrapper_hourly_production_plan_and_realized(
-        eptr=eptr,
         start_date=start_date,
         end_date=end_date,
+        eptr=eptr,
         verbose=verbose,
         include_contract_symbol=True,
         org_id=org_id,
@@ -84,9 +87,9 @@ def gather_and_calculate_plant_costs(
     )
 
     cost_df = get_hourly_price_and_cost_data(
-        eptr=eptr,
         start_date=start_date,
         end_date=end_date,
+        eptr=eptr,
         verbose=verbose,
         include_contract_symbol=True,
         include_wap=False,

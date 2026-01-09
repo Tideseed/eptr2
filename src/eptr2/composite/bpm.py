@@ -6,13 +6,14 @@ from datetime import datetime, timedelta
 
 
 def get_bpm_range(
-    eptr: EPTR2,
     start_date: str,
     end_date: str,
+    eptr: EPTR2 | None = None,
     max_lives: int = 2,
     verbose: bool = False,
     strict: bool = True,
     include_contract_symbol: bool = True,
+    **kwargs,
 ) -> pd.DataFrame:
     """
     This function retrieves BPM (Balancing Power Market) weighted average data for multiple days between the specified start and end dates.
@@ -34,6 +35,9 @@ def get_bpm_range(
         A DataFrame containing the BPM data with columns for date, time, and YAL-YAT values.
     """
 
+    if eptr is None:
+        eptr = EPTR2(dotenv_path=kwargs.get("dotenv_path", ".env"))
+
     date_range = pd.date_range(start=start_date, end=end_date, freq="D").to_list()
 
     date_range = sorted([d.strftime("%Y-%m-%d") for d in date_range])
@@ -43,7 +47,6 @@ def get_bpm_range(
     today = get_utc3_now().strftime("%Y-%m-%d")
 
     for i, date_str in enumerate(date_range):
-
         if date_str > today:
             print("Skipping future dates:", date_str)
             break
@@ -90,12 +93,13 @@ def get_bpm_range(
 
 
 def get_bpm_period(
-    eptr: EPTR2,
     period: str,
+    eptr: EPTR2 | None = None,
     max_lives: int = 2,
     verbose: bool = False,
     strict: bool = True,
     include_contract_symbol: bool = True,
+    **kwargs,
 ) -> pd.DataFrame:
     """
     This function is a wrapper for `get_bpm_range` that retrieves BPM data for a specific month, regardless of the day.
@@ -116,6 +120,9 @@ def get_bpm_period(
     pd.DataFrame
         A DataFrame containing the BPM data for the specified month, with columns for date, time, and YAL-YAT values.
     """
+
+    if eptr is None:
+        eptr = EPTR2(dotenv_path=kwargs.get("dotenv_path", ".env"))
 
     start_dt = datetime.strptime(period, "%Y-%m-%d").replace(day=1)
     end_dt = (start_dt + timedelta(days=31)).replace(day=1) - timedelta(days=1)

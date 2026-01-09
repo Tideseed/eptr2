@@ -8,9 +8,9 @@ import time
 
 
 def get_hourly_production_data(
-    eptr: EPTR2,
     start_date: str,
     end_date: str,
+    eptr: EPTR2 | None = None,
     rt_pp_id: str | int | None = None,
     uevm_pp_id: str | int | None = None,
     verbose: bool = False,
@@ -27,6 +27,9 @@ def get_hourly_production_data(
     rt_pp_id=641, ## ATATÜRK HES
     uevm_pp_id=142, ## ATATÜRK HES
     """
+
+    if eptr is None:
+        eptr = EPTR2(dotenv_path=kwargs.get("dotenv_path", ".env"))
 
     max_trials = kwargs.get("max_trials", 2)
     timeout = kwargs.get("timeout", 5)
@@ -154,9 +157,9 @@ def get_hourly_production_data(
 
 
 def get_hourly_production_plan_data(
-    eptr: EPTR2,
     start_date: str,
     end_date: str,
+    eptr: EPTR2 | None = None,
     org_id: str | None = None,
     uevcb_id: str | None = None,
     verbose: bool = False,
@@ -175,6 +178,9 @@ def get_hourly_production_plan_data(
     uevcb_id=733, ## ATATÜRK HES DB
     """
 
+    if eptr is None:
+        eptr = EPTR2(dotenv_path=kwargs.get("dotenv_path", ".env"))
+
     max_trials = kwargs.get("max_trials", 2)
     timeout = kwargs.get("timeout", 5)
 
@@ -188,7 +194,6 @@ def get_hourly_production_plan_data(
             raise ValueError("org_id is required if uevcb_id is specified.")
 
     if not skip_kgup_v1:
-
         if verbose:
             print("Loading KGUP v1...")
 
@@ -327,9 +332,9 @@ def get_hourly_production_plan_data(
 
 
 def wrapper_hourly_production_plan_and_realized(
-    eptr: EPTR2,
     start_date: str,
     end_date: str,
+    eptr: EPTR2 | None = None,
     org_id: str | None = None,
     uevcb_id: str | None = None,
     rt_pp_id: str | None = None,
@@ -338,14 +343,16 @@ def wrapper_hourly_production_plan_and_realized(
     include_contract_symbol: bool = True,
     **kwargs,
 ):
+    if eptr is None:
+        eptr = EPTR2(dotenv_path=kwargs.get("dotenv_path", ".env"))
 
     if verbose:
         print("Loading production plan data...")
 
     plan_df = get_hourly_production_plan_data(
-        eptr=eptr,
         start_date=start_date,
         end_date=end_date,
+        eptr=eptr,
         org_id=org_id,
         uevcb_id=uevcb_id,
         verbose=verbose,
@@ -357,9 +364,9 @@ def wrapper_hourly_production_plan_and_realized(
         print("Loading production realizations data...")
 
     realized_df = get_hourly_production_data(
-        eptr=eptr,
         start_date=start_date,
         end_date=end_date,
+        eptr=eptr,
         rt_pp_id=rt_pp_id,
         uevm_pp_id=uevm_pp_id,
         verbose=verbose,

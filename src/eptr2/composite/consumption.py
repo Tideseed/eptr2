@@ -4,15 +4,19 @@ from eptr2.util.time import iso_to_contract
 
 
 def get_hourly_consumption_and_forecast_data(
-    eptr: EPTR2,
     start_date: str,
     end_date: str,
+    eptr: EPTR2 | None = None,
     verbose: bool = False,
     include_contract_symbol: bool = False,
+    **kwargs,
 ):
     """
     This composite function gets load plan, UECM (settlement consumption), real time and consumption data. If end date is after the last settlement data, UECM is filled with real time consumption under consumption column.
     """
+
+    if eptr is None:
+        eptr = EPTR2(dotenv_path=kwargs.get("dotenv_path", ".env"))
 
     if verbose:
         print("Loading load plan...")

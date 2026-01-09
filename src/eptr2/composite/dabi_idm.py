@@ -56,9 +56,9 @@ def process_idm_data(
 
 
 def get_day_ahead_and_bilateral_matches(
-    eptr: EPTR2,
     start_date: str,
     end_date: str,
+    eptr: EPTR2 | None = None,
     include_contract_symbol: bool = False,
     org_id: str = None,
     include_idm_data: bool = False,
@@ -69,6 +69,9 @@ def get_day_ahead_and_bilateral_matches(
     """
     This composite function gets day ahead and bilateral matches for the whole market or for a single organization. You can also include IDM data if you provide an org_id.
     """
+
+    if eptr is None:
+        eptr = EPTR2(dotenv_path=kwargs.get("dotenv_path", ".env"))
 
     if verbose:
         print("Getting day ahead matches...")
@@ -160,54 +163,60 @@ def get_day_ahead_and_bilateral_matches(
 
 
 def get_dabi_idm_data(
-    eptr: EPTR2,
     start_date: str,
     end_date: str,
+    eptr: EPTR2 | None = None,
     org_id: str | None = None,
     verbose: bool = False,
+    **kwargs,
 ):
     """
     This function retrieves DABI IDM data for a specific organization. It is a wrapper around the `process_idm_data` function.
     """
 
     return get_day_ahead_and_bilateral_matches(
-        eptr=eptr,
         start_date=start_date,
         end_date=end_date,
+        eptr=eptr,
         org_id=org_id,
         include_idm_data=True,
         include_contract_symbol=True,
         include_org_id=True,
         verbose=verbose,
+        **kwargs,
     )
 
 
 def get_dabi_idm_data_period(
-    eptr: EPTR2,
     period: str,
+    eptr: EPTR2 | None = None,
     org_id: str | None = None,
     verbose: bool = False,
+    **kwargs,
 ):
     """
     This function retrieves DABI IDM data for a specific organization over a period.
     It is a wrapper around the `get_dabi_idm_data` function.
     """
 
+    if eptr is None:
+        eptr = EPTR2(dotenv_path=kwargs.get("dotenv_path", ".env"))
+
     start_date, end_date = get_start_end_dates_period(period=period)
 
     return get_dabi_idm_data(
-        eptr=eptr,
         start_date=start_date,
         end_date=end_date,
+        eptr=eptr,
         org_id=org_id,
         verbose=verbose,
     )
 
 
 def get_day_ahead_detail_info(
-    eptr: EPTR2,
     start_date: str,
     end_date: str,
+    eptr: EPTR2 | None = None,
     verbose: bool = False,
     include_contract_symbol: bool = False,
     lives: int = 3,
@@ -216,6 +225,9 @@ def get_day_ahead_detail_info(
     """
     This function gets day ahead detail information such as regular, block, flexible bids & asks (offers).
     """
+
+    if eptr is None:
+        eptr = EPTR2(dotenv_path=kwargs.get("dotenv_path", ".env"))
 
     df_d: dict[pd.DataFrame] = {}
 
