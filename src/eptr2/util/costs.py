@@ -1,5 +1,6 @@
 import warnings
 from typing import Literal
+import math
 
 
 def get_regulation_period_by_contract(contract: str):
@@ -314,6 +315,13 @@ def calculate_unit_kupst_cost(
     >>> calculate_unit_kupst_cost(mcp=100, smp=110, include_maintenance_penalty=True, regulation_period='current')
     8.8
     """
+
+    if math.isnan(mcp) or math.isnan(smp):
+        return None
+
+    if mcp is None or smp is None:
+        return None
+
     if regulation_period in ["current", "26_01"]:
         if kupst_multiplier is None:
             kupst_multiplier = 0.08 if include_maintenance_penalty else 0.05
@@ -635,114 +643,6 @@ def calculate_kupst_cost(
         return detail_d
 
     return kupst_cost
-
-
-def calculate_kupst_cost_list(
-    actual_values: list,
-    forecast_values: list,
-    mcp: list,
-    smp: list,
-    tol: float | None = None,
-    source: str | None = None,
-    kupst_multiplier: float | None = None,
-    kupst_floor_price: float | None = None,
-    regulation_period: Literal["current", "2026_01", "pre_2026"] = "current",
-    **kwargs,
-):
-    """
-    Calculate KUPST (Production Plan Deviation Cost) for multiple periods.
-
-    This function efficiently calculates KUPST costs for a list of periods, allowing
-    per-period variations in MCP, SMP, and optionally maintenance penalty status.
-
-    Parameters
-    ----------
-    actual_values : list
-        List of actual generated production values in MWh for each period.
-    forecast_values : list
-        List of forecasted/planned production values in MWh for each period.
-    mcp : list
-        List of Market Clearing Prices in TL/MWh for each period.
-    smp : list
-        List of System Marginal Prices in TL/MWh for each period.
-    tol : float, optional
-        KUPST tolerance as a decimal (e.g., 0.15 for 15%). Applied uniformly to all periods.
-        If None, retrieved from source parameter.
-    source : {'wind', 'solar', 'sun', 'unlicensed', 'other'}, optional
-        Energy source type. Required if tol is None. 'sun' is aliased to 'solar'.
-    kupst_multiplier : float, optional
-        Multiplier for unit KUPST calculation. If None, uses regulation default.
-    kupst_floor_price : float, optional
-        Floor price for KUPST calculation in TL/MWh. Default 750.0 TL/MWh.
-    regulation_period : {'current', '2026_01', 'pre_2026'}, default 'current'
-        Regulation period for determining multiplier and tolerance values.
-    **kwargs
-        Additional keyword arguments:
-        - maintenance_penalty_list : list of bool
-            Per-period maintenance penalty flags. Defaults to [False] * num_periods.
-
-    Returns
-    -------
-    list
-        List of KUPST costs in TL for each period. List length matches input lists.
-
-    Raises
-    ------
-    Exception
-        If neither tol nor source parameter is provided.
-    ValueError
-        If input lists have mismatched lengths.
-
-    Notes
-    -----
-    Each period's cost is calculated independently using calculate_kupst_cost().
-    The tolerance value is fixed across all periods, but MCP, SMP, and maintenance
-    penalty status can vary by period.
-
-    Examples
-    --------
-    >>> calculate_kupst_cost_list(
-    ...     actual_values=[100, 105],
-    ...     forecast_values=[120, 110],
-    ...     mcp=[100, 95],
-    ...     smp=[110, 105],
-    ...     source='wind',
-    ...     regulation_period='current'
-    ... )
-    [90.0, 12.5]
-    """
-
-    if tol is None:
-        if source is None:
-            raise Exception("Either tol(erance) or source parameter must be provided")
-        tol = get_kupst_tolerance(source)
-
-    maintenance_penalty_list = kwargs.get(
-        "maintenance_penalty_list", [False] * len(actual_values)
-    )
-
-    kupst_cost_list = []
-
-    for x, y, m, s, p in zip(
-        forecast_values, actual_values, mcp, smp, maintenance_penalty_list
-    ):
-        cost = calculate_kupst_cost(
-            actual=y,
-            forecast=x,
-            mcp=m,
-            smp=s,
-            tol=tol,
-            source=source,
-            kupst_multiplier=kupst_multiplier,
-            kupst_floor_price=kupst_floor_price,
-            regulation_period=regulation_period,
-            include_maintenance_penalty=p,
-            return_detail=False,
-        )
-
-        kupst_cost_list.append(cost)
-
-    return kupst_cost_list
 
 
 ### KUPST COST FUNCTIONS END###
@@ -1151,6 +1051,17 @@ def calculate_unit_imbalance_cost(
     {'pos': 6.0, 'neg': 16.5}
     """
 
+    if math.isnan(mcp) or math.isnan(smp) or mcp is None or smp is None:
+        if include_prices:
+            return {
+                "pos_price": None,
+                "neg_price": None,
+                "pos_cost": None,
+                "neg_cost": None,
+            }
+        else:
+            return {"pos": None, "neg": None}
+
     if regulation_period in ["current", "26_01"]:
         d = calculate_unit_imbalance_cost_2026(
             mcp=mcp, smp=smp, include_prices=include_prices, **kwargs
@@ -1460,6 +1371,14 @@ def calculate_unit_price_and_costs(
     >>> calculate_unit_price_and_costs(mcp=100, smp=110, regulation_period='current')
     {'pos_price': 94.0, 'neg_price': 116.5, 'pos_cost': 6.0, 'neg_cost': 16.5, 'unit_kupst': 5.5}
     """
+
+    d = calculate_unit_imbalance_cost(
+        mcp=mcp,
+        smp=smp,
+        include_prices=True,
+        regulation_period=regulation_period,
+        **kwargs,
+    )
 
     if regulation_period in ["current", "26_01"]:
         d = calculate_unit_imbalance_cost_2026(
@@ -2197,3 +2116,122 @@ def calculate_kupsm_list(actual_values: list, forecast_values: list, tol: float)
     for a, f in zip(actual_values, forecast_values):
         kupsm_list.append(calculate_kupsm(a, f, tol))
     return kupsm_list
+
+
+def calculate_kupst_cost_list(
+    actual_values: list,
+    forecast_values: list,
+    mcp: list,
+    smp: list,
+    tol: float | None = None,
+    source: str | None = None,
+    kupst_multiplier: float | None = None,
+    kupst_floor_price: float | None = None,
+    regulation_period: Literal["current", "2026_01", "pre_2026"] = "current",
+    **kwargs,
+):
+    """
+    .. deprecated:: 1.3.3
+        Use list comprehension with :func:`calculate_kupsm` instead.
+        This function will be removed in version 1.4.0.
+
+    Calculate KUPST (Production Plan Deviation Cost) for multiple periods.
+
+    This function efficiently calculates KUPST costs for a list of periods, allowing
+    per-period variations in MCP, SMP, and optionally maintenance penalty status.
+
+    Parameters
+    ----------
+    actual_values : list
+        List of actual generated production values in MWh for each period.
+    forecast_values : list
+        List of forecasted/planned production values in MWh for each period.
+    mcp : list
+        List of Market Clearing Prices in TL/MWh for each period.
+    smp : list
+        List of System Marginal Prices in TL/MWh for each period.
+    tol : float, optional
+        KUPST tolerance as a decimal (e.g., 0.15 for 15%). Applied uniformly to all periods.
+        If None, retrieved from source parameter.
+    source : {'wind', 'solar', 'sun', 'unlicensed', 'other'}, optional
+        Energy source type. Required if tol is None. 'sun' is aliased to 'solar'.
+    kupst_multiplier : float, optional
+        Multiplier for unit KUPST calculation. If None, uses regulation default.
+    kupst_floor_price : float, optional
+        Floor price for KUPST calculation in TL/MWh. Default 750.0 TL/MWh.
+    regulation_period : {'current', '2026_01', 'pre_2026'}, default 'current'
+        Regulation period for determining multiplier and tolerance values.
+    **kwargs
+        Additional keyword arguments:
+        - maintenance_penalty_list : list of bool
+            Per-period maintenance penalty flags. Defaults to [False] * num_periods.
+
+    Returns
+    -------
+    list
+        List of KUPST costs in TL for each period. List length matches input lists.
+
+    Raises
+    ------
+    Exception
+        If neither tol nor source parameter is provided.
+    ValueError
+        If input lists have mismatched lengths.
+
+    Notes
+    -----
+    Each period's cost is calculated independently using calculate_kupst_cost().
+    The tolerance value is fixed across all periods, but MCP, SMP, and maintenance
+    penalty status can vary by period.
+
+    Examples
+    --------
+    >>> calculate_kupst_cost_list(
+    ...     actual_values=[100, 105],
+    ...     forecast_values=[120, 110],
+    ...     mcp=[100, 95],
+    ...     smp=[110, 105],
+    ...     source='wind',
+    ...     regulation_period='current'
+    ... )
+    [90.0, 12.5]
+    """
+
+    warnings.warn(
+        "calculate_kupst_cost_list is deprecated, "
+        "In further versions, please use the singular unit functions.",
+        DeprecationWarning,
+        stacklevel=2,
+    )
+
+    if tol is None:
+        if source is None:
+            raise Exception("Either tol(erance) or source parameter must be provided")
+        tol = get_kupst_tolerance(source)
+
+    maintenance_penalty_list = kwargs.get(
+        "maintenance_penalty_list", [False] * len(actual_values)
+    )
+
+    kupst_cost_list = []
+
+    for x, y, m, s, p in zip(
+        forecast_values, actual_values, mcp, smp, maintenance_penalty_list
+    ):
+        cost = calculate_kupst_cost(
+            actual=y,
+            forecast=x,
+            mcp=m,
+            smp=s,
+            tol=tol,
+            source=source,
+            kupst_multiplier=kupst_multiplier,
+            kupst_floor_price=kupst_floor_price,
+            regulation_period=regulation_period,
+            include_maintenance_penalty=p,
+            return_detail=False,
+        )
+
+        kupst_cost_list.append(cost)
+
+    return kupst_cost_list

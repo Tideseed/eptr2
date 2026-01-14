@@ -1278,11 +1278,11 @@ def get_help_d(key=None):
         "mms-pp-list": {
             "category": "Listeleme",
             "title": {
-                "tr": "PMS Organizasyona Göre Santral Listeleme",
+                "tr": "PMS Organizasyona Göre Santral Listeleme",
                 "en": "MMS Power Plant Listing by Organization",
             },
             "desc": {
-                "tr": "PMS Organizasyona Göre Santral Listeleme.",
+                "tr": "PMS Organizasyona Göre Santral Listeleme.",
                 "en": "MMS Power Plant Listing by Organization.",
             },
             "url": "https://seffaflik.epias.com.tr/electricity/market-message-system",
@@ -1290,11 +1290,11 @@ def get_help_d(key=None):
         "mms-uevcb-list": {
             "category": "Listeleme",
             "title": {
-                "tr": "PMS UEVÇB'ye Göre Santral Listeleme",
+                "tr": "PMS UEVÇB'ye Göre Santral Listeleme",
                 "en": "MMS Power Plant Listing by UEVCB",
             },
             "desc": {
-                "tr": "PMS UEVÇB'ye Göre Santral Listeleme.",
+                "tr": "PMS UEVÇB'ye Göre Santral Listeleme.",
                 "en": "MMS Power Plant Listing by UEVCB.",
             },
             "url": "https://seffaflik.epias.com.tr/electricity/market-message-system",

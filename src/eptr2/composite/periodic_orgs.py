@@ -224,12 +224,18 @@ def get_multiperiod_generation_org_and_uevcb_wrapper(
 
     verbose = kwargs.get("verbose", False)
 
-    for period in periods:
-        if verbose:
-            print(f"Processing period: {period}")
-        df_res = get_generation_org_and_uevcb_wrapper(period=period, **kwargs)
-        df = pd.concat([df, df_res], ignore_index=True)
-        time.sleep(1)
+    try:
+        for period in periods:
+            if verbose:
+                print(f"Processing period: {period}")
+            df_res = get_generation_org_and_uevcb_wrapper(period=period, **kwargs)
+            df = pd.concat([df, df_res], ignore_index=True)
+            time.sleep(1)
+    except Exception as e:
+        print(
+            f"Error processing period {period}: {e}",
+            " returning data collected so far.",
+        )
 
     return df
 
