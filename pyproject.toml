@@ -1,6 +1,6 @@
 [project]
 name = "eptr2"
-version = "1.3.4.dev0"
+version = "1.3.4.dev1"
 description = "EPIAS Transparency Platform v2.0 Python client by Robokami / Tideseed"
 authors = [{ name = "Tideseed", email = "info@tideseed.com" }]
 license = { text = "Apache License 2.0" }
@@ -17,12 +17,13 @@ allextras = [
     "tornado>=6.5.0",
     "requests>=2.32.4",
     "fastmcp>=0.2.0",
+    "openpyxl>=3.1.5",
+    "xlsxwriter>=3.2.9",
 
 ]
 dev = ["pytest>=7.4.0"]
 
 [project.scripts]
-eptr2demo = "eptr2.tutorials:run_composite_app"
 eptr2-mcp-server = "eptr2.mcp.server:main"
 
 [build-system]
@@ -40,9 +41,3 @@ include = ["src/eptr2/**", "README.md", "LICENSE", "pyproject.toml"]
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/eptr2"]
-
-[dependency-groups]
-allextras = [
-    "openpyxl>=3.1.5",
-    "xlsxwriter>=3.2.9",
-]

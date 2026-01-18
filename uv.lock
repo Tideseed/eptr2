@@ -413,7 +413,7 @@ wheels = [
 
 [[package]]
 name = "eptr2"
-version = "1.3.4.dev0"
+version = "1.3.4.dev1"
 source = { editable = "." }
 dependencies = [
     { name = "pytz" },
@@ -423,10 +423,12 @@ dependencies = [
 [package.optional-dependencies]
 allextras = [
     { name = "fastmcp" },
+    { name = "openpyxl" },
     { name = "pandas" },
     { name = "requests" },
     { name = "streamlit" },
     { name = "tornado" },
+    { name = "xlsxwriter" },
 ]
 dataframe = [
     { name = "pandas" },
@@ -440,10 +442,6 @@ mcp = [
 ]
 
 [package.dev-dependencies]
-allextras = [
-    { name = "openpyxl" },
-    { name = "xlsxwriter" },
-]
 dev = [
     { name = "pytest" },
     { name = "python-dotenv" },
@@ -453,6 +451,7 @@ dev = [
 requires-dist = [
     { name = "fastmcp", marker = "extra == 'allextras'", specifier = ">=0.2.0" },
     { name = "fastmcp", marker = "extra == 'mcp'", specifier = ">=0.2.0" },
+    { name = "openpyxl", marker = "extra == 'allextras'", specifier = ">=3.1.5" },
     { name = "pandas", marker = "extra == 'allextras'", specifier = ">=2.1.3" },
     { name = "pandas", marker = "extra == 'dataframe'", specifier = ">=2.1.3" },
     { name = "pandas", marker = "extra == 'mcp'", specifier = ">=2.1.3" },
@@ -462,14 +461,11 @@ requires-dist = [
     { name = "streamlit", marker = "extra == 'allextras'", specifier = ">=1.50.0" },
     { name = "tornado", marker = "extra == 'allextras'", specifier = ">=6.5.0" },
     { name = "urllib3", specifier = ">=2.6.3" },
+    { name = "xlsxwriter", marker = "extra == 'allextras'", specifier = ">=3.2.9" },
 ]
 provides-extras = ["dataframe", "mcp", "allextras", "dev"]
 
 [package.metadata.requires-dev]
-allextras = [
-    { name = "openpyxl", specifier = ">=3.1.5" },
-    { name = "xlsxwriter", specifier = ">=3.2.9" },
-]
 dev = [
     { name = "pytest", specifier = ">=7.4.0" },
     { name = "python-dotenv", specifier = ">=1.1.1" },
