@@ -162,6 +162,7 @@ def calculate_portfolio_costs(
     check_existing: bool = False,
     portfolio_name: str | None = None,
     translate_cost_summary: bool = False,
+    verbose=True,
     **kwargs,
 ):
     """
@@ -188,37 +189,44 @@ def calculate_portfolio_costs(
         plan_realized_df = pd.read_excel(plan_realized_path)
     else:
         plan_realized_df = pd.DataFrame()
+        id_df = id_df.reset_index(drop=True).copy()
         for idx, row in id_df.iterrows():
-            print(f"Processing uevcb_id: {row['uevcb_id']}", idx + 1, "of", len(id_df))
-            lives = 3
-        while lives > 0:
-            try:
-                sub_df = wrapper_hourly_production_plan_and_realized(
-                    start_date=start_date,
-                    end_date=end_date,
-                    org_id=row["org_id"],
-                    uevcb_id=row["uevcb_id"],
-                    rt_pp_id=row["rt_id"],
-                    uevm_pp_id=row["uevm_id"],
-                    verbose=True,
-                    skip_uevm=True,
+            if verbose:
+                print(
+                    f"Processing UEVCB: {row['uevcb_name']}", idx + 1, "of", len(id_df)
                 )
-                sub_df["org_id"] = row["org_id"]
-                sub_df["uevcb_id"] = row["uevcb_id"]
-                sub_df["rt_id"] = row["rt_id"]
-                sub_df["uevm_id"] = row["uevm_id"]
-                sub_df["uevcb_name"] = row["uevcb_name"]
-                sub_df["pp_name"] = row["rt_shortname"]
-                plan_realized_df = pd.concat(
-                    [plan_realized_df, sub_df], ignore_index=True
-                )
-                break
-            except Exception as e:
-                lives -= 1
-                print(f"Error occurred: {e}. Remaining lives: {lives}")
-                time.sleep(3)
+            lives = kwargs.get("max_lives", 3)
+            while lives > 0:
+                try:
+                    sub_df = wrapper_hourly_production_plan_and_realized(
+                        start_date=start_date,
+                        end_date=end_date,
+                        org_id=row["org_id"],
+                        uevcb_id=row["uevcb_id"],
+                        rt_pp_id=row["rt_id"],
+                        uevm_pp_id=row["uevm_id"],
+                        verbose=verbose,
+                        skip_uevm=True,
+                    )
+                    sub_df["org_id"] = row["org_id"]
+                    sub_df["uevcb_id"] = row["uevcb_id"]
+                    sub_df["rt_id"] = row["rt_id"]
+                    sub_df["uevm_id"] = row["uevm_id"]
+                    sub_df["uevcb_name"] = row["uevcb_name"]
+                    sub_df["pp_name"] = row["rt_shortname"]
+                    plan_realized_df = pd.concat(
+                        [plan_realized_df, sub_df], ignore_index=True
+                    )
+                    break
+                except Exception as e:
+                    lives -= 1
+                    print(f"Error occurred: {e}. Remaining lives: {lives}")
+                    time.sleep(3)
 
         if export_to_excel:
+            if verbose:
+                print(f"Exporting cost details to Excel: {plan_realized_path}")
+
             plan_realized_df.to_excel(plan_realized_path, index=False)
 
     cost_df = get_hourly_price_and_cost_data(
@@ -245,7 +253,7 @@ def calculate_portfolio_costs(
             actual=row["total_rt"],
             forecast=row["toplam_kgup_v1"],
             tol=get_kupst_tolerance_by_contract(
-                contract=row["contract"], source="wind"
+                contract=row["contract"], source=row.get("source", "wind")
             ),
         ),
         axis=1,
@@ -361,4 +369,35 @@ def calculate_portfolio_costs(
             }
         )
 
+    if export_to_excel:
+        summary_path = os.path.join(
+            export_dir,
+            f"portfolio{portfolio_name}_summary_data_{start_date}_{end_date}.xlsx",
+        )
+        if verbose:
+            print(f"Exporting cost summary to Excel: {summary_path}")
+        cost_summary_df.to_excel(summary_path, index=False)
+
     return cost_summary_df
+
+
+def create_template_id_df(
+    export_to_excel: bool = False, export_path: str = "template_id_df.xlsx"
+):
+    """
+    Creates a template DataFrame for portfolio cost calculations.
+    """
+    df = pd.DataFrame(
+        columns=[
+            "org_id",
+            "uevcb_id",
+            "rt_id",
+            "uevm_id",
+            "uevcb_name",
+            "rt_shortname",
+            "source",
+        ]
+    )
+    if export_to_excel:
+        df.to_excel(export_path, index=False)
+    return df

@@ -1529,6 +1529,114 @@ def calculate_imbalance_amount(
     return d
 
 
+def calculate_diff_costs_by_contract(
+    forecast: float,
+    actual: float,
+    is_producer: bool,
+    contract: str,
+    mcp: float,
+    smp: float,
+    production_source: str | None = None,
+    include_quantities: bool = False,
+    **kwargs,
+) -> dict | float:
+    """
+    Calculate total imbalance and KUPST costs for a single period using a contract code.
+
+    This is a convenience function that determines the regulation period from the
+    contract code and calculates both imbalance costs and KUPST costs.
+
+    Parameters
+    ----------
+    forecast : float
+        Forecasted/planned quantity in MWh (production for producers, consumption for consumers).
+    actual : float
+        Actual realized quantity in MWh.
+    is_producer : bool
+        True if this is a production unit, False if it's a consumption unit.
+        This affects how deviations are interpreted (producer surplus vs. consumer deficit).
+    contract : str
+        Contract code in format 'PHYYMMDDhh' (e.g., 'PH26010100'). Used to determine
+        the applicable regulation period.
+    mcp : float
+        Market Clearing Price in TL/MWh.
+    smp : float
+        System Marginal Price in TL/MWh.
+    production_source : {'wind', 'solar', 'sun', 'unlicensed', 'other'}, optional
+        Energy source type. Required for producers to determine KUPST tolerance.
+        Not needed for consumers. 'sun' is aliased to 'solar'.
+    include_quantities : bool, default False
+        If True, returned dictionary includes imbalance quantity and KUPST deviation quantity.
+    **kwargs
+        Additional parameters:
+        - All regulation-specific parameters passed to underlying functions
+    Returns
+    -------
+    dict or float
+        If return_imbalance_cost=True: Returns only imbalance cost as float (hidden option).
+
+        Otherwise, returns dict with:
+        - 'imb_cost': Total imbalance cost in TL
+        - 'kupst_cost': KUPST cost in TL (only for producers)
+        - 'total_cost': Total cost = imb_cost + kupst_cost (only for producers)
+
+        If include_quantities=True, also includes:
+        - 'imb_qty': Signed imbalance quantity in MWh (positive/negative)
+        - 'kupsm': Production plan deviation after tolerance in MWh (only for producers)
+    Raises
+    ------
+    Exception
+        If is_producer=True but production_source is not provided (when KUPST tolerance cannot be determined).
+    ValueError
+        If regulation_period is invalid.
+    Notes
+    -----
+    For producers:
+    - Imbalance sign: positive if actual > forecast (surplus), negative if actual < forecast (deficit)
+    - KUPST applies to both positive and negative deviations beyond tolerance
+    - Total cost = imbalance cost + KUPST cost
+    For consumers:
+    - Imbalance sign: positive if actual < forecast (deficit), negative if actual > forecast (surplus)
+    - No KUPST applied (only imbalance cost calculated)
+    Examples
+    --------
+    >>> calculate_diff_costs_by_contract(
+    ...     forecast=120,
+    ...     actual=100,
+    ...     is_producer=True,
+    ...     contract='PH26010100',
+    ...     mcp=100,
+    ...     smp=110,
+    ...     production_source='wind'
+    ... )
+    {'imb_cost': 100.0, 'kupst_cost': 90.0, 'total_cost': 190.0}
+    >>> calculate_diff_costs_by_contract(
+    ...     forecast=120,
+    ...     actual=100,
+    ...     is_producer=True,
+    ...     contract='PH26010100',
+    ...     mcp=100,
+    ...     smp=110,
+    ...     production_source='wind',
+    ...     include_quantities=True
+    ... )
+    {'imb_cost': 100.0, 'kupst_cost': 90.0, 'total_cost': 190.0, 'imb_qty': -20.0, 'kupsm': 2.0}
+    """
+    regulation_period = get_regulation_period_by_contract(contract)
+
+    return calculate_diff_costs(
+        forecast=forecast,
+        actual=actual,
+        is_producer=is_producer,
+        mcp=mcp,
+        smp=smp,
+        production_source=production_source,
+        regulation_period=regulation_period,
+        include_quantities=include_quantities,
+        **kwargs,
+    )
+
+
 def calculate_diff_costs(
     forecast: float,
     actual: float,

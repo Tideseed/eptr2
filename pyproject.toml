@@ -40,3 +40,9 @@ include = ["src/eptr2/**", "README.md", "LICENSE", "pyproject.toml"]
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/eptr2"]
+
+[dependency-groups]
+allextras = [
+    "openpyxl>=3.1.5",
+    "xlsxwriter>=3.2.9",
+]
