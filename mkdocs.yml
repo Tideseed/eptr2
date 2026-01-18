@@ -1,0 +1,175 @@
+site_name: eptr2
+site_description: Python client for EPIAS Transparency Platform v2.0 - Turkish Electricity Market Data
+site_author: Tideseed
+site_url: https://tideseed.github.io/eptr2/
+repo_url: https://github.com/Tideseed/eptr2
+repo_name: Tideseed/eptr2
+edit_uri: edit/main/docs/
+
+theme:
+  name: material
+  language: en
+  palette:
+    # Light mode
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      primary: indigo
+      accent: amber
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
+    # Dark mode
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      primary: indigo
+      accent: amber
+      toggle:
+        icon: material/brightness-4
+        name: Switch to light mode
+  features:
+    - navigation.instant
+    - navigation.instant.prefetch
+    - navigation.tracking
+    - navigation.tabs
+    - navigation.tabs.sticky
+    - navigation.sections
+    - navigation.expand
+    - navigation.path
+    - navigation.top
+    - search.suggest
+    - search.highlight
+    - search.share
+    - content.code.copy
+    - content.code.annotate
+    - content.tabs.link
+    - content.action.edit
+    - toc.follow
+  icon:
+    repo: fontawesome/brands/github
+  # Uncomment these when you add logo files:
+  # logo: assets/logo.png
+  # favicon: assets/favicon.ico
+
+plugins:
+  - search:
+      separator: '[\s\-,:!=\[\]()"/]+|(?!\b)(?=[A-Z][a-z])|\.(?!\d)|&[lg]t;'
+  - mkdocstrings:
+      default_handler: python
+      handlers:
+        python:
+          paths: [src]
+          options:
+            docstring_style: google
+            docstring_options:
+              ignore_init_summary: true
+            merge_init_into_class: true
+            show_source: true
+            show_root_heading: true
+            show_root_full_path: false
+            show_symbol_type_heading: true
+            show_symbol_type_toc: true
+            members_order: source
+            heading_level: 2
+            show_signature_annotations: true
+            separate_signature: true
+            signature_crossrefs: true
+            line_length: 80
+  - autorefs
+
+markdown_extensions:
+  - abbr
+  - admonition
+  - attr_list
+  - def_list
+  - footnotes
+  - md_in_html
+  - toc:
+      permalink: true
+      toc_depth: 3
+  - tables
+  - pymdownx.arithmatex:
+      generic: true
+  - pymdownx.betterem:
+      smart_enable: all
+  - pymdownx.caret
+  - pymdownx.details
+  - pymdownx.emoji:
+      emoji_index: !!python/name:material.extensions.emoji.twemoji
+      emoji_generator: !!python/name:material.extensions.emoji.to_svg
+  - pymdownx.highlight:
+      anchor_linenums: true
+      line_spans: __span
+      pygments_lang_class: true
+  - pymdownx.inlinehilite
+  - pymdownx.keys
+  - pymdownx.magiclink:
+      normalize_issue_symbols: true
+      repo_url_shorthand: true
+      user: Tideseed
+      repo: eptr2
+  - pymdownx.mark
+  - pymdownx.smartsymbols
+  - pymdownx.snippets:
+      auto_append:
+        - includes/abbreviations.md
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:pymdownx.superfences.fence_code_format
+  - pymdownx.tabbed:
+      alternate_style: true
+      combine_header_slug: true
+  - pymdownx.tasklist:
+      custom_checkbox: true
+  - pymdownx.tilde
+
+extra:
+  version:
+    provider: mike
+  social:
+    - icon: fontawesome/brands/github
+      link: https://github.com/Tideseed/eptr2
+    - icon: fontawesome/brands/python
+      link: https://pypi.org/project/eptr2/
+  analytics:
+    provider: google
+    property: G-XXXXXXXXXX  # Replace with your Google Analytics ID if needed
+
+extra_css:
+  - stylesheets/extra.css
+
+extra_javascript:
+  - javascripts/mathjax.js
+  - https://unpkg.com/mathjax@3/es5/tex-mml-chtml.js
+
+nav:
+  - Home: index.md
+  - Getting Started:
+    - Installation: getting-started/installation.md
+    - Authentication: getting-started/authentication.md
+    - Quick Start: getting-started/quickstart.md
+  - User Guide:
+    - Basic Usage: user-guide/basic-usage.md
+    - Available API Calls: user-guide/api-calls.md
+    - Composite Functions: user-guide/composite-functions.md
+    - Working with DataFrames: user-guide/dataframes.md
+  - AI Integration:
+    - MCP Server: ai-integration/mcp-server.md
+    - Claude Desktop Setup: ai-integration/claude-desktop.md
+    - Agent Skills: ai-integration/agent-skills.md
+  - API Reference:
+    - eptr2: api/eptr2.md
+    - EPTR2 Class: api/main.md
+    - Composite Functions: api/composite.md
+    - MCP Server: api/mcp.md
+    - Utilities: api/util.md
+  - Tutorials:
+    - Demo App: tutorials/demo-app.md
+    - Calculator App: tutorials/calculator.md
+  - Reference:
+    - Common Abbreviations: reference/abbreviations.md
+    - Changelog: reference/changelog.md
+    - Contributing: reference/contributing.md
+
+copyright: Copyright &copy; 2024 - 2026 Tideseed
