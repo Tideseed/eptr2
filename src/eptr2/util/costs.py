@@ -859,6 +859,9 @@ def calculate_unit_imbalance_price_2026(
     elif mcp == floor_price:  ## system imbalance is still positive
         neg_margin = low_margin
         pos_margin = high_margin
+    else:
+        neg_margin = low_margin
+        pos_margin = low_margin
 
     if max(mcp, smp) == ceil_price:
         neg_imb_mult = 1 + ceil_margin

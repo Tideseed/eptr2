@@ -1,10 +1,24 @@
-## Add test for eptr2/composite/plant_costs.py
-from eptr2.composite.plant_costs import gather_and_calculate_plant_costs
-from dotenv import load_dotenv
-from eptr2 import EPTR2
+"""
+Unit tests for eptr2.composite.plant_costs module.
+
+Tests cover:
+- gather_and_calculate_plant_costs function
+- calculate_portfolio_costs function
+- postprocess_plant_cost_df function
+- create_template_id_df function
+"""
+
 import pytest
-from tests import common_params
 import pandas as pd
+from dotenv import load_dotenv
+
+from eptr2 import EPTR2
+from eptr2.composite.plant_costs import (
+    gather_and_calculate_plant_costs,
+    postprocess_plant_cost_df,
+    create_template_id_df,
+)
+from tests import common_params
 
 
 @pytest.fixture
@@ -143,3 +157,154 @@ def test_gather_and_calculate_plant_costs_different_sources(plant_costs_params):
 
     assert df is not None
     assert isinstance(df, pd.DataFrame)
+
+
+# ============================================================================
+# Tests for postprocess_plant_cost_df function
+# ============================================================================
+
+
+class TestPostprocessPlantCostDf:
+    """Tests for the postprocess_plant_cost_df function."""
+
+    def test_postprocess_returns_dict(self):
+        """Test that postprocess returns a dictionary with expected keys."""
+        # Create sample DataFrame
+        df = pd.DataFrame(
+            {
+                "forecast": [100, 110, 90],
+                "actual": [95, 105, 85],
+                "diff": [5, 5, 5],
+                "kupsm": [2, 2, 2],
+                "total_kupst_cost": [100, 100, 100],
+                "total_imb_cost": [50, 50, 50],
+                "total_cost": [150, 150, 150],
+            }
+        )
+
+        result = postprocess_plant_cost_df(df)
+
+        assert isinstance(result, dict)
+        assert "summary" in result
+        assert "data" in result
+
+    def test_postprocess_summary_keys(self):
+        """Test that summary contains expected keys."""
+        df = pd.DataFrame(
+            {
+                "forecast": [100, 110, 90],
+                "actual": [95, 105, 85],
+                "diff": [5, 5, 5],
+                "kupsm": [2, 2, 2],
+                "total_kupst_cost": [100, 100, 100],
+                "total_imb_cost": [50, 50, 50],
+                "total_cost": [150, 150, 150],
+            }
+        )
+
+        result = postprocess_plant_cost_df(df)
+
+        expected_keys = [
+            "total_forecast",
+            "total_actual",
+            "total_kupsm",
+            "total_bias",
+            "total_mae",
+            "total_kupst_cost",
+            "total_imb_cost",
+            "total_cost",
+        ]
+
+        for key in expected_keys:
+            assert key in result["summary"], f"Expected key '{key}' not in summary"
+
+    def test_postprocess_cumulative_columns(self):
+        """Test that cumulative columns are added."""
+        df = pd.DataFrame(
+            {
+                "forecast": [100, 110, 90],
+                "actual": [95, 105, 85],
+                "diff": [5, 5, 5],
+                "kupsm": [2, 2, 2],
+                "total_kupst_cost": [100, 100, 100],
+                "total_imb_cost": [50, 50, 50],
+                "total_cost": [150, 150, 150],
+            }
+        )
+
+        result = postprocess_plant_cost_df(df)
+
+        assert "cumulative_kupst_cost" in result["data"].columns
+        assert "cumulative_imb_cost" in result["data"].columns
+        assert "cumulative_total_cost" in result["data"].columns
+
+    def test_postprocess_summary_calculations(self):
+        """Test that summary calculations are correct."""
+        df = pd.DataFrame(
+            {
+                "forecast": [100, 100],
+                "actual": [90, 110],
+                "diff": [10, -10],  # forecast - actual
+                "kupsm": [5, 5],
+                "total_kupst_cost": [100, 100],
+                "total_imb_cost": [50, 50],
+                "total_cost": [150, 150],
+            }
+        )
+
+        result = postprocess_plant_cost_df(df)
+
+        assert result["summary"]["total_forecast"] == 200
+        assert result["summary"]["total_actual"] == 200
+        assert result["summary"]["total_kupsm"] == 10
+        assert result["summary"]["total_bias"] == 0  # 10 + (-10)
+        assert result["summary"]["total_mae"] == 20  # |10| + |-10|
+        assert result["summary"]["total_kupst_cost"] == 200
+        assert result["summary"]["total_imb_cost"] == 100
+        assert result["summary"]["total_cost"] == 300
+
+
+# ============================================================================
+# Tests for create_template_id_df function
+# ============================================================================
+
+
+class TestCreateTemplateIdDf:
+    """Tests for the create_template_id_df function."""
+
+    def test_create_template_returns_dataframe(self):
+        """Test that function returns a DataFrame."""
+        df = create_template_id_df()
+        assert isinstance(df, pd.DataFrame)
+
+    def test_create_template_has_expected_columns(self):
+        """Test that template has expected columns."""
+        df = create_template_id_df()
+
+        expected_columns = [
+            "org_id",
+            "uevcb_id",
+            "rt_id",
+            "uevm_id",
+            "uevcb_name",
+            "rt_shortname",
+            "source",
+        ]
+
+        for col in expected_columns:
+            assert col in df.columns, f"Expected column '{col}' not found"
+
+    def test_create_template_is_empty(self):
+        """Test that template DataFrame is empty (no rows)."""
+        df = create_template_id_df()
+        assert len(df) == 0
+
+    def test_create_template_export_to_excel(self, tmp_path):
+        """Test that template can be exported to Excel."""
+        export_path = tmp_path / "template.xlsx"
+        df = create_template_id_df(export_to_excel=True, export_path=str(export_path))
+
+        assert export_path.exists()
+        # Read back and verify
+        df_read = pd.read_excel(export_path)
+        assert list(df_read.columns) == list(df.columns)

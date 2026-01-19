@@ -869,3 +869,175 @@ class TestIntegration:
             smp=200,
         )
         assert isinstance(imbalance, dict)
+
+
+# ============================================================================
+# Additional Tests for 2026 Regulation Changes
+# ============================================================================
+
+
+class TestRegulation2026Specifics:
+    """Tests specific to 2026 regulation changes."""
+
+    def test_kupst_tolerance_decreased_for_wind_in_2026(self):
+        """Verify wind tolerance decreased from 17% to 15% in 2026."""
+        pre_2026_tol = get_kupst_tolerance("wind", "pre_2026")
+        current_tol = get_kupst_tolerance("wind", "current")
+
+        assert pre_2026_tol == 0.17
+        assert current_tol == 0.15
+        assert current_tol < pre_2026_tol
+
+    def test_kupst_tolerance_decreased_for_solar_in_2026(self):
+        """Verify solar tolerance decreased from 10% to 8% in 2026."""
+        pre_2026_tol = get_kupst_tolerance("solar", "pre_2026")
+        current_tol = get_kupst_tolerance("solar", "current")
+
+        assert pre_2026_tol == 0.10
+        assert current_tol == 0.08
+        assert current_tol < pre_2026_tol
+
+    def test_kupst_multiplier_increased_in_2026(self):
+        """Verify KUPST multiplier increased from 3% to 5% in 2026."""
+        pre_2026_cost = calculate_unit_kupst_cost(
+            mcp=1000, smp=900, regulation_period="pre_2026"
+        )
+        current_cost = calculate_unit_kupst_cost(
+            mcp=1000, smp=900, regulation_period="current"
+        )
+
+        # Both use floor price 750 as max, so:
+        # Pre-2026: 1000 * 0.03 = 30
+        # Current: 1000 * 0.05 = 50
+        assert pre_2026_cost == 30
+        assert current_cost == 50
+        assert current_cost > pre_2026_cost
+
+    def test_maintenance_penalty_multiplier_in_2026(self):
+        """Verify maintenance penalty multiplier is 8% in 2026."""
+        normal_cost = calculate_unit_kupst_cost(
+            mcp=1000, smp=900, regulation_period="current"
+        )
+        penalty_cost = calculate_unit_kupst_cost(
+            mcp=1000,
+            smp=900,
+            regulation_period="current",
+            include_maintenance_penalty=True,
+        )
+
+        # Normal: 1000 * 0.05 = 50
+        # With penalty: 1000 * 0.08 = 80
+        assert normal_cost == 50
+        assert penalty_cost == 80
+
+    def test_unlicensed_tolerance_only_in_2026(self):
+        """Test that unlicensed tolerance (20%) is only defined in 2026."""
+        current_tol = get_kupst_tolerance_2026("unlicensed")
+        pre_2026_tol = get_kupst_tolerance_pre_2026("unlicensed")
+
+        assert current_tol == 0.20
+        # Pre-2026 should return default (5%)
+        assert pre_2026_tol == 0.05
+
+    def test_imbalance_price_2026_uses_V_threshold(self):
+        """Test that 2026 regulation uses V threshold for negative prices."""
+        # When min(mcp, smp) < V (150), pos_imb_price becomes negative
+        prices = calculate_unit_imbalance_price_2026(mcp=100, smp=120)
+        # min(100, 120) = 100 < 150, so pos becomes -B * (1 + margin)
+        assert prices["pos"] < 0
+
+    def test_imbalance_price_2026_ceil_margin_applied(self):
+        """Test that 2026 regulation applies ceil_margin when at ceiling."""
+        # At ceiling (3400), additional 5% margin applies to neg_imb_price
+        prices = calculate_unit_imbalance_price_2026(mcp=3400, smp=3300)
+        # neg_imb_price = max(3400, 3300, 150) * (1 + margin) * (1 + 0.05)
+        # = 3400 * 1.03 * 1.05 = 3677.1
+        expected = 3400 * (1 + 0.03) * (1 + 0.05)
+        assert prices["neg"] == expected
+
+
+# ============================================================================
+# Tests for Contract-based Functions
+# ============================================================================
+
+
+class TestContractBasedFunctions:
+    """Tests for functions that use contract codes to determine regulation period."""
+
+    def test_contract_boundary_pre_2026(self):
+        """Test contracts just before 2026-01-01."""
+        # Last hour of 2025
+        contract = "PH25123123"
+        period = get_regulation_period_by_contract(contract)
+        assert period == "pre_2026"
+
+    def test_contract_boundary_2026(self):
+        """Test contracts at exactly 2026-01-01 00:00."""
+        contract = "PH26010100"
+        period = get_regulation_period_by_contract(contract)
+        assert period == "26_01"
+
+    def test_contract_boundary_first_hour_2026(self):
+        """Test contracts at 2026-01-01 01:00."""
+        contract = "PH26010101"
+        period = get_regulation_period_by_contract(contract)
+        assert period == "26_01"
+
+    def test_kupst_tolerance_by_contract_uses_correct_period(self):
+        """Test that contract-based tolerance uses correct period."""
+        # Pre-2026 wind tolerance
+        pre_2026_tol = get_kupst_tolerance_by_contract("PH25123123", "wind")
+        assert pre_2026_tol == 0.17
+
+        # 2026 wind tolerance
+        current_tol = get_kupst_tolerance_by_contract("PH26010100", "wind")
+        assert current_tol == 0.15
+
+    def test_unit_kupst_cost_by_contract(self):
+        """Test unit KUPST cost calculation using contract code."""
+        # Pre-2026
+        pre_cost = calculate_unit_kupst_cost_by_contract(
+            contract="PH25123123", mcp=1000, smp=900
+        )
+        # 2026
+        current_cost = calculate_unit_kupst_cost_by_contract(
+            contract="PH26010100", mcp=1000, smp=900
+        )
+
+        assert pre_cost == 30  # 1000 * 0.03
+        assert current_cost == 50  # 1000 * 0.05
+
+
+# ============================================================================
+# Tests for NaN and None Handling
+# ============================================================================
+
+
+class TestNaNAndNoneHandling:
+    """Tests for handling of NaN and None values.
+
+    Note: These tests document current behavior. Some functions may not
+    handle NaN/None gracefully and this documents the expected behavior.
+    """
+
+    def test_unit_kupst_cost_with_valid_inputs(self):
+        """Test that valid inputs produce valid output."""
+        cost = calculate_unit_kupst_cost(mcp=100, smp=110)
+        assert cost is not None
+        assert isinstance(cost, (int, float))
+        assert cost > 0
+
+    def test_unit_imbalance_cost_with_valid_inputs(self):
+        """Test that valid inputs produce valid output."""
+        result = calculate_unit_imbalance_cost(mcp=100, smp=110)
+        assert result["pos"] is not None
+        assert result["neg"] is not None
+
+    def test_unit_imbalance_cost_with_valid_include_prices(self):
+        """Test that valid inputs with include_prices=True returns full dict."""
+        result = calculate_unit_imbalance_cost(mcp=100, smp=110, include_prices=True)
+        assert "pos_price" in result
+        assert "neg_price" in result
+        assert "pos_cost" in result
+        assert "neg_cost" in result
+        assert all(v is not None for v in result.values())
