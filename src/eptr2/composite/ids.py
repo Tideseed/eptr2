@@ -21,91 +21,54 @@ def get_all_important_ids(
     d = {}
 
     max_lives = kwargs.get("max_lives", 3)
+    retry_kwargs = {
+        "retry_attempts": max_lives,
+        "retry_backoff": kwargs.get("retry_backoff", 0),
+        "retry_backoff_max": kwargs.get("retry_backoff_max", 0),
+        "retry_jitter": kwargs.get("retry_jitter", 0.0),
+    }
 
     if verbose:
         print(f"Fetching all important IDs for date: {the_date}")
 
     if verbose:
         print("Fetching day ahead market participants organization list")
-    lives = max_lives
-    while lives > 0:
-        try:
-            d["dam_clearing_org_list"] = eptr.call(
-                "dam-clearing-org-list",
-                period=the_date,
-                request_kwargs={"timeout": kwargs.get("timeout", 10)},
-            )
-            break
-        except Exception as e:
-            print("Error fetching dam-clearing-org-list data:", e)
-            lives -= 1
-            if lives == 0:
-                raise e
+    d["dam_clearing_org_list"] = eptr.call(
+        "dam-clearing-org-list",
+        period=the_date,
+        request_kwargs={"timeout": kwargs.get("timeout", 10)},
+        **retry_kwargs,
+    )
 
     if verbose:
         print("Fetching balancing responsible parties list")
 
-    lives = max_lives
-    while lives > 0:
-        try:
-            d["imb_org_list"] = eptr.call(
-                "imb-org-list",
-                start_date=the_date,
-                end_date=the_date,
-                request_kwargs={"timeout": kwargs.get("timeout", 10)},
-            )
-            break
-        except Exception as e:
-            print("Error fetching imb-org-list data:", e)
-            lives -= 1
-            if lives == 0:
-                raise e
+    d["imb_org_list"] = eptr.call(
+        "imb-org-list",
+        start_date=the_date,
+        end_date=the_date,
+        request_kwargs={"timeout": kwargs.get("timeout", 10)},
+        **retry_kwargs,
+    )
 
     if verbose:
         print("Fetching generation organization and UEVCB data")
 
-    lives = max_lives
-    while lives > 0:
-        try:
-            d["gen_org_uevcb"] = get_generation_org_and_uevcb_wrapper(
-                period=the_date, eptr=eptr
-            )
-            break
-        except Exception as e:
-            print("Error fetching generation org and uevcb data:", e)
-            lives -= 1
-            if lives == 0:
-                raise e
+    d["gen_org_uevcb"] = get_generation_org_and_uevcb_wrapper(
+        period=the_date, eptr=eptr, **retry_kwargs
+    )
 
     if verbose:
         print("Fetching power plant list")
 
-    lives = max_lives
-    while lives > 0:
-        try:
-            d["pp_list"] = eptr.call(
-                "pp-list", request_kwargs={"timeout": kwargs.get("timeout", 10)}
-            )
-            break
-        except Exception as e:
-            print("Error fetching pp-list data:", e)
-            lives -= 1
-            if lives == 0:
-                raise e
+    d["pp_list"] = eptr.call(
+        "pp-list", request_kwargs={"timeout": kwargs.get("timeout", 10)}, **retry_kwargs
+    )
 
     if verbose:
         print("Fetching UEVM power plant list")
 
-    lives = max_lives
-    while lives > 0:
-        try:
-            d["uevm_pp_list"] = eptr.call("uevm-pp-list")
-            break
-        except Exception as e:
-            print("Error fetching uevm-pp-list data:", e)
-            lives -= 1
-            if lives == 0:
-                raise e
+    d["uevm_pp_list"] = eptr.call("uevm-pp-list", **retry_kwargs)
 
     if export_to_excel:
         import pandas as pd

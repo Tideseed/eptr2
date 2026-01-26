@@ -37,30 +37,23 @@ def get_hourly_price_and_cost_data(
     if eptr is None:
         eptr = EPTR2(dotenv_path=kwargs.get("dotenv_path", ".env"))
 
+    retry_kwargs = {
+        "retry_attempts": kwargs.get("max_lives", 2),
+        "retry_backoff": kwargs.get("retry_backoff", 0),
+        "retry_backoff_max": kwargs.get("retry_backoff_max", 0),
+        "retry_jitter": 0.0,
+    }
+
     if verbose:
         print("Getting MCP, SMP and imbalance price data...")
 
-    max_lives = kwargs.get("max_lives", 2)
-
-    lives = max_lives
-    while lives > 0:
-        try:
-            price_df = eptr.call(
-                "mcp-smp-imb",
-                start_date=start_date,
-                end_date=end_date,
-                request_kwargs={"timeout": timeout},
-            )
-            break
-        except Exception as e:
-            lives -= 1
-            if lives == 0:
-                raise e
-            else:
-                if verbose:
-                    print(
-                        f"Error occurred while getting MCP, SMP and imbalance price data. Retrying... ({lives} attempts left)"
-                    )
+    price_df = eptr.call(
+        "mcp-smp-imb",
+        start_date=start_date,
+        end_date=end_date,
+        request_kwargs={"timeout": timeout},
+        **retry_kwargs,
+    )
 
     price_df.drop(columns=["time"], inplace=True)
 
@@ -86,26 +79,14 @@ def get_hourly_price_and_cost_data(
         if verbose:
             print("Getting WAP data...")
 
-        lives = max_lives
-        while lives > 0:
-            try:
-                wap_df = eptr.call(
-                    "wap",
-                    start_date=start_date,
-                    end_date=end_date,
-                    request_kwargs={"timeout": timeout},
-                )
-                wap_df.drop(columns=["hour"], inplace=True)
-                break
-            except Exception as e:
-                lives -= 1
-                if lives == 0:
-                    raise e
-                else:
-                    if verbose:
-                        print(
-                            f"Error occurred while getting WAP data. Retrying... ({lives} attempts left)"
-                        )
+        wap_df = eptr.call(
+            "wap",
+            start_date=start_date,
+            end_date=end_date,
+            request_kwargs={"timeout": timeout},
+            **retry_kwargs,
+        )
+        wap_df.drop(columns=["hour"], inplace=True)
 
         price_df = price_df.merge(wap_df, on="date", how="outer")
 
@@ -205,27 +186,21 @@ def get_hourly_imbalance_data(
     if eptr is None:
         eptr = EPTR2(dotenv_path=kwargs.get("dotenv_path", ".env"))
 
-    lives = kwargs.get("max_lives", 2)
+    retry_kwargs = {
+        "retry_attempts": kwargs.get("max_lives", 2),
+        "retry_backoff": kwargs.get("retry_backoff", 0),
+        "retry_backoff_max": kwargs.get("retry_backoff_max", 0),
+        "retry_jitter": 0.0,
+    }
 
-    while lives > 0:
-        try:
-            imb_vol_df = eptr.call(
-                "imb-vol",
-                start_date=start_date,
-                end_date=end_date,
-                verbose=verbose,
-                request_kwargs={"timeout": timeout},
-            )
-            break
-        except Exception as e:
-            lives -= 1
-            if lives == 0:
-                raise e
-            else:
-                if verbose:
-                    print(
-                        f"Error occurred while getting imbalance volume data. Retrying... ({lives} attempts left)"
-                    )
+    imb_vol_df = eptr.call(
+        "imb-vol",
+        start_date=start_date,
+        end_date=end_date,
+        verbose=verbose,
+        request_kwargs={"timeout": timeout},
+        **retry_kwargs,
+    )
 
     if imb_vol_df.empty:
         raise ValueError(
@@ -246,26 +221,14 @@ def get_hourly_imbalance_data(
     ## TEMP FIX for API quirk (i.e. it does not return data unless start date is the first day of the month)
     start_date_temp = pd.to_datetime(start_date).replace(day=1).strftime("%Y-%m-%d")
 
-    lives = kwargs.get("max_lives", 2)
-    while lives > 0:
-        try:
-            imb_qty_df = eptr.call(
-                "imb-qty",
-                start_date=start_date_temp,
-                end_date=end_date,
-                verbose=verbose,
-                request_kwargs={"timeout": timeout},
-            )
-            break
-        except Exception as e:
-            lives -= 1
-            if lives == 0:
-                raise e
-            else:
-                if verbose:
-                    print(
-                        f"Error occurred while getting imbalance quantity data. Retrying... ({lives} attempts left)"
-                    )
+    imb_qty_df = eptr.call(
+        "imb-qty",
+        start_date=start_date_temp,
+        end_date=end_date,
+        verbose=verbose,
+        request_kwargs={"timeout": timeout},
+        **retry_kwargs,
+    )
 
     imb_qty_df = imb_qty_df[imb_qty_df["date"] >= start_date]
 

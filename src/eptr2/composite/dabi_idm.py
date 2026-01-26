@@ -16,23 +16,22 @@ def process_idm_data(
     This function processes IDM data and includes it in the DataFrame.
     It fetches day ahead and bilateral matches, and merges them with IDM data.
     """
-    lives = kwargs.get("lives", 2)
-    while lives > 0:
-        try:
-            df = eptr.call(
-                "idm-qty",
-                start_date=get_previous_day(start_date),
-                end_date=end_date,
-                org_id=org_id,
-                request_kwargs={"timeout": 5},
-            )
-            break
-        except Exception as e:
-            print("Error fetching IDM data:", e)
-            lives -= 1
-            if lives <= 0:
-                raise Exception("Max lives reached. Exiting.")
-            continue
+    retry_kwargs = {
+        "retry_attempts": kwargs.get("lives", 2),
+        "retry_backoff": kwargs.get("retry_backoff", 0),
+        "retry_backoff_max": kwargs.get(
+            "retry_backoff_max", kwargs.get("retry_backoff", 0)
+        ),
+        "retry_jitter": kwargs.get("retry_jitter", 0.0),
+    }
+    df = eptr.call(
+        "idm-qty",
+        start_date=get_previous_day(start_date),
+        end_date=end_date,
+        org_id=org_id,
+        request_kwargs={"timeout": 5},
+        **retry_kwargs,
+    )
 
     ### Due to naming confusion by EPIAS, ask is mapped to buy and bid is mapped to sell.
 
@@ -76,24 +75,23 @@ def get_day_ahead_and_bilateral_matches(
     if verbose:
         print("Getting day ahead matches...")
 
-    lives = kwargs.get("lives", 2)
-    while lives > 0:
-        try:
-            df_da = eptr.call(
-                "dam-clearing",
-                start_date=start_date,
-                end_date=end_date,
-                org_id=org_id,
-                request_kwargs={"timeout": 5},
-            )
-            break
-        except Exception as e:
-            print("Error fetching day ahead matches:", e)
-            lives -= 1
-            if lives <= 0:
-                raise Exception("Max lives reached. Exiting.")
+    retry_kwargs = {
+        "retry_attempts": kwargs.get("lives", 2),
+        "retry_backoff": kwargs.get("retry_backoff", 0),
+        "retry_backoff_max": kwargs.get(
+            "retry_backoff_max", kwargs.get("retry_backoff", 0)
+        ),
+        "retry_jitter": kwargs.get("retry_jitter", 0.0),
+    }
 
-            continue
+    df_da = eptr.call(
+        "dam-clearing",
+        start_date=start_date,
+        end_date=end_date,
+        org_id=org_id,
+        request_kwargs={"timeout": 5},
+        **retry_kwargs,
+    )
 
     df = (
         df_da.rename({"matchedBids": "da_long", "matchedOffers": "da_short"}, axis=1)
@@ -105,31 +103,22 @@ def get_day_ahead_and_bilateral_matches(
         if verbose:
             print(f"Getting bilateral {cc} matches...")
 
-        lives = kwargs.get("lives", 2)
-        while lives > 0:
-            try:
-                df_bi = eptr.call(
-                    cc,
-                    start_date=start_date,
-                    end_date=end_date,
-                    org_id=org_id,
-                    request_kwargs={"timeout": 5},
-                )
+        df_bi = eptr.call(
+            cc,
+            start_date=start_date,
+            end_date=end_date,
+            org_id=org_id,
+            request_kwargs={"timeout": 5},
+            **retry_kwargs,
+        )
 
-                df = df.merge(
-                    df_bi.rename({"quantity": cc.replace("-", "_")}, axis=1).drop(
-                        "hour", axis=1
-                    ),
-                    on="date",
-                    how="left",
-                ).copy()
-                break
-            except Exception as e:
-                print("Error fetching bilateral long matches:", e)
-                lives -= 1
-                if lives <= 0:
-                    raise Exception("Max lives reached. Exiting.")
-                continue
+        df = df.merge(
+            df_bi.rename({"quantity": cc.replace("-", "_")}, axis=1).drop(
+                "hour", axis=1
+            ),
+            on="date",
+            how="left",
+        ).copy()
 
     df["dabi_net"] = df["da_long"] - df["da_short"] + df["bi_long"] - df["bi_short"]
 
@@ -276,6 +265,10 @@ def get_day_ahead_detail_info(
                     start_date=start_date,
                     end_date=end_date,
                     request_kwargs={"timeout": kwargs.get("timeout", 5)},
+                    retry_attempts=kwargs.get("lives", lives),
+                    retry_backoff=kwargs.get("retry_backoff", 0),
+                    retry_backoff_max=kwargs.get("retry_backoff_max", 0),
+                    retry_jitter=kwargs.get("retry_jitter", 0.0),
                 )
 
                 df_d[item] = sub_df.copy()

@@ -429,7 +429,7 @@ wheels = [
 
 [[package]]
 name = "eptr2"
-version = "1.3.5.dev0"
+version = "1.3.5.dev1"
 source = { editable = "." }
 dependencies = [
     { name = "pytz" },
@@ -438,7 +438,6 @@ dependencies = [
 
 [package.optional-dependencies]
 allextras = [
-    { name = "authlib" },
     { name = "fastmcp" },
     { name = "pandas" },
 ]
@@ -471,7 +470,6 @@ docs = [
 
 [package.metadata]
 requires-dist = [
-    { name = "authlib", marker = "extra == 'allextras'", specifier = ">=1.6.6" },
     { name = "fastmcp", marker = "extra == 'allextras'", specifier = ">=2.14.4" },
     { name = "fastmcp", marker = "extra == 'mcp'", specifier = ">=2.14.4" },
     { name = "mkdocs-autorefs", marker = "extra == 'docs'", specifier = ">=0.5.0" },

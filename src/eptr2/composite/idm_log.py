@@ -2,7 +2,6 @@ from eptr2 import EPTR2
 import pandas as pd
 from datetime import datetime, timedelta
 from eptr2.util.time import get_hourly_contract_range_list
-import time
 
 
 def idm_log_longer(
@@ -46,40 +45,32 @@ def idm_log_longer(
 
     main_df = pd.DataFrame()
     while period_start_dt <= end_dt:
-        try:
-            period_start_date = period_start_dt.strftime("%Y-%m-%d")
-            period_end_date = period_end_dt.strftime("%Y-%m-%d")
-            if verbose:
-                print(
-                    f"Getting IDM log data for {period_start_date} to {period_end_date}"
-                )
+        period_start_date = period_start_dt.strftime("%Y-%m-%d")
+        period_end_date = period_end_dt.strftime("%Y-%m-%d")
+        if verbose:
+            print(f"Getting IDM log data for {period_start_date} to {period_end_date}")
 
-            # Get the IDM log data
+        try:
             df = eptr.call(
                 "idm-log",
                 start_date=period_start_date,
                 end_date=period_end_date,
+                retry_attempts=trials,
+                retry_backoff=cooldown,
+                retry_backoff_max=cooldown,
+                retry_jitter=0.0,
             )
-
-            main_df = pd.concat([main_df, df], ignore_index=True)
-
-            period_start_dt = period_end_dt + timedelta(days=1)
-            period_end_dt = min(period_start_dt + timedelta(days=days_interval), end_dt)
         except Exception as e:
             print(
                 f"Error getting IDM log data for {period_start_date} to {period_end_date}"
             )
             print(e)
+            break
 
-            trials -= 1
+        main_df = pd.concat([main_df, df], ignore_index=True)
 
-            if trials < 0:
-                print("Max trials reached. Exiting.")
-                break
-
-            print(f"Retrying after {cooldown} seconds... {trials} trials left.")
-            time.sleep(cooldown)
-            continue
+        period_start_dt = period_end_dt + timedelta(days=1)
+        period_end_dt = min(period_start_dt + timedelta(days=days_interval), end_dt)
 
     if contract_wise:
         c_df = pd.DataFrame(data={"contractName": c_l})

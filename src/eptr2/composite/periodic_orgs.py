@@ -1,8 +1,8 @@
 from eptr2 import EPTR2
 from datetime import datetime, timedelta
 import pandas as pd
-import time
 import numpy as np
+import time
 from eptr2.util.time import get_utc3_now, transform_date
 
 
@@ -84,6 +84,9 @@ def get_uevcb_ids(org_df: pd.DataFrame, period: str, **kwargs):
     chunk_size = kwargs.get("chunk_size", 950)
     max_lives = kwargs.get("max_lives", 3)
     verbose = kwargs.get("verbose", False)
+    retry_backoff = kwargs.get("retry_backoff", 2)
+    retry_backoff_max = kwargs.get("retry_backoff_max", retry_backoff)
+    retry_jitter = kwargs.get("retry_jitter", 0.0)
 
     while True:
         org_ids_chunk = org_id_list[(c - 1) * chunk_size : c * chunk_size]
@@ -99,37 +102,19 @@ def get_uevcb_ids(org_df: pd.DataFrame, period: str, **kwargs):
                 start_date=the_date,
                 org_ids=org_ids_chunk,
                 request_kwargs={"timeout": 5},
+                retry_attempts=max_lives,
+                retry_backoff=retry_backoff,
+                retry_backoff_max=retry_backoff_max,
+                retry_jitter=retry_jitter,
             )
 
-        lives = max_lives
-
-        while lives > 0:
-            try:
-                df = fetch_uevcb_list(start_date)
-                break
-            except Exception as e:
-                print("Error fetching UEVCB data:", e)
-                lives -= 1
-                if lives <= 0:
-                    raise Exception("Max lives reached. Exiting.")
-                time.sleep(2)
-                continue
+        df = fetch_uevcb_list(start_date)
 
         df = df.drop_duplicates().reset_index(drop=True)
         df["period"] = start_date
 
         time.sleep(1)  # To avoid overwhelming the API
-        while lives > 0:
-            try:
-                df_end = fetch_uevcb_list(end_date)
-                break
-            except Exception as e:
-                print("Error fetching UEVCB data:", e)
-                lives -= 1
-                if lives <= 0:
-                    raise Exception("Max lives reached. Exiting.")
-                time.sleep(2)
-                continue
+        df_end = fetch_uevcb_list(end_date)
         df_end = df_end.drop_duplicates().reset_index(drop=True)
         df_end["period"] = end_date
 

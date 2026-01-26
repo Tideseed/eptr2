@@ -1,7 +1,6 @@
 from eptr2 import EPTR2
 import pandas as pd
 from eptr2.util.time import iso_to_contract, get_utc3_now
-import time
 from datetime import datetime, timedelta
 
 
@@ -53,33 +52,27 @@ def get_bpm_range(
 
         if verbose:
             print(f"Fetching data for {date_str} ({i + 1}/{len(date_range)})...")
-        lives = max_lives
-
-        while lives > 0:
-            try:
-                df = eptr.call(
-                    "bpm-orders-w-avg",
-                    date=date_str,
-                    request_kwargs={"timeout": 5},
-                )
-                if df.empty:
-                    print(f"No data found for {date_str}. Skipping...")
-                else:
-                    df.drop(columns=["date"], inplace=True)
-                    df.rename(columns={"time": "dt"}, inplace=True)
-                    main_df = pd.concat([main_df, df])
-                break
-            except Exception as e:
-                if lives > 0:
-                    print(
-                        f"Error fetching data for {date_str}: {e}. Retrying after sleeping..."
-                    )
-                    lives -= 1
-                    time.sleep(max_lives - lives)  # Sleep longer with each retry
-                else:
-                    print(f"Failed to fetch data for {date_str} after retries.")
-                    if strict:
-                        raise Exception("Failed to fetch data after retries.")
+        try:
+            df = eptr.call(
+                "bpm-orders-w-avg",
+                date=date_str,
+                request_kwargs={"timeout": 5},
+                retry_attempts=max_lives,
+                retry_backoff=1,
+                retry_backoff_max=5,
+                retry_jitter=0.0,
+            )
+            if df.empty:
+                print(f"No data found for {date_str}. Skipping...")
+            else:
+                df.drop(columns=["date"], inplace=True)
+                df.rename(columns={"time": "dt"}, inplace=True)
+                main_df = pd.concat([main_df, df])
+        except Exception as e:
+            print(f"Failed to fetch data for {date_str} after retries: {e}")
+            if strict:
+                raise
+            continue
 
     main_df.reset_index(drop=True, inplace=True)
 

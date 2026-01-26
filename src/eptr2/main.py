@@ -5,6 +5,9 @@ import os
 import json
 from urllib.parse import urljoin
 import copy
+import time
+import random
+import socket
 from eptr2.mapping import (
     get_total_path,
     get_call_method,
@@ -429,22 +432,59 @@ def transparency_call(
         header_d["TGT"] = tgt
 
     full_url = urljoin(call_phrase, "")
-    res = http.request(
-        method=call_method,
-        url=full_url,
-        body=json.dumps(call_body),
-        headers=header_d,
-        **kwargs.get("request_kwargs", {}),
+    retry_attempts = max(1, int(kwargs.pop("retry_attempts", kwargs.pop("retries", 1))))
+    retry_backoff = float(kwargs.pop("retry_backoff", 0.5))
+    retry_backoff_max = float(kwargs.pop("retry_backoff_max", 5.0))
+    retry_jitter = float(kwargs.pop("retry_jitter", 0.1))
+    # By default retry only on timeout-like conditions
+    retry_on_status = set(kwargs.pop("retry_on_status", {408, 504}))
+    timeout_exceptions = (
+        urllib3.exceptions.TimeoutError,
+        urllib3.exceptions.ReadTimeoutError,
+        urllib3.exceptions.ConnectTimeoutError,
+        socket.timeout,
+        TimeoutError,
     )
+    retry_on_exceptions = tuple(kwargs.pop("retry_on_exceptions", timeout_exceptions))
+    request_kwargs = kwargs.get("request_kwargs", {})
 
-    if res.status not in [200, 201]:
-        raise Exception(
-            "Request failed with status code: "
-            + str(res.status)
-            + "\n"
-            + res.data.decode("utf-8")
-        )
-    return res
+    def _sleep_with_backoff(current_delay: float) -> float:
+        jitter_factor = 1 + random.uniform(-retry_jitter, retry_jitter)
+        sleep_time = max(0.0, min(current_delay * jitter_factor, retry_backoff_max))
+        time.sleep(sleep_time)
+        return min(current_delay * 2, retry_backoff_max)
+
+    attempt = 1
+    delay = retry_backoff
+    while True:
+        try:
+            res = http.request(
+                method=call_method,
+                url=full_url,
+                body=json.dumps(call_body),
+                headers=header_d,
+                **request_kwargs,
+            )
+        except retry_on_exceptions:
+            if attempt >= retry_attempts:
+                raise
+            delay = _sleep_with_backoff(delay)
+            attempt += 1
+            continue
+
+        if res.status in [200, 201]:
+            return res
+
+        if res.status not in retry_on_status or attempt >= retry_attempts:
+            raise Exception(
+                "Request failed with status code: "
+                + str(res.status)
+                + "\n"
+                + res.data.decode("utf-8")
+            )
+
+        delay = _sleep_with_backoff(delay)
+        attempt += 1
 
 
 def load_eptr_credentials_from_dotenv(env_file_path: str = ".env") -> None:

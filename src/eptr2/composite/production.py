@@ -4,7 +4,6 @@ from eptr2.util.time import (
     iso_to_contract,
     check_date_for_settlement,
 )
-import time
 
 
 def get_hourly_production_data(
@@ -34,6 +33,12 @@ def get_hourly_production_data(
     max_trials = kwargs.get("max_trials", 2)
     timeout = kwargs.get("timeout", 5)
     sleep_interval = kwargs.get("sleep_interval", 3)
+    retry_kwargs = {
+        "retry_attempts": max_trials,
+        "retry_backoff": sleep_interval,
+        "retry_backoff_max": sleep_interval,
+        "retry_jitter": 0.0,
+    }
 
     #### SANITY CHECKS ####
     if skip_rt and skip_uevm:
@@ -49,28 +54,14 @@ def get_hourly_production_data(
         if verbose:
             print("Loading real time production data...")
 
-        trials = max_trials
-        while trials > 0:
-            try:
-                rt_gen_df: pd.DataFrame = eptr.call(
-                    "rt-gen",
-                    start_date=start_date,
-                    end_date=end_date,
-                    pp_id=rt_pp_id,
-                    request_kwargs={"timeout": timeout},
-                )
-                break
-            except Exception as e:
-                trials -= 1
-
-                if trials == 0:
-                    raise e
-
-                time.sleep(sleep_interval)
-                if verbose:
-                    print(
-                        f"An error occurred while fetching RT data. Retrying after {sleep_interval} seconds... ({trials} attempts left)"
-                    )
+        rt_gen_df: pd.DataFrame = eptr.call(
+            "rt-gen",
+            start_date=start_date,
+            end_date=end_date,
+            pp_id=rt_pp_id,
+            request_kwargs={"timeout": timeout},
+            **retry_kwargs,
+        )
 
         if rt_gen_df.empty:
             raise ValueError("No data (production) is available for this date range.")
@@ -95,27 +86,14 @@ def get_hourly_production_data(
         if verbose:
             print("Loading UEVM data...")
 
-        trials = max_trials
-        while trials > 0:
-            try:
-                uevm_df: pd.DataFrame = eptr.call(
-                    "uevm",
-                    start_date=start_date,
-                    end_date=end_date,
-                    pp_id=uevm_pp_id,
-                    request_kwargs={"timeout": timeout},
-                )
-                break
-            except Exception as e:
-                trials -= 1
-                if trials == 0:
-                    raise e
-
-                time.sleep(sleep_interval)
-                if verbose:
-                    print(
-                        f"An error occurred while fetching UEVM data. Retrying after {sleep_interval} seconds... ({trials} attempts left)"
-                    )
+        uevm_df: pd.DataFrame = eptr.call(
+            "uevm",
+            start_date=start_date,
+            end_date=end_date,
+            pp_id=uevm_pp_id,
+            request_kwargs={"timeout": timeout},
+            **retry_kwargs,
+        )
 
         try:
             uevm_df.drop("hour", axis=1, inplace=True)
@@ -183,6 +161,12 @@ def get_hourly_production_plan_data(
 
     max_trials = kwargs.get("max_trials", 2)
     timeout = kwargs.get("timeout", 5)
+    retry_kwargs = {
+        "retry_attempts": max_trials,
+        "retry_backoff": kwargs.get("sleep_interval", 3),
+        "retry_backoff_max": kwargs.get("sleep_interval", 3),
+        "retry_jitter": 0.0,
+    }
 
     if all([skip_kgup_v1, skip_kgup, skip_kudup]):
         raise ValueError(
@@ -197,26 +181,15 @@ def get_hourly_production_plan_data(
         if verbose:
             print("Loading KGUP v1...")
 
-        trials = max_trials
-        while trials > 0:
-            try:
-                kgup_v1_df: pd.DataFrame = eptr.call(
-                    "kgup-v1",
-                    start_date=start_date,
-                    end_date=end_date,
-                    org_id=org_id,
-                    uevcb_id=uevcb_id,
-                    request_kwargs={"timeout": timeout},
-                )
-                break
-            except Exception as e:
-                trials -= 1
-                if trials == 0:
-                    raise e
-                if verbose:
-                    print(
-                        f"An error occurred while fetching KGUP v1 data. Retrying... ({trials} attempts left)"
-                    )
+        kgup_v1_df: pd.DataFrame = eptr.call(
+            "kgup-v1",
+            start_date=start_date,
+            end_date=end_date,
+            org_id=org_id,
+            uevcb_id=uevcb_id,
+            request_kwargs={"timeout": timeout},
+            **retry_kwargs,
+        )
 
         if kgup_v1_df.empty:
             skip_kgup_v1 = True
@@ -231,26 +204,15 @@ def get_hourly_production_plan_data(
         if verbose:
             print("Loading KGUP...")
 
-        trials = max_trials
-        while trials > 0:
-            try:
-                kgup_df: pd.DataFrame = eptr.call(
-                    "kgup",
-                    start_date=start_date,
-                    end_date=end_date,
-                    org_id=org_id,
-                    uevcb_id=uevcb_id,
-                    request_kwargs={"timeout": timeout},
-                )
-                break
-            except Exception as e:
-                trials -= 1
-                if trials == 0:
-                    raise e
-                if verbose:
-                    print(
-                        f"An error occurred while fetching KGUP data. Retrying... ({trials} attempts left)"
-                    )
+        kgup_df: pd.DataFrame = eptr.call(
+            "kgup",
+            start_date=start_date,
+            end_date=end_date,
+            org_id=org_id,
+            uevcb_id=uevcb_id,
+            request_kwargs={"timeout": timeout},
+            **retry_kwargs,
+        )
         if kgup_df.empty:
             skip_kgup = True
             print("No data (KGUP) is available for this date range.")
@@ -263,26 +225,15 @@ def get_hourly_production_plan_data(
         if verbose:
             print("Loading KUDUP...")
 
-        trials = max_trials
-        while trials > 0:
-            try:
-                kudup_df: pd.DataFrame = eptr.call(
-                    "kudup",
-                    start_date=start_date,
-                    end_date=end_date,
-                    org_id=org_id,
-                    uevcb_id=uevcb_id,
-                    request_kwargs={"timeout": timeout},
-                )
-                break
-            except Exception as e:
-                trials -= 1
-                if trials == 0:
-                    raise e
-                if verbose:
-                    print(
-                        f"An error occurred while fetching KUDUP data. Retrying... ({trials} attempts left)"
-                    )
+        kudup_df: pd.DataFrame = eptr.call(
+            "kudup",
+            start_date=start_date,
+            end_date=end_date,
+            org_id=org_id,
+            uevcb_id=uevcb_id,
+            request_kwargs={"timeout": timeout},
+            **retry_kwargs,
+        )
 
         if kudup_df.empty:
             skip_kudup = True

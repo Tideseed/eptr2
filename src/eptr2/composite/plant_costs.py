@@ -1,5 +1,4 @@
 import os
-import time
 from typing import Literal
 
 import pandas as pd
@@ -195,33 +194,34 @@ def calculate_portfolio_costs(
                 print(
                     f"Processing UEVCB: {row['uevcb_name']}", idx + 1, "of", len(id_df)
                 )
-            lives = kwargs.get("max_lives", 3)
-            while lives > 0:
-                try:
-                    sub_df = wrapper_hourly_production_plan_and_realized(
-                        start_date=start_date,
-                        end_date=end_date,
-                        org_id=row["org_id"],
-                        uevcb_id=row["uevcb_id"],
-                        rt_pp_id=row["rt_id"],
-                        uevm_pp_id=row["uevm_id"],
-                        verbose=verbose,
-                        skip_uevm=True,
-                    )
-                    sub_df["org_id"] = row["org_id"]
-                    sub_df["uevcb_id"] = row["uevcb_id"]
-                    sub_df["rt_id"] = row["rt_id"]
-                    sub_df["uevm_id"] = row["uevm_id"]
-                    sub_df["uevcb_name"] = row["uevcb_name"]
-                    sub_df["pp_name"] = row["rt_shortname"]
-                    plan_realized_df = pd.concat(
-                        [plan_realized_df, sub_df], ignore_index=True
-                    )
-                    break
-                except Exception as e:
-                    lives -= 1
-                    print(f"Error occurred: {e}. Remaining lives: {lives}")
-                    time.sleep(3)
+
+            retry_kwargs = {
+                "retry_attempts": kwargs.get("max_lives", 3),
+                "retry_backoff": kwargs.get("retry_backoff", 3),
+                "retry_backoff_max": kwargs.get(
+                    "retry_backoff_max", kwargs.get("retry_backoff", 3)
+                ),
+                "retry_jitter": kwargs.get("retry_jitter", 0.0),
+            }
+
+            sub_df = wrapper_hourly_production_plan_and_realized(
+                start_date=start_date,
+                end_date=end_date,
+                org_id=row["org_id"],
+                uevcb_id=row["uevcb_id"],
+                rt_pp_id=row["rt_id"],
+                uevm_pp_id=row["uevm_id"],
+                verbose=verbose,
+                skip_uevm=True,
+                **retry_kwargs,
+            )
+            sub_df["org_id"] = row["org_id"]
+            sub_df["uevcb_id"] = row["uevcb_id"]
+            sub_df["rt_id"] = row["rt_id"]
+            sub_df["uevm_id"] = row["uevm_id"]
+            sub_df["uevcb_name"] = row["uevcb_name"]
+            sub_df["pp_name"] = row["rt_shortname"]
+            plan_realized_df = pd.concat([plan_realized_df, sub_df], ignore_index=True)
 
         if export_to_excel:
             if verbose:
