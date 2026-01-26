@@ -6,8 +6,6 @@ from eptr2.util.time import (
     get_start_end_dates_period,
 )
 
-pd.set_option("future.no_silent_downcasting", True)
-
 
 def process_idm_data(
     eptr: EPTR2, start_date: str, end_date: str, org_id: str, **kwargs

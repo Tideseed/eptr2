@@ -52,7 +52,6 @@ def get_param_label(key):
         "tariff_group_id": {"label": "groupId"},
         "mr_type": {"label": "meterReadingType"},
         "subscriber_pg": {"label": "subscriberProfileGroup"},
-        "province_id": {"label": "provinceId"},
         "dist_company_id": {"label": "distributionCompanyId"},
         "district_name": {"label": "districtName"},
         "pg_name": {"label": "profileGroupName"},
@@ -228,7 +227,6 @@ def get_required_parameters(key, return_mapping=False, mapping_only_keys=False):
         "ng-virtual-realization": ["start_date", "end_date"],
         "ng-weekly-matched-quantity": ["start_date", "end_date"],
         "ng-wrp": ["start_date", "end_date"],
-        "ng-weekly-matched-quantity": ["start_date", "end_date"],
         "ng-weekly-trade-volume": ["start_date", "end_date"],
         "ng-vgp-contract-price-summary": ["is_txn_period"],
         "ng-vgp-contract-price-summary-period": [
