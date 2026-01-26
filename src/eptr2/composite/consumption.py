@@ -8,7 +8,7 @@ def get_hourly_consumption_and_forecast_data(
     end_date: str,
     eptr: EPTR2 | None = None,
     verbose: bool = False,
-    include_contract_symbol: bool = False,
+    include_contract_symbol: bool = True,
     **kwargs,
 ):
     """

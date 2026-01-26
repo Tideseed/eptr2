@@ -59,7 +59,7 @@ def get_day_ahead_and_bilateral_matches(
     start_date: str,
     end_date: str,
     eptr: EPTR2 | None = None,
-    include_contract_symbol: bool = False,
+    include_contract_symbol: bool = True,
     org_id: str = None,
     include_idm_data: bool = False,
     include_org_id: bool = False,
@@ -218,7 +218,7 @@ def get_day_ahead_detail_info(
     end_date: str,
     eptr: EPTR2 | None = None,
     verbose: bool = False,
-    include_contract_symbol: bool = False,
+    include_contract_symbol: bool = True,
     lives: int = 3,
     **kwargs,
 ) -> pd.DataFrame:

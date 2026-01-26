@@ -11,7 +11,7 @@ def get_mms_detail(
     uevcb_id: str | None = None,
     pp_id: str | None = None,
     message_type_id: str | None = None,
-    include_contract_symbol: bool = False,
+    include_contract_symbol: bool = True,
     include_summary: bool = False,
     verbose: bool = False,
     **kwargs,
