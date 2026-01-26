@@ -1,6 +1,7 @@
 import warnings
 from typing import Literal
 import math
+from eptr2.util.time import contract_to_floor_ceil_prices
 
 
 def get_regulation_period_by_contract(contract: str):
@@ -1253,6 +1254,7 @@ def calculate_unit_price_and_costs_by_contract(
     mcp: float,
     smp: float,
     include_kupst: bool = True,
+    include_dynamic_floor_ceil: bool = False,
     **kwargs,
 ):
     """
@@ -1305,6 +1307,10 @@ def calculate_unit_price_and_costs_by_contract(
     {'pos_price': 94.0, 'neg_price': 116.5, 'pos_cost': 6.0, 'neg_cost': 16.5, 'unit_kupst': 5.5}
     """
     regulation_period = get_regulation_period_by_contract(contract=contract)
+
+    if include_dynamic_floor_ceil:
+        fc_d = contract_to_floor_ceil_prices(contract)
+        kwargs.update({"floor_price": fc_d["min"], "ceil_price": fc_d["max"]})
 
     res = calculate_unit_price_and_costs(
         mcp=mcp,
@@ -1374,14 +1380,6 @@ def calculate_unit_price_and_costs(
     >>> calculate_unit_price_and_costs(mcp=100, smp=110, regulation_period='current')
     {'pos_price': 94.0, 'neg_price': 116.5, 'pos_cost': 6.0, 'neg_cost': 16.5, 'unit_kupst': 5.5}
     """
-
-    d = calculate_unit_imbalance_cost(
-        mcp=mcp,
-        smp=smp,
-        include_prices=True,
-        regulation_period=regulation_period,
-        **kwargs,
-    )
 
     if regulation_period in ["current", "26_01"]:
         d = calculate_unit_imbalance_cost_2026(
@@ -1541,6 +1539,7 @@ def calculate_diff_costs_by_contract(
     smp: float,
     production_source: str | None = None,
     include_quantities: bool = False,
+    include_dynamic_floor_ceil: bool = False,
     **kwargs,
 ) -> dict | float:
     """
@@ -1626,6 +1625,10 @@ def calculate_diff_costs_by_contract(
     {'imb_cost': 100.0, 'kupst_cost': 90.0, 'total_cost': 190.0, 'imb_qty': -20.0, 'kupsm': 2.0}
     """
     regulation_period = get_regulation_period_by_contract(contract)
+
+    if include_dynamic_floor_ceil:
+        fc_d = contract_to_floor_ceil_prices(contract)
+        kwargs.update({"floor_price": fc_d["min"], "ceil_price": fc_d["max"]})
 
     return calculate_diff_costs(
         forecast=forecast,
