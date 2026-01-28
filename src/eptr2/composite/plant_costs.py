@@ -156,12 +156,17 @@ def calculate_portfolio_costs(
     start_date: str,
     end_date: str,
     id_df: pd.DataFrame,
+    *,
     export_to_excel: bool = False,
     export_dir: str = "data",
     check_existing: bool = False,
     portfolio_name: str | None = None,
-    translate_cost_summary: bool = False,
+    translate: bool = False,
     verbose=True,
+    use_uevm=False,
+    ignore_org_id=True,
+    reduce_cost_details=False,
+    forecast_source: Literal["kgup", "kudup"] = "kgup",
     **kwargs,
 ):
     """
@@ -171,6 +176,33 @@ def calculate_portfolio_costs(
     + KUPST calculations are based on a single plant type. Aggregators have more complex rules that are not covered here.
     + Your portfolio does not have to be an aggregator but calculations resemble those of an aggregator. You can use this function to estimate costs for potential aggregators.
     """
+    #####
+    ### Validate forecast source
+    if forecast_source.lower() in ["kgüp", "kgup", "kagup", "kagüp"]:
+        forecast_source = "kgup"
+    elif forecast_source.lower() in ["kudüp", "kudup"]:
+        forecast_source = "kudup"
+
+    if forecast_source not in ["kgup", "kudup"]:
+        raise ValueError(
+            "forecast_source must be either 'kgup' or 'kudup'. For day ahead forecasts, we use kgup_v1 by default."
+        )
+
+    if ignore_org_id:
+        if forecast_source == "kudup":
+            raise ValueError(
+                "When using 'kudup' as forecast source, org_id is required. Set ignore_org_id=False or use kgup as forecast_source."
+            )
+
+    if forecast_source == "kgup":
+        kwargs["skip_kgup"] = False
+        kwargs["skip_kudup"] = True
+    else:
+        kwargs["skip_kgup"] = True
+        kwargs["skip_kudup"] = False
+    ##########
+
+    res_d = {}
 
     if not os.path.exists(export_dir):
         os.makedirs(export_dir, exist_ok=True)
@@ -180,65 +212,156 @@ def calculate_portfolio_costs(
     else:
         portfolio_name = f"_{portfolio_name.lower()}"
 
-    plan_realized_path = os.path.join(
+    excel_export_path = os.path.join(
         export_dir, f"portfolio{portfolio_name}_costs_data_{start_date}_{end_date}.xlsx"
     )
 
-    if check_existing and os.path.exists(plan_realized_path):
-        plan_realized_df = pd.read_excel(plan_realized_path)
-    else:
-        plan_realized_df = pd.DataFrame()
-        id_df = id_df.reset_index(drop=True).copy()
-        for idx, row in id_df.iterrows():
-            if verbose:
-                print(
-                    f"Processing UEVCB: {row['uevcb_name']}", idx + 1, "of", len(id_df)
-                )
+    if check_existing and os.path.exists(excel_export_path):
+        res_d["costs_detail"] = pd.read_excel(
+            excel_export_path, sheet_name="costs_detail"
+        )
+        res_d["contract_summary"] = pd.read_excel(
+            excel_export_path, sheet_name="contract_summary"
+        )
+        return res_d
 
-            retry_kwargs = {
-                "retry_attempts": kwargs.get("max_lives", 3),
-                "retry_backoff": kwargs.get("retry_backoff", 3),
-                "retry_backoff_max": kwargs.get(
-                    "retry_backoff_max", kwargs.get("retry_backoff", 3)
-                ),
-                "retry_jitter": kwargs.get("retry_jitter", 0.0),
-            }
+    plan_realized_df = pd.DataFrame()
+    id_df = id_df.reset_index(drop=True).copy()
+    res_d["plant_info"] = id_df.copy()
+    for idx, row in id_df.iterrows():
+        if verbose:
+            print(f"Processing Plant: {row['plant_name']}", idx + 1, "of", len(id_df))
 
-            sub_df = wrapper_hourly_production_plan_and_realized(
-                start_date=start_date,
-                end_date=end_date,
-                org_id=row["org_id"],
-                uevcb_id=row["uevcb_id"],
-                rt_pp_id=row["rt_id"],
-                uevm_pp_id=row["uevm_id"],
-                verbose=verbose,
-                skip_uevm=True,
-                **retry_kwargs,
+        sub_df = wrapper_hourly_production_plan_and_realized(
+            start_date=start_date,
+            end_date=end_date,
+            org_id=row["org_id"] if not ignore_org_id else None,
+            uevcb_id=row["uevcb_id"],
+            rt_pp_id=row["rt_id"],
+            uevm_pp_id=row["uevm_id"] if use_uevm else None,
+            verbose=verbose,
+            include_contract_symbol=True,
+            **kwargs,
+        )
+        sub_df["uevcb_id"] = row["uevcb_id"]
+        sub_df["plant_name"] = row["plant_name"]
+
+        if use_uevm:
+            sub_df["actual"] = sub_df.apply(
+                lambda x: x["total_rt"]
+                if pd.isna(x["total_uevm"])
+                else x["total_uevm"],
+                axis=1,
             )
-            sub_df["org_id"] = row["org_id"]
-            sub_df["uevcb_id"] = row["uevcb_id"]
-            sub_df["rt_id"] = row["rt_id"]
-            sub_df["uevm_id"] = row["uevm_id"]
-            sub_df["uevcb_name"] = row["uevcb_name"]
-            sub_df["pp_name"] = row["rt_shortname"]
-            plan_realized_df = pd.concat([plan_realized_df, sub_df], ignore_index=True)
+        else:
+            sub_df["actual"] = sub_df["total_rt"]
 
-        if export_to_excel:
-            if verbose:
-                print(f"Exporting cost details to Excel: {plan_realized_path}")
+        sub_df["da_forecast"] = sub_df["toplam_kgup_v1"]
+        sub_df["forecast"] = sub_df[f"toplam_{forecast_source}"]
+        ## Negative means underproduction, negative imbalance
+        sub_df["imb_qty"] = sub_df["actual"] - sub_df["forecast"]
+        sub_df["da_imb_qty"] = sub_df["actual"] - sub_df["da_forecast"]
+        for pfx in ["", "da_"]:
+            sub_df[f"{pfx}kupsm"] = sub_df.apply(
+                lambda row: calculate_kupsm(
+                    actual=row["actual"],
+                    forecast=row[f"{pfx}forecast"],
+                    tol=get_kupst_tolerance_by_contract(
+                        row["contract"], row.get("source", "other")
+                    ),
+                ),
+                axis=1,
+            )
 
-            plan_realized_df.to_excel(plan_realized_path, index=False)
+        if reduce_cost_details:
+            sub_df = sub_df[
+                [
+                    "contract",
+                    "plant_name",
+                    "uevcb_id",
+                    "da_forecast",
+                    "forecast",
+                    "actual",
+                    "da_imb_qty",
+                    "imb_qty",
+                    "da_kupsm",
+                    "kupsm",
+                ]
+            ]
+
+        plan_realized_df = pd.concat([plan_realized_df, sub_df], ignore_index=True)
+
+    # res_d["costs_detail"] = plan_realized_df.copy()
 
     cost_df = get_hourly_price_and_cost_data(
         start_date=start_date,
         end_date=end_date,
         include_contract_symbol=True,
         add_kupst_cost=True,
+        add_unit_prefix_to_cost_colnames=True,
+        verbose=verbose,
     )
 
-    summary_df = (
-        plan_realized_df[
-            ["contract", "toplam_kgup_v1", "toplam_kgup", "toplam_kudup", "total_rt"]
+    plan_realized_w_costs_df = plan_realized_df.merge(
+        cost_df[
+            ["contract", "unit_pos_imb_cost", "unit_neg_imb_cost", "unit_kupst_cost"]
+        ],
+        on="contract",
+        how="left",
+    )
+
+    # plan_realized_w_costs_df["kupsm_da"] = plan_realized_w_costs_df.apply(
+    #     lambda row: calculate_kupsm(
+    #         actual=row["actual"],
+    #         forecast=row["forecast"],
+    #         tol=get_kupst_tolerance_by_contract(
+    #             contract=row["contract"], source=row.get("source", "other")
+    #         ),
+    #     ),
+    #     axis=1,
+    # )
+
+    for pfx in ["da_", ""]:
+        plan_realized_w_costs_df[f"{pfx}imb_cost"] = plan_realized_w_costs_df.apply(
+            lambda row: abs(row[f"{pfx}imb_qty"]) * row["unit_pos_imb_cost"]
+            if row[f"{pfx}imb_qty"] > 0
+            else abs(row[f"{pfx}imb_qty"]) * row["unit_neg_imb_cost"],
+            axis=1,
+        ).round(2)
+        plan_realized_w_costs_df[f"{pfx}kupst_cost"] = (
+            plan_realized_w_costs_df[f"{pfx}kupsm"]
+            * plan_realized_w_costs_df["unit_kupst_cost"]
+        ).round(2)
+        plan_realized_w_costs_df[f"{pfx}total_cost"] = (
+            plan_realized_w_costs_df[f"{pfx}imb_cost"]
+            + plan_realized_w_costs_df[f"{pfx}kupst_cost"]
+        ).round(2)
+
+    plan_realized_df_w_costs_df = plan_realized_w_costs_df.drop(
+        columns=[
+            "unit_pos_imb_cost",
+            "unit_neg_imb_cost",
+            "unit_kupst_cost",
+        ]
+    ).copy()
+
+    res_d["costs_detail"] = plan_realized_df_w_costs_df.copy()
+
+    #####
+    ## SUMMARY BY CONTRACT
+    #####
+    summary_by_contract_df_raw = (
+        plan_realized_w_costs_df[
+            [
+                "contract",
+                "da_forecast",
+                "forecast",
+                "actual",
+                "da_kupsm",
+                "kupsm",
+                "da_kupst_cost",
+                "kupst_cost",
+            ]
         ]
         .groupby("contract")
         .agg("sum")
@@ -246,34 +369,16 @@ def calculate_portfolio_costs(
     )
 
     ### PRODUCER ONLY; OTHERWISE FORECAST - ACTUAL
-    summary_df["imb_da"] = summary_df["total_rt"] - summary_df["toplam_kgup_v1"]
-
-    summary_df["kupsm_da"] = summary_df.apply(
-        lambda row: calculate_kupsm(
-            actual=row["total_rt"],
-            forecast=row["toplam_kgup_v1"],
-            tol=get_kupst_tolerance_by_contract(
-                contract=row["contract"], source=row.get("source", "wind")
-            ),
-        ),
-        axis=1,
+    summary_by_contract_df_raw["da_imb_qty"] = (
+        summary_by_contract_df_raw["actual"] - summary_by_contract_df_raw["da_forecast"]
     )
 
     ### PRODUCER ONLY; OTHERWISE FORECAST - ACTUAL
-    summary_df["imb"] = summary_df["total_rt"] - summary_df["toplam_kgup"]
-
-    summary_df["kupsm"] = summary_df.apply(
-        lambda row: calculate_kupsm(
-            actual=row["total_rt"],
-            forecast=row["toplam_kudup"],
-            tol=get_kupst_tolerance_by_contract(
-                contract=row["contract"], source="wind"
-            ),
-        ),
-        axis=1,
+    summary_by_contract_df_raw["imb_qty"] = (
+        summary_by_contract_df_raw["actual"] - summary_by_contract_df_raw["forecast"]
     )
 
-    cost_summary_df = summary_df.merge(
+    cost_summary_by_contract_df = summary_by_contract_df_raw.merge(
         cost_df[
             [
                 "contract",
@@ -281,120 +386,186 @@ def calculate_portfolio_costs(
                 "smp",
                 "pos_imb_price",
                 "neg_imb_price",
-                "pos_imb_cost",
-                "neg_imb_cost",
-                "kupst_cost",
+                "unit_pos_imb_cost",
+                "unit_neg_imb_cost",
+                "unit_kupst_cost",
             ]
         ],
         on="contract",
         how="left",
     )
 
-    for col in ["imb_da", "imb"]:
-        cost_summary_df[f"{col}_cost"] = cost_summary_df.apply(
-            lambda row: abs(row[col]) * row["pos_imb_cost"]
-            if row[col] > 0
-            else abs(row[col]) * row["neg_imb_cost"],
+    for col in ["da_imb", "imb"]:
+        cost_summary_by_contract_df[f"{col}_cost"] = cost_summary_by_contract_df.apply(
+            lambda row: abs(row[col + "_qty"]) * row["unit_pos_imb_cost"]
+            if row[col + "_qty"] > 0
+            else abs(row[col + "_qty"]) * row["unit_neg_imb_cost"],
             axis=1,
         ).round(2)
-    for col in ["kupsm_da", "kupsm"]:
-        cost_summary_df[f"{col}_cost"] = (
-            cost_summary_df[col] * cost_summary_df["kupst_cost"]
-        ).round(2)
-    cost_summary_df["total_da_cost"] = (
-        cost_summary_df["imb_da_cost"] + cost_summary_df["kupsm_da_cost"]
+    cost_summary_by_contract_df["da_total_cost"] = (
+        cost_summary_by_contract_df["da_imb_cost"]
+        + cost_summary_by_contract_df["da_kupst_cost"]
     ).round(2)
-    cost_summary_df["total_cost"] = (
-        cost_summary_df["imb_cost"] + cost_summary_df["kupsm_cost"]
+    cost_summary_by_contract_df["total_cost"] = (
+        cost_summary_by_contract_df["imb_cost"]
+        + cost_summary_by_contract_df["kupst_cost"]
     ).round(2)
-
-    cost_summary_df["cum_cost"] = cost_summary_df["total_cost"].cumsum()
-    cost_summary_df["cum_da_cost"] = cost_summary_df["total_da_cost"].cumsum()
 
     col_order = [
         "contract",
-        "total_cost",
-        "total_da_cost",
-        "imb",
-        "imb_cost",
-        "imb_da",
-        "imb_da_cost",
+        "actual",
+        ## Day Ahead
+        "da_forecast",
+        "da_imb_qty",
+        "da_kupsm",
+        "da_imb_cost",
+        "da_kupst_cost",
+        "da_total_cost",
+        ##
+        ## Intraday
+        "forecast",
+        "imb_qty",
         "kupsm",
-        "kupsm_cost",
-        "kupsm_da_cost",
-        "kupsm_da",
-        "total_rt",
-        "toplam_kgup",
-        "toplam_kgup_v1",
-        "toplam_kudup",
-        "pos_imb_cost",
-        "neg_imb_cost",
+        "imb_cost",
         "kupst_cost",
+        "total_cost",
+        ##
+        ## Price Data
         "mcp",
         "smp",
         "pos_imb_price",
         "neg_imb_price",
+        "unit_pos_imb_cost",
+        "unit_neg_imb_cost",
+        "unit_kupst_cost",
     ]
 
-    all_cols = col_order + [x for x in cost_summary_df.columns if x not in col_order]
-    cost_summary_df = cost_summary_df[all_cols]
+    all_cols = col_order + [
+        x for x in cost_summary_by_contract_df.columns if x not in col_order
+    ]
+    cost_summary_by_contract_df = cost_summary_by_contract_df[all_cols]
 
-    if translate_cost_summary:
-        cost_summary_df = cost_summary_df.rename(
+    if translate:
+        cost_summary_by_contract_df_translated = cost_summary_by_contract_df.rename(
             columns={
                 "contract": "Kontrat",
-                "toplam_kgup_v1": "KGÜP V1",
-                "toplam_kgup": "KGÜP",
-                "toplam_kudup": "KUDÜP",
-                "total_rt": "GZ Üretim",
-                "imb_da": "GÖP Dengesizlik (MWh)",
-                "kupsm_da": "GÖP KUPSM (MWh)",
-                "imb": "Dengesizlik (MWh)",
+                "actual": "Gerçekleşen",
+                "da_forecast": "GÖP Tahmin",
+                "da_imb_qty": "GÖP Dengesizlik (MWh)",
+                "da_kupsm": "GÖP KUPSM (MWh)",
+                "da_imb_cost": "GÖP DM (TL)",
+                "da_kupst_cost": "GÖP KÜPST (TL)",
+                "da_total_cost": "GÖP Toplam (TL)",
+                "forecast": "Tahmin",
+                "imb_qty": "Dengesizlik (MWh)",
                 "kupsm": "KUPSM (MWh)",
+                "imb_cost": "DM (TL)",
+                "kupst_cost": "KÜPST (TL)",
+                "total_cost": "Toplam (TL)",
                 "mcp": "PTF (TL/MWh)",
                 "smp": "SMF (TL/MWh)",
                 "pos_imb_price": "PDF (TL/MWh)",
                 "neg_imb_price": "NDF (TL/MWh)",
-                "pos_imb_cost": "PDM (TL/MWh)",
-                "neg_imb_cost": "NDM (TL/MWh)",
-                "kupst_cost": "B.KÜPST (TL/MWh)",
-                "imb_da_cost": "GÖP DM (TL)",
-                "kupsm_da_cost": "GÖP KÜPST (TL)",
-                "total_da_cost": "GÖP Toplam (TL)",
-                "imb_cost": "DM (TL)",
-                "kupsm_cost": "KÜPST (TL)",
-                "total_cost": "Toplam (TL)",
-                "cum_cost": "Kümülatif Toplam Maliyet (TL)",
-                "cum_da_cost": "Kümülatif GÖP Maliyet (TL)",
+                "unit_pos_imb_cost": "Birim PDM (TL/MWh)",
+                "unit_neg_imb_cost": "Birim NDM (TL/MWh)",
+                "unit_kupst_cost": "Birim KÜPST (TL/MWh)",
             }
         )
 
-    if export_to_excel:
-        summary_path = os.path.join(
-            export_dir,
-            f"portfolio{portfolio_name}_summary_data_{start_date}_{end_date}.xlsx",
-        )
-        if verbose:
-            print(f"Exporting cost summary to Excel: {summary_path}")
-        cost_summary_df.to_excel(summary_path, index=False)
+        res_d["contract_summary"] = cost_summary_by_contract_df_translated.copy()
+    else:
+        res_d["contract_summary"] = cost_summary_by_contract_df.copy()
 
-    return cost_summary_df
+    ### Summary of summaries
+
+    sos_df = (
+        plan_realized_df_w_costs_df[
+            [
+                x
+                for x in plan_realized_df_w_costs_df.columns
+                if x.endswith("_cost") and not x.startswith("unit_")
+            ]
+        ]
+        .sum()
+        .reset_index(drop=False)
+        .rename(columns={"index": "cost", 0: "pre_aggregator"})
+    )
+
+    cs_df = (
+        cost_summary_by_contract_df[
+            [
+                x
+                for x in cost_summary_by_contract_df.columns
+                if x.endswith("_cost") and not x.startswith("unit_")
+            ]
+        ]
+        .sum()
+        .reset_index(drop=False)
+        .rename(columns={"index": "cost", 0: "aggregator"})
+    )
+
+    sos_df = sos_df.merge(cs_df, on="cost", how="outer")
+
+    sos_df["savings"] = (sos_df["pre_aggregator"] - sos_df["aggregator"]).round(2)
+
+    sos_df["savings_perc"] = (
+        1 - sos_df["aggregator"] / sos_df["pre_aggregator"]
+    ).round(4)
+
+    if translate:
+        sos_df_translated = sos_df.rename(
+            columns={
+                "cost": "Maliyet Kalemi",
+                "pre_aggregator": "Toplayıcı Öncesi (TL)",
+                "aggregator": "Toplayıcı İle (TL)",
+                "savings": "Tasarruf (TL)",
+                "savings_perc": "Tasarruf (%)",
+            }
+        )
+        res_d["final_summary"] = sos_df_translated.copy()
+    else:
+        res_d["final_summary"] = sos_df.copy()
+
+    if export_to_excel:
+        name_map = {
+            "plant_info": "Santral Bilgileri",
+            "costs_detail": "Detay Maliyetler",
+            "contract_summary": "Kontrat Bazlı Toplayıcı Özeti",
+            "final_summary": "Nihai Özet",
+        }
+
+        if verbose:
+            print(f"Exporting cost details to Excel: {excel_export_path}")
+        with pd.ExcelWriter(excel_export_path) as writer:
+            for k, v in res_d.items():
+                v: pd.DataFrame
+                v.to_excel(
+                    writer,
+                    sheet_name=name_map.get(k, k) if translate else k,
+                    index=False,
+                )
+
+    return res_d
 
 
 def create_template_id_df(
-    export_to_excel: bool = False, export_path: str = "template_id_df.xlsx"
+    export_to_excel: bool = False,
+    export_dir: str = "data",
+    export_file_name: str = "portfolio_costs_template_id_df.xlsx",
 ):
     """
     Creates a template DataFrame for portfolio cost calculations.
     """
+    os.makedirs(export_dir, exist_ok=True)
+    export_path = os.path.join(export_dir, export_file_name)
+
     df = pd.DataFrame(
         columns=[
+            "plant_name",
             "org_id",
             "uevcb_id",
             "rt_id",
             "uevm_id",
-            "uevcb_name",
-            "rt_shortname",
             "source",
         ]
     )

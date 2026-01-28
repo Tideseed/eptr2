@@ -15,6 +15,7 @@ def get_hourly_price_and_cost_data(
     verbose: bool = False,
     include_contract_symbol: bool = True,
     timeout: int = 10,
+    add_unit_prefix_to_cost_colnames: bool = False,
     **kwargs,
 ):
     """
@@ -143,6 +144,18 @@ def get_hourly_price_and_cost_data(
         "neg_imb_cost",
         "kupst_cost",
     ]
+
+    if add_unit_prefix_to_cost_colnames:
+        cost_cols_mapping = {
+            "pos_imb_cost": "unit_pos_imb_cost",
+            "neg_imb_cost": "unit_neg_imb_cost",
+            "kupst_cost": "unit_kupst_cost",
+        }
+        price_df.rename(columns=cost_cols_mapping, inplace=True)
+        for old_col, new_col in cost_cols_mapping.items():
+            if old_col in columns_order:
+                columns_order.remove(old_col)
+                columns_order.append(new_col)
 
     columns_order = [col for col in columns_order if col in price_df.columns]
 

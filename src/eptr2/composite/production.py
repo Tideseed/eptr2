@@ -40,6 +40,11 @@ def get_hourly_production_data(
         "retry_jitter": 0.0,
     }
 
+    if rt_pp_id is None:
+        skip_rt = True
+    if uevm_pp_id is None:
+        skip_uevm = True
+
     #### SANITY CHECKS ####
     if skip_rt and skip_uevm:
         raise ValueError("Both skip_rt and skip_uevm cannot be True.")
@@ -173,9 +178,11 @@ def get_hourly_production_plan_data(
             "At least one of skip_kgup, skip_kgupv1, or skip_kudup must be False."
         )
 
-    if uevcb_id is not None:
+    if uevcb_id is not None and not skip_kudup:
         if org_id is None:
-            raise ValueError("org_id is required if uevcb_id is specified.")
+            raise ValueError(
+                "org_id is required if uevcb_id is specified. Either provide org_id or set skip_kudup=True."
+            )
 
     if not skip_kgup_v1:
         if verbose:
@@ -320,6 +327,7 @@ def wrapper_hourly_production_plan_and_realized(
         eptr=eptr,
         rt_pp_id=rt_pp_id,
         uevm_pp_id=uevm_pp_id,
+        skip_uevm=uevm_pp_id is None,
         verbose=verbose,
         include_contract_symbol=include_contract_symbol,
         **kwargs,
