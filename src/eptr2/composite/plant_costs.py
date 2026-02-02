@@ -10,6 +10,8 @@ from eptr2.util.costs import (
     calculate_kupsm,
     get_kupst_tolerance,
     get_kupst_tolerance_by_contract,
+    calculate_unit_imbalance_cost,
+    calculate_unit_kupst_cost,
 )
 
 
@@ -157,6 +159,7 @@ def calculate_portfolio_costs(
     end_date: str,
     id_df: pd.DataFrame,
     *,
+    plant_name_col="plant_name",
     export_to_excel: bool = False,
     export_dir: str = "data",
     check_existing: bool = False,
@@ -167,6 +170,7 @@ def calculate_portfolio_costs(
     ignore_org_id=True,
     reduce_cost_details=False,
     forecast_source: Literal["kgup", "kudup"] = "kgup",
+    use_latest_regulation: bool = False,
     **kwargs,
 ):
     """
@@ -230,7 +234,7 @@ def calculate_portfolio_costs(
     res_d["plant_info"] = id_df.copy()
     for idx, row in id_df.iterrows():
         if verbose:
-            print(f"Processing Plant: {row['plant_name']}", idx + 1, "of", len(id_df))
+            print(f"Processing Plant: {row[plant_name_col]}", idx + 1, "of", len(id_df))
 
         sub_df = wrapper_hourly_production_plan_and_realized(
             start_date=start_date,
@@ -244,7 +248,7 @@ def calculate_portfolio_costs(
             **kwargs,
         )
         sub_df["uevcb_id"] = row["uevcb_id"]
-        sub_df["plant_name"] = row["plant_name"]
+        sub_df["plant_name"] = row[plant_name_col]
 
         if use_uevm:
             sub_df["actual"] = sub_df.apply(
@@ -262,13 +266,21 @@ def calculate_portfolio_costs(
         sub_df["imb_qty"] = sub_df["actual"] - sub_df["forecast"]
         sub_df["da_imb_qty"] = sub_df["actual"] - sub_df["da_forecast"]
         for pfx in ["", "da_"]:
+            if use_latest_regulation:
+                tol = get_kupst_tolerance(
+                    source=row.get("source", "other"), regulation_period="current"
+                )
+            else:
+                tol = get_kupst_tolerance_by_contract(
+                    contract=sub_df["contract"].iloc[0],
+                    source=row.get("source", "other"),
+                )
+
             sub_df[f"{pfx}kupsm"] = sub_df.apply(
-                lambda row: calculate_kupsm(
-                    actual=row["actual"],
-                    forecast=row[f"{pfx}forecast"],
-                    tol=get_kupst_tolerance_by_contract(
-                        row["contract"], row.get("source", "other")
-                    ),
+                lambda subrow: calculate_kupsm(
+                    actual=subrow["actual"],
+                    forecast=subrow[f"{pfx}forecast"],
+                    tol=tol,
                 ),
                 axis=1,
             )
@@ -301,6 +313,28 @@ def calculate_portfolio_costs(
         add_unit_prefix_to_cost_colnames=True,
         verbose=verbose,
     )
+
+    if use_latest_regulation:
+        if verbose:
+            print("Using latest regulation for cost data.")
+        cost_df2 = cost_df[["contract", "mcp", "smp"]].copy()
+        temp_series = cost_df2.apply(
+            lambda row: calculate_unit_imbalance_cost(
+                mcp=row["mcp"],
+                smp=row["smp"],
+                include_prices=True,
+                regulation_period="current",
+            ),
+            axis=1,
+        )
+        cost_df2 = pd.concat([cost_df2, pd.json_normalize(temp_series)], axis=1)
+        cost_df2["unit_kupst_cost"] = cost_df2.apply(
+            lambda row: calculate_unit_kupst_cost(
+                mcp=row["mcp"], smp=row["smp"], regulation_period="current"
+            ),
+            axis=1,
+        )
+        cost_df2 = cost_df2.reset_index(drop=True)
 
     plan_realized_w_costs_df = plan_realized_df.merge(
         cost_df[

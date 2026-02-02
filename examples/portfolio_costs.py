@@ -37,13 +37,13 @@ id_df = pd.DataFrame(
     ]
 )
 
-calculate_portfolio_costs(
+res_d = calculate_portfolio_costs(
     start_date="2026-01-01",
-    end_date="2026-01-25",
+    end_date="2026-01-31",
     id_df=id_df,
     export_dir=main_dir,
     check_existing=False,
-    portfolio_name="example_portfolio",
+    portfolio_name="example_jan_26",
     use_uevm=False,
     translate=True,
     export_to_excel=True,
@@ -51,6 +51,7 @@ calculate_portfolio_costs(
     forecast_source="kgup",
     ignore_org_id=True,
     reduce_cost_details=True,
+    use_latest_regulation=True,
 )
 
 print("End")
