@@ -13,6 +13,7 @@ from eptr2.util.costs import (
     calculate_unit_imbalance_cost,
     calculate_unit_kupst_cost,
 )
+from eptr2.util.time import contract_to_floor_ceil_prices, date_str_to_contract
 
 
 def postprocess_plant_cost_df(df: pd.DataFrame):
@@ -171,6 +172,7 @@ def calculate_portfolio_costs(
     reduce_cost_details=False,
     forecast_source: Literal["kgup", "kudup"] = "kgup",
     use_latest_regulation: bool = False,
+    include_price_range_adjustment: bool = False,
     **kwargs,
 ):
     """
@@ -191,6 +193,12 @@ def calculate_portfolio_costs(
         raise ValueError(
             "forecast_source must be either 'kgup' or 'kudup'. For day ahead forecasts, we use kgup_v1 by default."
         )
+
+    if use_latest_regulation:
+        if forecast_source == "kudup":
+            raise ValueError(
+                "When using latest regulation, 'kudup' forecast source is not supported as aggregator uevcb organizations might be different by then. Please use 'kgup' as forecast source."
+            )
 
     if ignore_org_id:
         if forecast_source == "kudup":
@@ -214,7 +222,7 @@ def calculate_portfolio_costs(
     if portfolio_name is None:
         portfolio_name = ""
     else:
-        portfolio_name = f"_{portfolio_name.lower()}"
+        portfolio_name = f"_{portfolio_name.lower().replace(' ', '_')}"
 
     excel_export_path = os.path.join(
         export_dir, f"portfolio{portfolio_name}_costs_data_{start_date}_{end_date}.xlsx"
@@ -305,36 +313,46 @@ def calculate_portfolio_costs(
 
     # res_d["costs_detail"] = plan_realized_df.copy()
 
-    cost_df = get_hourly_price_and_cost_data(
-        start_date=start_date,
-        end_date=end_date,
-        include_contract_symbol=True,
-        add_kupst_cost=True,
-        add_unit_prefix_to_cost_colnames=True,
-        verbose=verbose,
-    )
+    cost_df = kwargs.get("cost_df", None)
+    if cost_df is None:
+        cost_df = get_hourly_price_and_cost_data(
+            start_date=start_date,
+            end_date=end_date,
+            include_contract_symbol=True,
+            add_kupst_cost=True,
+            add_unit_prefix_to_cost_colnames=True,
+            verbose=verbose,
+        )
 
-    if use_latest_regulation:
-        if verbose:
-            print("Using latest regulation for cost data.")
-        cost_df2 = cost_df[["contract", "mcp", "smp"]].copy()
-        temp_series = cost_df2.apply(
-            lambda row: calculate_unit_imbalance_cost(
-                mcp=row["mcp"],
-                smp=row["smp"],
-                include_prices=True,
-                regulation_period="current",
-            ),
-            axis=1,
-        )
-        cost_df2 = pd.concat([cost_df2, pd.json_normalize(temp_series)], axis=1)
-        cost_df2["unit_kupst_cost"] = cost_df2.apply(
-            lambda row: calculate_unit_kupst_cost(
-                mcp=row["mcp"], smp=row["smp"], regulation_period="current"
-            ),
-            axis=1,
-        )
-        cost_df2 = cost_df2.reset_index(drop=True)
+        if use_latest_regulation:
+            if verbose:
+                print(
+                    "Using latest regulation for cost data. But beware, currently we adjust ceiling prices only based on start date."
+                )
+
+            ceil_price = contract_to_floor_ceil_prices(
+                c=date_str_to_contract(start_date)
+            )["max"]
+
+            cost_df2 = cost_df[["contract", "mcp", "smp"]].copy()
+            temp_series = cost_df2.apply(
+                lambda row: calculate_unit_imbalance_cost(
+                    mcp=row["mcp"],
+                    smp=row["smp"],
+                    include_prices=True,
+                    regulation_period="current",
+                    ceil_price=ceil_price,
+                ),
+                axis=1,
+            )
+            cost_df2 = pd.concat([cost_df2, pd.json_normalize(temp_series)], axis=1)
+            cost_df2["unit_kupst_cost"] = cost_df2.apply(
+                lambda row: calculate_unit_kupst_cost(
+                    mcp=row["mcp"], smp=row["smp"], regulation_period="current"
+                ),
+                axis=1,
+            )
+            cost_df = cost_df2.reset_index(drop=True).copy()
 
     plan_realized_w_costs_df = plan_realized_df.merge(
         cost_df[
@@ -355,6 +373,9 @@ def calculate_portfolio_costs(
     #     axis=1,
     # )
 
+    unit_costs_l = []
+    total_actual = plan_realized_w_costs_df["actual"].sum()
+
     for pfx in ["da_", ""]:
         plan_realized_w_costs_df[f"{pfx}imb_cost"] = plan_realized_w_costs_df.apply(
             lambda row: abs(row[f"{pfx}imb_qty"]) * row["unit_pos_imb_cost"]
@@ -371,15 +392,38 @@ def calculate_portfolio_costs(
             + plan_realized_w_costs_df[f"{pfx}kupst_cost"]
         ).round(2)
 
-    plan_realized_df_w_costs_df = plan_realized_w_costs_df.drop(
-        columns=[
-            "unit_pos_imb_cost",
-            "unit_neg_imb_cost",
-            "unit_kupst_cost",
-        ]
-    ).copy()
+        total_imb_cost = plan_realized_w_costs_df[f"{pfx}imb_cost"].sum()
+        total_kupst_cost = plan_realized_w_costs_df[f"{pfx}kupst_cost"].sum()
 
-    res_d["costs_detail"] = plan_realized_df_w_costs_df.copy()
+        unit_costs_l.extend(
+            [
+                {
+                    "cost": f"{pfx}unit_kupst_cost",
+                    "cost_version": "pre_aggregator",
+                    "value": total_kupst_cost / total_actual,
+                },
+                {
+                    "cost": f"{pfx}unit_imb_cost",
+                    "cost_version": "pre_aggregator",
+                    "value": total_imb_cost / total_actual,
+                },
+                {
+                    "cost": f"{pfx}unit_total_cost",
+                    "cost_version": "pre_aggregator",
+                    "value": (total_kupst_cost + total_imb_cost) / total_actual,
+                },
+            ]
+        )
+
+    # plan_realized_w_costs_df = plan_realized_w_costs_df.drop(
+    #     columns=[
+    #         "unit_pos_imb_cost",
+    #         "unit_neg_imb_cost",
+    #         "unit_kupst_cost",
+    #     ]
+    # ).copy()
+
+    res_d["costs_detail"] = plan_realized_w_costs_df.copy()
 
     #####
     ## SUMMARY BY CONTRACT
@@ -429,13 +473,39 @@ def calculate_portfolio_costs(
         how="left",
     )
 
-    for col in ["da_imb", "imb"]:
-        cost_summary_by_contract_df[f"{col}_cost"] = cost_summary_by_contract_df.apply(
-            lambda row: abs(row[col + "_qty"]) * row["unit_pos_imb_cost"]
-            if row[col + "_qty"] > 0
-            else abs(row[col + "_qty"]) * row["unit_neg_imb_cost"],
-            axis=1,
-        ).round(2)
+    for pfx in ["da_", ""]:
+        cost_summary_by_contract_df[f"{pfx}imb_cost"] = (
+            cost_summary_by_contract_df.apply(
+                lambda row: abs(row[pfx + "imb_qty"]) * row["unit_pos_imb_cost"]
+                if row[pfx + "imb_qty"] > 0
+                else abs(row[pfx + "imb_qty"]) * row["unit_neg_imb_cost"],
+                axis=1,
+            ).round(2)
+        )
+
+        total_imb_cost = cost_summary_by_contract_df[f"{pfx}imb_cost"].sum()
+        total_kupst_cost = cost_summary_by_contract_df[f"{pfx}kupst_cost"].sum()
+
+        unit_costs_l.extend(
+            [
+                {
+                    "cost": f"{pfx}unit_kupst_cost",
+                    "cost_version": "aggregator",
+                    "value": total_kupst_cost / total_actual,
+                },
+                {
+                    "cost": f"{pfx}unit_imb_cost",
+                    "cost_version": "aggregator",
+                    "value": total_imb_cost / total_actual,
+                },
+                {
+                    "cost": f"{pfx}unit_total_cost",
+                    "cost_version": "aggregator",
+                    "value": (total_kupst_cost + total_imb_cost) / total_actual,
+                },
+            ]
+        )
+
     cost_summary_by_contract_df["da_total_cost"] = (
         cost_summary_by_contract_df["da_imb_cost"]
         + cost_summary_by_contract_df["da_kupst_cost"]
@@ -512,11 +582,17 @@ def calculate_portfolio_costs(
 
     ### Summary of summaries
 
+    unit_costs_df = pd.DataFrame(unit_costs_l)
+    unit_costs_df["value"] = unit_costs_df["value"].round(2)
+    unit_costs_df = unit_costs_df.pivot(
+        index="cost", columns="cost_version", values="value"
+    ).reset_index()
+
     sos_df = (
-        plan_realized_df_w_costs_df[
+        plan_realized_w_costs_df[
             [
                 x
-                for x in plan_realized_df_w_costs_df.columns
+                for x in plan_realized_w_costs_df.columns
                 if x.endswith("_cost") and not x.startswith("unit_")
             ]
         ]
@@ -539,6 +615,8 @@ def calculate_portfolio_costs(
     )
 
     sos_df = sos_df.merge(cs_df, on="cost", how="outer")
+
+    sos_df = pd.concat([sos_df, unit_costs_df], axis=0, ignore_index=True)
 
     sos_df["savings"] = (sos_df["pre_aggregator"] - sos_df["aggregator"]).round(2)
 

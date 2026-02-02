@@ -879,8 +879,8 @@ def calculate_unit_imbalance_price_2026(
         pos_imb_price = pos_imb_price_raw * (1 - pos_margin)
 
     return {
-        "pos": pos_imb_price,
-        "neg": neg_imb_price,
+        "pos_imb_price": pos_imb_price,
+        "neg_imb_price": neg_imb_price,
     }
 
 
@@ -926,8 +926,8 @@ def calculate_unit_imbalance_price_pre_2026(
     {'pos': 97.0, 'neg': 113.3}
     """
     d = {
-        "pos": (1 - penalty_margin) * min(mcp, smp),
-        "neg": (1 + penalty_margin) * max(mcp, smp),
+        "pos_imb_price": (1 - penalty_margin) * min(mcp, smp),
+        "neg_imb_price": (1 + penalty_margin) * max(mcp, smp),
     }
     return d
 
@@ -1058,13 +1058,13 @@ def calculate_unit_imbalance_cost(
     if math.isnan(mcp) or math.isnan(smp) or mcp is None or smp is None:
         if include_prices:
             return {
-                "pos_price": None,
-                "neg_price": None,
-                "pos_cost": None,
-                "neg_cost": None,
+                "pos_imb_price": None,
+                "neg_imb_price": None,
+                "unit_pos_imb_cost": None,
+                "unit_neg_imb_cost": None,
             }
         else:
-            return {"pos": None, "neg": None}
+            return {"unit_pos_imb_cost": None, "unit_neg_imb_cost": None}
 
     if regulation_period in ["current", "26_01"]:
         d = calculate_unit_imbalance_cost_2026(
@@ -1167,17 +1167,21 @@ def calculate_unit_imbalance_cost_2026(
         **kwargs,
     )
 
-    neg_imb_cost = price_d["neg"] - mcp
-    pos_imb_cost = mcp - price_d["pos"]
+    neg_imb_cost = price_d["neg_imb_price"] - mcp
+    pos_imb_cost = mcp - price_d["pos_imb_price"]
 
     cost_d = {
-        "pos": pos_imb_cost,
-        "neg": neg_imb_cost,
+        "unit_pos_imb_cost": pos_imb_cost,
+        "unit_neg_imb_cost": neg_imb_cost,
     }
 
     if include_prices:
-        cost_d = {k + "_cost": v for k, v in cost_d.items()}
-        cost_d = {"pos_price": price_d["pos"], "neg_price": price_d["neg"], **cost_d}
+        # cost_d = {k + "_cost": v for k, v in cost_d.items()}
+        cost_d = {
+            "pos_imb_price": price_d["pos_imb_price"],
+            "neg_imb_price": price_d["neg_imb_price"],
+            **cost_d,
+        }
 
     return cost_d
 
@@ -1237,14 +1241,18 @@ def calculate_unit_imbalance_cost_pre_2026(
         mcp=mcp, smp=smp, penalty_margin=penalty_margin
     )
 
-    pos_imb_cost = mcp - d["pos"]
-    neg_imb_cost = d["neg"] - mcp
+    pos_imb_cost = mcp - d["pos_imb_price"]
+    neg_imb_cost = d["neg_imb_price"] - mcp
 
     if include_prices:
-        cost_d = {"pos_cost": pos_imb_cost, "neg_cost": neg_imb_cost}
-        cost_d = {"pos_price": d["pos"], "neg_price": d["neg"], **cost_d}
+        cost_d = {"unit_pos_imb_cost": pos_imb_cost, "unit_neg_imb_cost": neg_imb_cost}
+        cost_d = {
+            "pos_imb_price": d["pos_imb_price"],
+            "neg_imb_price": d["neg_imb_price"],
+            **cost_d,
+        }
     else:
-        cost_d = {"pos": pos_imb_cost, "neg": neg_imb_cost}
+        cost_d = {"unit_pos_imb_cost": pos_imb_cost, "unit_neg_imb_cost": neg_imb_cost}
 
     return cost_d
 
@@ -1839,7 +1847,7 @@ def calculate_imb_cost_pre_2026(
     net_dsg_imbalance = res_d["net_dsg_imbalance"]
     individual_imbalance = res_d["individual_imbalance"]
 
-    imb_side = "neg" if individual_imbalance < 0 else "pos"
+    imb_side = "unit_neg_imb_cost" if individual_imbalance < 0 else "unit_pos_imb_cost"
     unit_cost = unit_cost_d[imb_side]
 
     dsg_imb_cost = abs(dsg_imbalance) * unit_cost
@@ -1984,7 +1992,12 @@ def calculate_imbalance_cost_list(
 
     imbalance_cost_list = []
 
-    for x, y, n, p in zip(forecast_values, actual_values, cost_d["neg"], cost_d["pos"]):
+    for x, y, n, p in zip(
+        forecast_values,
+        actual_values,
+        cost_d["unit_neg_imb_cost"],
+        cost_d["unit_pos_imb_cost"],
+    ):
         if x < y:
             cost = (y - x) * p if is_producer else n
         else:
@@ -2029,11 +2042,11 @@ def calculate_diff_costs_list(
 
     if is_producer:
         res_d["imbalance_direction"] = [
-            "pos" if x < 0 else "neg" for x in res_d["diff"]
+            "unit_pos_imb_cost" if x < 0 else "unit_neg_imb_cost" for x in res_d["diff"]
         ]
     else:
         res_d["imbalance_direction"] = [
-            "pos" if x > 0 else "neg" for x in res_d["diff"]
+            "unit_pos_imb_cost" if x > 0 else "unit_neg_imb_cost" for x in res_d["diff"]
         ]
 
     res_d["imbalance_cost"] = calculate_imbalance_cost_list(
@@ -2073,14 +2086,14 @@ def calculate_imbalance_cost_values_list_pre_2026(mcp: list, smp: list):
         stacklevel=2,
     )
 
-    d = {"pos": [], "neg": []}
+    d = {"unit_pos_imb_cost": [], "unit_neg_imb_cost": []}
 
     for mcp_x, smp_x in zip(mcp, smp):
         if mcp_x is None or smp_x is None:
             raise ValueError("MCP and SMP lists must not contain None values")
         sub_d = calculate_unit_imbalance_cost_pre_2026(mcp=mcp_x, smp=smp_x)
-        d["pos"].append(sub_d["pos"])
-        d["neg"].append(sub_d["neg"])
+        d["unit_pos_imb_cost"].append(sub_d["unit_pos_imb_cost"])
+        d["unit_neg_imb_cost"].append(sub_d["unit_neg_imb_cost"])
 
     return d
 
@@ -2205,8 +2218,8 @@ def calculate_imbalance_prices_list_pre_2026(mcp: list, smp: list):
         stacklevel=2,
     )
     d = {
-        "pos": [min(x, y) * 0.97 for x, y in zip(mcp, smp)],
-        "neg": [1.03 * max(x, y) for x, y in zip(mcp, smp)],
+        "pos_imb_price": [min(x, y) * 0.97 for x, y in zip(mcp, smp)],
+        "neg_imb_price": [1.03 * max(x, y) for x, y in zip(mcp, smp)],
     }
 
     return d

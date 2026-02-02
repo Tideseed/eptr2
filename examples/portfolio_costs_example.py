@@ -50,8 +50,8 @@ res_d = calculate_portfolio_costs(
     verbose=True,
     forecast_source="kgup",
     ignore_org_id=True,
-    reduce_cost_details=True,
-    use_latest_regulation=True,
+    reduce_cost_details=False,
+    use_latest_regulation=False,
 )
 
 print("End")
