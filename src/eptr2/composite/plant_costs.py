@@ -334,7 +334,7 @@ def calculate_portfolio_costs(
                 c=date_str_to_contract(start_date)
             )["max"]
 
-            cost_df2 = cost_df[["contract", "mcp", "smp"]].copy()
+            cost_df2 = cost_df[["contract", "mcp", "smp", "sd_sign"]].copy()
             temp_series = cost_df2.apply(
                 lambda row: calculate_unit_imbalance_cost(
                     mcp=row["mcp"],
@@ -342,6 +342,7 @@ def calculate_portfolio_costs(
                     include_prices=True,
                     regulation_period="current",
                     ceil_price=ceil_price,
+                    sd_sign=row["sd_sign"],
                 ),
                 axis=1,
             )
@@ -356,7 +357,13 @@ def calculate_portfolio_costs(
 
     plan_realized_w_costs_df = plan_realized_df.merge(
         cost_df[
-            ["contract", "unit_pos_imb_cost", "unit_neg_imb_cost", "unit_kupst_cost"]
+            [
+                "contract",
+                "sd_sign",
+                "unit_pos_imb_cost",
+                "unit_neg_imb_cost",
+                "unit_kupst_cost",
+            ]
         ],
         on="contract",
         how="left",

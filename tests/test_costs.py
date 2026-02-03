@@ -12,6 +12,9 @@ Tests cover non-deprecated functions for:
 """
 
 import pytest
+from datetime import datetime, timedelta
+import math
+from eptr2.util.time import datetime_to_contract
 from eptr2.util.costs import (
     # Regulation functions
     get_regulation_period_by_contract,
@@ -357,50 +360,50 @@ class TestImbalancePrice:
         """Test imbalance price when MCP > SMP (positive imbalance)."""
         prices = calculate_unit_imbalance_price_2026(mcp=300, smp=200)
         assert isinstance(prices, dict)
-        assert "pos" in prices
-        assert "neg" in prices
+        assert "pos_imb_price" in prices
+        assert "neg_imb_price" in prices
         # pos_imb_price should be negative when pos_imb_price_raw < V (200 < 150 is false)
         # Actually 200 * (1 - 0.06) = 188
-        assert prices["pos"] == 188
+        assert prices["pos_imb_price"] == 188
         # neg_imb_price = max(300, 200, 150) * (1 + 0.03) * 1 = 300 * 1.03 = 309
-        assert prices["neg"] == 309
+        assert prices["neg_imb_price"] == 309
 
     def test_calculate_unit_imbalance_price_2026_mcp_less_smp(self):
         """Test imbalance price when MCP < SMP (negative imbalance)."""
         prices = calculate_unit_imbalance_price_2026(mcp=200, smp=300)
         assert isinstance(prices, dict)
         # pos_imb_price = 200 * (1 - 0.03) = 194
-        assert prices["pos"] == 194
+        assert prices["pos_imb_price"] == 194
         # neg_imb_price = max(200, 300, 150) * (1 + 0.06) = 300 * 1.06 = 318
-        assert prices["neg"] == 318
+        assert prices["neg_imb_price"] == 318
 
     def test_calculate_unit_imbalance_price_2026_mcp_low(self):
         """Test imbalance price when positive imbalance price < V."""
         prices = calculate_unit_imbalance_price_2026(mcp=100, smp=200)
         # min(100, 200) = 100 < 150, so pos_imb_price = -100 * (1 + margin)
-        assert prices["pos"] < 0  # Should be negative
+        assert prices["pos_imb_price"] < 0  # Should be negative
 
     def test_calculate_unit_imbalance_price_2026_at_ceiling(self):
         """Test imbalance price when max(MCP, SMP) equals ceiling."""
         prices = calculate_unit_imbalance_price_2026(mcp=3400, smp=3000)
         # neg_imb_price should include ceil_margin
-        assert prices["neg"] == 3400 * (1 + 0.03) * (1 + 0.05)
+        assert prices["neg_imb_price"] == pytest.approx(3400 * (1 + 0.03) * (1 + 0.05))
 
     def test_calculate_unit_imbalance_price_pre_2026(self):
         """Test imbalance price for pre-2026 regulation."""
         prices = calculate_unit_imbalance_price_pre_2026(mcp=300, smp=200)
         # pos = min(300, 200) * (1 - 0.03) = 200 * 0.97 = 194
-        assert prices["pos"] == 194
+        assert prices["pos_imb_price"] == 194
         # neg = max(300, 200) * (1 + 0.03) = 300 * 1.03 = 309
-        assert prices["neg"] == 309
+        assert prices["neg_imb_price"] == 309
 
     def test_calculate_unit_imbalance_price_pre_2026_custom_margin(self):
         """Test imbalance price with custom penalty margin."""
         prices = calculate_unit_imbalance_price_pre_2026(
             mcp=300, smp=200, penalty_margin=0.05
         )
-        assert prices["pos"] == 200 * 0.95
-        assert prices["neg"] == 300 * 1.05
+        assert prices["pos_imb_price"] == 200 * 0.95
+        assert prices["neg_imb_price"] == 300 * 1.05
 
     def test_calculate_unit_imbalance_price_wrapper_current(self):
         """Test wrapper function with current regulation."""
@@ -408,24 +411,117 @@ class TestImbalancePrice:
             mcp=300, smp=200, regulation_period="current"
         )
         assert isinstance(prices, dict)
-        assert "pos" in prices
-        assert "neg" in prices
+        assert "pos_imb_price" in prices
+        assert "neg_imb_price" in prices
 
     def test_calculate_unit_imbalance_price_wrapper_pre_2026(self):
         """Test wrapper function with pre-2026 regulation."""
         prices = calculate_unit_imbalance_price(
             mcp=300, smp=200, regulation_period="pre_2026"
         )
-        assert prices["pos"] == 194
-        assert prices["neg"] == 309
+        assert prices["pos_imb_price"] == 194
+        assert prices["neg_imb_price"] == 309
 
     def test_calculate_unit_imbalance_price_by_contract(self):
         """Test imbalance price calculation from contract code."""
         prices = calculate_unit_imbalance_price_by_contract(
             contract="PH15010100", mcp=300, smp=200
         )
-        assert prices["pos"] == 194
-        assert prices["neg"] == 309
+        assert prices["pos_imb_price"] == 194
+        assert prices["neg_imb_price"] == 309
+
+    def test_calculate_unit_imbalance_price_2026_with_system_direction_positive(self):
+        """Test imbalance price with explicit positive system direction (surplus)."""
+        # When system_direction=1 (positive/surplus): low_margin for neg, high_margin for pos
+        prices = calculate_unit_imbalance_price_2026(mcp=100, smp=100, sd_sign=1)
+        # pos_imb_price_raw = min(100, 100) = 100 < V(150), so pos = -B * (1 + pos_margin)
+        # pos = -100 * (1 + 0.06) = -106
+        assert prices["pos_imb_price"] == -106
+        # neg = max(100, 100, 150) * (1 + 0.03) = 150 * 1.03 = 154.5
+        assert prices["neg_imb_price"] == 154.5
+
+    def test_calculate_unit_imbalance_price_2026_with_system_direction_negative(self):
+        """Test imbalance price with explicit negative system direction (deficit)."""
+        # When system_direction=-1 (negative/deficit): high_margin for neg, low_margin for pos
+        prices = calculate_unit_imbalance_price_2026(mcp=100, smp=100, sd_sign=-1)
+        # pos_imb_price_raw = min(100, 100) = 100 < V(150), so pos = -B * (1 + pos_margin)
+        # pos = -100 * (1 + 0.03) = -103
+        assert prices["pos_imb_price"] == -103
+        # neg = max(100, 100, 150) * (1 + 0.06) = 150 * 1.06 = 159
+        assert prices["neg_imb_price"] == 159
+
+    def test_calculate_unit_imbalance_price_2026_with_system_direction_balanced(self):
+        """Test imbalance price with balanced system direction."""
+        # When system_direction=0 (balanced): low_margin for both
+        prices = calculate_unit_imbalance_price_2026(mcp=100, smp=100, sd_sign=0)
+        # pos_imb_price_raw = min(100, 100) = 100 < V(150), so pos = -B * (1 + pos_margin)
+        # pos = -100 * (1 + 0.03) = -103
+        assert prices["pos_imb_price"] == -103
+        # neg = max(100, 100, 150) * (1 + 0.03) = 150 * 1.03 = 154.5
+        assert prices["neg_imb_price"] == 154.5
+
+    def test_calculate_unit_imbalance_price_2026_system_direction_inferred_from_prices(
+        self,
+    ):
+        """Test that system_direction is inferred when None."""
+        # Use prices above V to avoid -B penalty
+        # MCP > SMP should infer positive direction
+        prices_pos = calculate_unit_imbalance_price_2026(mcp=200, smp=180, sd_sign=None)
+        # Should behave like system_direction=1: high_margin for pos
+        # pos = 180 * (1 - 0.06) = 169.2
+        assert prices_pos["pos_imb_price"] == 169.2
+
+        # MCP < SMP should infer negative direction
+        prices_neg = calculate_unit_imbalance_price_2026(mcp=180, smp=200, sd_sign=None)
+        # Should behave like system_direction=-1: low_margin for pos
+        # pos = 180 * (1 - 0.03) = 174.6
+        assert prices_neg["pos_imb_price"] == 174.6
+
+    def test_calculate_unit_imbalance_price_2026_system_direction_coercion(self):
+        """Test that system_direction is coerced to int."""
+        # String "1" should be coerced to 1
+        prices_str = calculate_unit_imbalance_price_2026(mcp=200, smp=200, sd_sign="1")
+        prices_int = calculate_unit_imbalance_price_2026(mcp=200, smp=200, sd_sign=1)
+        assert prices_str == prices_int
+
+        # Float 1.0 should be coerced to 1
+        prices_float = calculate_unit_imbalance_price_2026(
+            mcp=200, smp=200, sd_sign=1.0
+        )
+        assert prices_float == prices_int
+
+    def test_calculate_unit_imbalance_price_2026_ceiling_exception_with_balanced(self):
+        """Test ceiling behavior when MCP==SMP==ceiling and system_direction=0."""
+        # At ceiling with balanced direction, uses low_margin for both
+        prices = calculate_unit_imbalance_price_2026(mcp=3400, smp=3400, sd_sign=0)
+        # pos = 3400 * (1 - 0.03) = 3298
+        assert prices["pos_imb_price"] == 3298
+        # neg = 3400 * (1 + 0.03) * (1 + 0.05) = 3677.1 (with ceiling multiplier)
+        assert prices["neg_imb_price"] == 3677.1
+
+    def test_calculate_unit_imbalance_price_2026_ceiling_explicit_direction_overrides(
+        self,
+    ):
+        """Test that explicit system_direction affects margins even at ceiling."""
+        # At ceiling with explicit positive direction
+        prices = calculate_unit_imbalance_price_2026(mcp=3400, smp=3400, sd_sign=1)
+        # Should use low_margin for neg, high_margin for pos (positive direction)
+        # pos = 3400 * (1 - 0.06) = 3196
+        assert prices["pos_imb_price"] == 3196
+        # neg = 3400 * (1 + 0.03) * (1 + 0.05) = 3677.1 (with ceiling multiplier)
+        assert prices["neg_imb_price"] == 3677.1
+
+    def test_calculate_unit_imbalance_price_2026_floor_exception_with_balanced(self):
+        """Test floor behavior when MCP==SMP==floor and system_direction=0."""
+        # At floor with balanced direction, uses low_margin for both
+        prices = calculate_unit_imbalance_price_2026(
+            mcp=0, smp=0, floor_price=0, sd_sign=0
+        )
+        # pos_imb_price_raw = min(0, 0) = 0 < V(150), so pos = -B * (1 + pos_margin)
+        # pos = -100 * (1 + 0.03) = -103 (low_margin since balanced)
+        assert prices["pos_imb_price"] == -103
+        # neg = max(0, 0, 150) * (1 + 0.03) = 150 * 1.03 = 154.5
+        assert prices["neg_imb_price"] == 154.5
 
 
 # ============================================================================
@@ -440,8 +536,8 @@ class TestImbalanceCost:
         """Test imbalance cost calculation for 2026."""
         costs = calculate_unit_imbalance_cost_2026(mcp=300, smp=200)
         assert isinstance(costs, dict)
-        assert "pos" in costs
-        assert "neg" in costs
+        assert "unit_pos_imb_cost" in costs
+        assert "unit_neg_imb_cost" in costs
         # pos_cost = mcp - pos_price
         # neg_cost = neg_price - mcp
 
@@ -450,28 +546,28 @@ class TestImbalanceCost:
         costs = calculate_unit_imbalance_cost_2026(
             mcp=300, smp=200, include_prices=True
         )
-        assert "pos_price" in costs
-        assert "neg_price" in costs
-        assert "pos_cost" in costs
-        assert "neg_cost" in costs
+        assert "pos_imb_price" in costs
+        assert "neg_imb_price" in costs
+        assert "unit_pos_imb_cost" in costs
+        assert "unit_neg_imb_cost" in costs
 
     def test_calculate_unit_imbalance_cost_pre_2026(self):
         """Test imbalance cost for pre-2026."""
         costs = calculate_unit_imbalance_cost_pre_2026(mcp=300, smp=200)
         # pos_cost = 300 - (200 * 0.97) = 300 - 194 = 106
-        assert costs["pos"] == 106
+        assert costs["unit_pos_imb_cost"] == 106
         # neg_cost = (300 * 1.03) - 300 = 309 - 300 = 9
-        assert costs["neg"] == 9
+        assert costs["unit_neg_imb_cost"] == 9
 
     def test_calculate_unit_imbalance_cost_pre_2026_with_prices(self):
         """Test imbalance cost with prices for pre-2026."""
         costs = calculate_unit_imbalance_cost_pre_2026(
             mcp=300, smp=200, include_prices=True
         )
-        assert "pos_price" in costs
-        assert "neg_price" in costs
-        assert "pos_cost" in costs
-        assert "neg_cost" in costs
+        assert "pos_imb_price" in costs
+        assert "neg_imb_price" in costs
+        assert "unit_pos_imb_cost" in costs
+        assert "unit_neg_imb_cost" in costs
 
     def test_calculate_unit_imbalance_cost_wrapper_current(self):
         """Test imbalance cost wrapper with current regulation."""
@@ -479,24 +575,24 @@ class TestImbalanceCost:
             mcp=300, smp=200, regulation_period="current"
         )
         assert isinstance(costs, dict)
-        assert "pos" in costs
-        assert "neg" in costs
+        assert "unit_pos_imb_cost" in costs
+        assert "unit_neg_imb_cost" in costs
 
     def test_calculate_unit_imbalance_cost_wrapper_pre_2026(self):
         """Test imbalance cost wrapper with pre-2026."""
         costs = calculate_unit_imbalance_cost(
             mcp=300, smp=200, regulation_period="pre_2026"
         )
-        assert costs["pos"] == 106
-        assert costs["neg"] == 9
+        assert costs["unit_pos_imb_cost"] == 106
+        assert costs["unit_neg_imb_cost"] == 9
 
     def test_calculate_unit_imbalance_cost_by_contract(self):
         """Test imbalance cost from contract code."""
         costs = calculate_unit_imbalance_cost_by_contract(
             contract="PH15010100", mcp=300, smp=200
         )
-        assert costs["pos"] == 106
-        assert costs["neg"] == 9
+        assert costs["unit_pos_imb_cost"] == 106
+        assert costs["unit_neg_imb_cost"] == 9
 
 
 # ============================================================================
@@ -513,10 +609,10 @@ class TestCombinedPriceAndCost:
             mcp=300, smp=200, regulation_period="current", include_kupst=False
         )
         assert isinstance(result, dict)
-        assert "pos_price" in result
-        assert "neg_price" in result
-        assert "pos_cost" in result
-        assert "neg_cost" in result
+        assert "pos_imb_price" in result
+        assert "neg_imb_price" in result
+        assert "unit_pos_imb_cost" in result
+        assert "unit_neg_imb_cost" in result
 
     def test_calculate_unit_price_and_costs_2026_with_kupst(self):
         """Test combined prices with KUPST cost included."""
@@ -531,10 +627,10 @@ class TestCombinedPriceAndCost:
         result = calculate_unit_price_and_costs(
             mcp=300, smp=200, regulation_period="pre_2026", include_kupst=False
         )
-        assert result["pos_price"] == 194
-        assert result["neg_price"] == 309
-        assert result["pos_cost"] == 106
-        assert result["neg_cost"] == 9
+        assert result["pos_imb_price"] == 194
+        assert result["neg_imb_price"] == 309
+        assert result["unit_pos_imb_cost"] == 106
+        assert result["unit_neg_imb_cost"] == 9
 
     def test_calculate_unit_price_and_costs_pre_2026_with_kupst(self):
         """Test combined prices with KUPST for pre-2026."""
@@ -549,7 +645,7 @@ class TestCombinedPriceAndCost:
             contract="PH15010100", mcp=300, smp=200, include_kupst=True
         )
         assert isinstance(result, dict)
-        assert "pos_price" in result
+        assert "pos_imb_price" in result
         assert "unit_kupst" in result
 
 
@@ -735,8 +831,8 @@ class TestEdgeCases:
         # Test with ceil_price condition to avoid uninitialized variable
         prices = calculate_unit_imbalance_price_2026(mcp=3400, smp=3400)
         assert isinstance(prices, dict)
-        assert "pos" in prices
-        assert "neg" in prices
+        assert "pos_imb_price" in prices
+        assert "neg_imb_price" in prices
 
     def test_large_forecast_actual_difference(self):
         """Test KUPST with large forecast-actual difference."""
@@ -750,8 +846,8 @@ class TestEdgeCases:
             mcp=300, smp=200, penalty_margin=0.03
         )
         # Should be identical with default margin
-        assert costs_base["pos"] == costs_custom["pos"]
-        assert costs_base["neg"] == costs_custom["neg"]
+        assert costs_base["unit_pos_imb_cost"] == costs_custom["unit_pos_imb_cost"]
+        assert costs_base["unit_neg_imb_cost"] == costs_custom["unit_neg_imb_cost"]
 
     def test_tolerance_list_matching(self):
         """Test that matching list lengths work correctly."""
@@ -944,7 +1040,7 @@ class TestRegulation2026Specifics:
         # When min(mcp, smp) < V (150), pos_imb_price becomes negative
         prices = calculate_unit_imbalance_price_2026(mcp=100, smp=120)
         # min(100, 120) = 100 < 150, so pos becomes -B * (1 + margin)
-        assert prices["pos"] < 0
+        assert prices["pos_imb_price"] < 0
 
     def test_imbalance_price_2026_ceil_margin_applied(self):
         """Test that 2026 regulation applies ceil_margin when at ceiling."""
@@ -953,7 +1049,7 @@ class TestRegulation2026Specifics:
         # neg_imb_price = max(3400, 3300, 150) * (1 + margin) * (1 + 0.05)
         # = 3400 * 1.03 * 1.05 = 3677.1
         expected = 3400 * (1 + 0.03) * (1 + 0.05)
-        assert prices["neg"] == expected
+        assert prices["neg_imb_price"] == pytest.approx(expected)
 
 
 # ============================================================================
@@ -1030,14 +1126,179 @@ class TestNaNAndNoneHandling:
     def test_unit_imbalance_cost_with_valid_inputs(self):
         """Test that valid inputs produce valid output."""
         result = calculate_unit_imbalance_cost(mcp=100, smp=110)
-        assert result["pos"] is not None
-        assert result["neg"] is not None
+        assert result["unit_pos_imb_cost"] is not None
+        assert result["unit_neg_imb_cost"] is not None
 
     def test_unit_imbalance_cost_with_valid_include_prices(self):
         """Test that valid inputs with include_prices=True returns full dict."""
         result = calculate_unit_imbalance_cost(mcp=100, smp=110, include_prices=True)
-        assert "pos_price" in result
-        assert "neg_price" in result
-        assert "pos_cost" in result
-        assert "neg_cost" in result
+        assert "pos_imb_price" in result
+        assert "neg_imb_price" in result
+        assert "unit_pos_imb_cost" in result
+        assert "unit_neg_imb_cost" in result
         assert all(v is not None for v in result.values())
+
+
+# ============================================================================
+# Integration Tests with Real API Data
+# ============================================================================
+
+
+class TestAPIIntegration:
+    """Integration tests that validate cost calculations against API data."""
+
+    @pytest.mark.integration
+    def test_imbalance_prices_match_api_data_last_30_days(self):
+        """Test that hand-calculated imbalance prices match API returned values.
+
+        This test:
+        1. Fetches real MCP, SMP, and imbalance price data from the last 30 days
+        2. Manually calculates imbalance prices using eptr2.util.costs functions
+        3. Compares calculated values with API-returned values
+
+        Requires valid EPTR credentials in environment or .env file.
+        """
+        from eptr2 import EPTR2
+
+        # Initialize EPTR2 client
+        try:
+            eptr = EPTR2(use_dotenv=True, recycle_tgt=True)
+        except Exception as e:
+            pytest.skip(f"Cannot initialize EPTR2 client: {e}")
+
+        # Calculate date range for last 30 days
+        end_date = datetime.now().date() - timedelta(days=1)
+        start_date = end_date - timedelta(days=30)
+
+        # Convert to string format
+        start_date_str = start_date.strftime("%Y-%m-%d")
+        end_date_str = end_date.strftime("%Y-%m-%d")
+
+        # Fetch data from API
+        try:
+            df = eptr.call(
+                "mcp-smp-imb", start_date=start_date_str, end_date=end_date_str
+            )
+        except Exception as e:
+            pytest.skip(f"Cannot fetch API data: {e}")
+
+        ## If there is any na value in the dataframe, raise an error
+        assert not df.isna().any().any(), (
+            "API data contains NaN values, cannot proceed with test"
+        )
+
+        # Verify we have data
+        assert df is not None
+        assert len(df) > 0, "No data returned from API"
+
+        # Check required columns exist (API returns Turkish abbreviations)
+        required_cols = ["date", "ptf", "smf", "positiveImbalance", "negativeImbalance"]
+        for col in required_cols:
+            assert col in df.columns, f"Missing required column: {col}"
+
+        status_map = {"Enerji Fazlası": 1, "Enerji Açığı": -1, "Dengede": 0}
+
+        df_status_list = list(df["systemStatus"].drop_duplicates())
+
+        if any(
+            [
+                status not in status_map
+                for status in df_status_list
+                if status is not None
+            ]
+        ):
+            ## Throw an error if unexpected status found
+            unexpected_statuses = [
+                status
+                for status in df_status_list
+                if status not in status_map and status is not None
+            ]
+            assert len(unexpected_statuses) == 0, (
+                f"Unexpected systemStatus values found in API data: {unexpected_statuses}"
+            )
+
+        df["c"] = df["date"].apply(datetime_to_contract)
+        df["sign"] = df["systemStatus"].map(status_map)
+
+        # Track comparison results
+        mismatches = []
+        total_rows = 0
+
+        # Iterate through each row and compare
+        for idx, row in df.iterrows():
+            total_rows += 1
+            mcp = row["ptf"]  # PTF = Piyasa Takas Fiyatı (Market Clearing Price)
+            smp = row["smf"]  # SMF = Sistem Marjinal Fiyatı (System Marginal Price)
+            c = row["c"]
+            api_pos_price = row["positiveImbalance"]
+            api_neg_price = row["negativeImbalance"]
+            date = row["date"]
+            system_direction = row["sign"]
+            # Skip rows with missing data
+            if any(
+                val is None or (isinstance(val, float) and math.isnan(val))
+                for val in [mcp, smp, api_pos_price, api_neg_price]
+            ):
+                continue
+
+            # Determine regulation period from date
+            # Assuming date is datetime or can be converted
+            if hasattr(date, "year"):
+                year = date.year
+            else:
+                # Parse date string if needed
+                try:
+                    date_obj = datetime.strptime(str(date)[:10], "%Y-%m-%d")
+                    year = date_obj.year
+                except Exception:
+                    continue
+
+            regulation_period = "26_01" if year >= 2026 else "pre_2026"
+
+            # Calculate imbalance prices using cost functions
+            # Pass system_direction to handle MCP == SMP cases correctly
+            calculated_prices = calculate_unit_imbalance_price_by_contract(
+                contract=c,
+                mcp=mcp,
+                smp=smp,
+                system_direction=system_direction,
+            )
+
+            calc_pos_price = calculated_prices["pos_imb_price"]
+            calc_neg_price = calculated_prices["neg_imb_price"]
+
+            # Compare with tolerance to second significant digit (0.01 TL/MWh)
+            pos_match = abs(calc_pos_price - api_pos_price) < 0.01
+            neg_match = abs(calc_neg_price - api_neg_price) < 0.01
+
+            if not (pos_match and neg_match):
+                mismatches.append(
+                    {
+                        "date": date,
+                        "mcp": mcp,
+                        "smp": smp,
+                        "api_pos": api_pos_price,
+                        "calc_pos": calc_pos_price,
+                        "api_neg": api_neg_price,
+                        "calc_neg": calc_neg_price,
+                        "regulation": regulation_period,
+                    }
+                )
+
+        # Report results
+        match_rate = (
+            (total_rows - len(mismatches)) / total_rows if total_rows > 0 else 0
+        )
+
+        # Require 100% match rate for price calculations
+        assert match_rate == 1.0, (
+            f"Imbalance price calculations don't match API data.\n"
+            f"Total rows checked: {total_rows}\n"
+            f"Mismatches: {len(mismatches)}\n"
+            f"Match rate: {match_rate:.2%}\n"
+            f"First few mismatches: {mismatches[:5]}"
+        )
+
+        # If we get here, test passed
+        print(f"\n✅ Successfully validated {total_rows} rows of imbalance price data")
+        print(f"   Match rate: {match_rate:.2%}")

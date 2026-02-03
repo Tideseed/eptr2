@@ -402,7 +402,7 @@ def calculate_unit_kupst_cost_2026(
         source_map = {"battery": 0.1, "aggregator": 0.05, "unlicensed": 0.02}
         kupst_multiplier = source_map.get(source, kupst_multiplier_default)
 
-    return max(mcp, smp, kupst_floor_price) * kupst_multiplier
+    return round(max(mcp, smp, kupst_floor_price) * kupst_multiplier, 2)
 
 
 def calculate_unit_kupst_cost_pre_2026(
@@ -416,7 +416,7 @@ def calculate_unit_kupst_cost_pre_2026(
     3% of the maximum of MCP, SMP and floor price.
     750 TL/MWh floor price is used if higher.
     """
-    return max(mcp, smp, kupst_floor_price) * kupst_multiplier
+    return round(max(mcp, smp, kupst_floor_price) * kupst_multiplier, 2)
 
 
 def calculate_kupsm(actual: float, forecast: float, tol: float):
@@ -529,7 +529,7 @@ def calculate_kupst_cost(
     kupst_multiplier: float | None = None,
     kupst_floor_price: float | None = None,
     return_detail: bool = False,
-    regulation_period: Literal["current", "2026_01", "pre_2026"] = "current",
+    regulation_period: Literal["current", "26_01", "pre_2026"] = "current",
     include_maintenance_penalty=False,
 ):
     """
@@ -561,7 +561,7 @@ def calculate_kupst_cost(
     return_detail : bool, default False
         If True, returns dictionary with detailed breakdown of calculation.
         If False, returns only total cost.
-    regulation_period : {'current', '2026_01', 'pre_2026'}, default 'current'
+    regulation_period : {'current', '26_01', 'pre_2026'}, default 'current'
         Regulation period for determining multiplier and tolerance values.
     include_maintenance_penalty : bool, default False
         If True, applies maintenance penalty rate to multiplier.
@@ -714,7 +714,7 @@ def calculate_unit_imbalance_price_by_contract(
 def calculate_unit_imbalance_price(
     mcp: float,
     smp: float,
-    regulation_period: Literal["current", "2026_01", "pre_2026"] = "current",
+    regulation_period: Literal["current", "26_01", "pre_2026"] = "current",
     **kwargs,
 ):
     """
@@ -781,6 +781,7 @@ def calculate_unit_imbalance_price_2026(
     low_margin: float = 0.03,
     high_margin: float = 0.06,
     ceil_margin: float = 0.05,
+    sd_sign: int | None = None,
     **kwargs,
 ):
     """
@@ -817,6 +818,13 @@ def calculate_unit_imbalance_price_2026(
     ceil_margin : float, default 0.05
         Additional margin (5%) applied when max(MCP, SMP) equals ceil_price,
         only to negative imbalance price.
+    system_direction : int or None, optional
+        System imbalance direction when MCP == SMP. Allowed values:
+        - 1: positive system imbalance (surplus)
+        - 0: balanced system
+        - -1: negative system imbalance (deficit)
+        If provided, it will be coerced with int(system_direction).
+        If None, direction is inferred from MCP vs SMP.
     **kwargs
         Additional keyword arguments (unused, for compatibility).
 
@@ -848,19 +856,49 @@ def calculate_unit_imbalance_price_2026(
     >>> calculate_unit_imbalance_price_2026(mcp=100, smp=90)
     {'pos': 84.3, 'neg': 109.0}
     """
-    if mcp > smp:  ## system imbalance is positive
-        neg_margin = low_margin
-        pos_margin = high_margin
-    elif mcp < smp:  ## system imbalance is negative
-        neg_margin = high_margin
-        pos_margin = low_margin
-    elif mcp == ceil_price:  ## system imbalance is still negative
-        neg_margin = high_margin
-        pos_margin = low_margin
-    elif mcp == floor_price:  ## system imbalance is still positive
-        neg_margin = low_margin
-        pos_margin = high_margin
+
+    mcp = round(mcp, 2)
+    smp = round(smp, 2)
+
+    if sd_sign is not None:
+        try:
+            sd_sign = int(sd_sign)
+        except (TypeError, ValueError):
+            raise ValueError("system_direction must be convertible to int if not None")
+
+        if sd_sign not in [1, 0, -1]:
+            raise ValueError("system_direction must be 1, 0, -1 or None")
+
+    if sd_sign is None:
+        if mcp > smp:
+            sd_sign = 1
+        elif mcp < smp:
+            sd_sign = -1
+        elif smp == ceil_price:
+            sd_sign = -1
+        elif smp == floor_price:
+            sd_sign = 1
+        else:
+            sd_sign = 0
     else:
+        if mcp > smp and sd_sign != 1:
+            warnings.warn(
+                "Inconsistent system_direction provided; overriding based on mcp and smp"
+            )
+            sd_sign = 1
+        elif mcp < smp and sd_sign != -1:
+            sd_sign = -1
+            warnings.warn(
+                "Inconsistent system_direction provided; overriding based on mcp and smp"
+            )
+
+    if sd_sign == 1:  ## system imbalance is positive
+        neg_margin = low_margin
+        pos_margin = high_margin
+    elif sd_sign == -1:  ## system imbalance is negative
+        neg_margin = high_margin
+        pos_margin = low_margin
+    else:  ## balanced system
         neg_margin = low_margin
         pos_margin = low_margin
 
@@ -879,8 +917,8 @@ def calculate_unit_imbalance_price_2026(
         pos_imb_price = pos_imb_price_raw * (1 - pos_margin)
 
     return {
-        "pos_imb_price": pos_imb_price,
-        "neg_imb_price": neg_imb_price,
+        "pos_imb_price": round(pos_imb_price, 2),
+        "neg_imb_price": round(neg_imb_price, 2),
     }
 
 
@@ -926,8 +964,8 @@ def calculate_unit_imbalance_price_pre_2026(
     {'pos': 97.0, 'neg': 113.3}
     """
     d = {
-        "pos_imb_price": (1 - penalty_margin) * min(mcp, smp),
-        "neg_imb_price": (1 + penalty_margin) * max(mcp, smp),
+        "pos_imb_price": round((1 - penalty_margin) * min(mcp, smp), 2),
+        "neg_imb_price": round((1 + penalty_margin) * max(mcp, smp), 2),
     }
     return d
 
@@ -1011,7 +1049,7 @@ def calculate_unit_imbalance_cost(
     mcp: float,
     smp: float,
     include_prices: bool = False,
-    regulation_period: Literal["current", "2026_01", "pre_2026"] = "current",
+    regulation_period: Literal["current", "26_01", "pre_2026"] = "current",
     **kwargs,
 ):
     """
@@ -1167,8 +1205,8 @@ def calculate_unit_imbalance_cost_2026(
         **kwargs,
     )
 
-    neg_imb_cost = price_d["neg_imb_price"] - mcp
-    pos_imb_cost = mcp - price_d["pos_imb_price"]
+    neg_imb_cost = round(price_d["neg_imb_price"] - mcp, 2)
+    pos_imb_cost = round(mcp - price_d["pos_imb_price"], 2)
 
     cost_d = {
         "unit_pos_imb_cost": pos_imb_cost,
@@ -1241,8 +1279,8 @@ def calculate_unit_imbalance_cost_pre_2026(
         mcp=mcp, smp=smp, penalty_margin=penalty_margin
     )
 
-    pos_imb_cost = mcp - d["pos_imb_price"]
-    neg_imb_cost = d["neg_imb_price"] - mcp
+    pos_imb_cost = round(mcp - d["pos_imb_price"], 2)
+    neg_imb_cost = round(d["neg_imb_price"] - mcp, 2)
 
     if include_prices:
         cost_d = {"unit_pos_imb_cost": pos_imb_cost, "unit_neg_imb_cost": neg_imb_cost}
@@ -1252,7 +1290,10 @@ def calculate_unit_imbalance_cost_pre_2026(
             **cost_d,
         }
     else:
-        cost_d = {"unit_pos_imb_cost": pos_imb_cost, "unit_neg_imb_cost": neg_imb_cost}
+        cost_d = {
+            "unit_pos_imb_cost": round(pos_imb_cost, 2),
+            "unit_neg_imb_cost": round(neg_imb_cost, 2),
+        }
 
     return cost_d
 
@@ -1335,7 +1376,7 @@ def calculate_unit_price_and_costs(
     mcp: float,
     smp: float,
     include_kupst: bool = True,
-    regulation_period: Literal["current", "2026_01", "pre_2026"] = "current",
+    regulation_period: Literal["current", "26_01", "pre_2026"] = "current",
     **kwargs,
 ):
     """
@@ -1435,7 +1476,7 @@ def calculate_imbalance_amount(
     is_producer: bool,
     tolerance_multiplier: float = 1.0,
     just_raw_imbalance: bool = False,
-    regulation_period: Literal["current", "2026_01", "pre_2026"] = "current",
+    regulation_period: Literal["current", "26_01", "pre_2026"] = "current",
     **kwargs,
 ) -> dict | float:
     """
@@ -1658,7 +1699,7 @@ def calculate_diff_costs(
     mcp: float,
     smp: float,
     production_source: str | None = None,
-    regulation_period: Literal["current", "2026_01", "pre_2026"] | None = "current",
+    regulation_period: Literal["current", "26_01", "pre_2026"] | None = "current",
     include_quantities: bool = False,
     **kwargs,
 ) -> dict | float:
@@ -1685,7 +1726,7 @@ def calculate_diff_costs(
     production_source : {'wind', 'solar', 'sun', 'unlicensed', 'other'}, optional
         Energy source type. Required for producers to determine KUPST tolerance.
         Not needed for consumers. 'sun' is aliased to 'solar'.
-    regulation_period : {'current', '2026_01', 'pre_2026'}, default 'current'
+    regulation_period : {'current', '26_01', 'pre_2026'}, default 'current'
         Regulation period for cost calculations.
     include_quantities : bool, default False
         If True, returned dictionary includes imbalance quantity and KUPST deviation quantity.
@@ -1778,8 +1819,10 @@ def calculate_diff_costs(
         **kwargs,
     )
 
-    imb_cost = (
-        abs(signed_imb_qty) * cost_d["neg_cost" if signed_imb_qty < 0 else "pos_cost"]
+    imb_cost = round(
+        abs(signed_imb_qty)
+        * cost_d["unit_neg_imb_cost" if signed_imb_qty < 0 else "unit_pos_imb_cost"],
+        2,
     )
 
     ### Hidden option to return only imbalance cost as a float
@@ -2254,7 +2297,7 @@ def calculate_kupst_cost_list(
     source: str | None = None,
     kupst_multiplier: float | None = None,
     kupst_floor_price: float | None = None,
-    regulation_period: Literal["current", "2026_01", "pre_2026"] = "current",
+    regulation_period: Literal["current", "26_01", "pre_2026"] = "current",
     **kwargs,
 ):
     """
@@ -2286,7 +2329,7 @@ def calculate_kupst_cost_list(
         Multiplier for unit KUPST calculation. If None, uses regulation default.
     kupst_floor_price : float, optional
         Floor price for KUPST calculation in TL/MWh. Default 750.0 TL/MWh.
-    regulation_period : {'current', '2026_01', 'pre_2026'}, default 'current'
+    regulation_period : {'current', '26_01', 'pre_2026'}, default 'current'
         Regulation period for determining multiplier and tolerance values.
     **kwargs
         Additional keyword arguments:
