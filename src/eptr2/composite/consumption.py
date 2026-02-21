@@ -1,6 +1,10 @@
+import logging
 from eptr2 import EPTR2
 import pandas as pd
 from eptr2.util.time import iso_to_contract
+
+
+logger = logging.getLogger(__name__)
 
 
 def get_hourly_consumption_and_forecast_data(
@@ -19,7 +23,7 @@ def get_hourly_consumption_and_forecast_data(
         eptr = EPTR2(dotenv_path=kwargs.get("dotenv_path", ".env"))
 
     if verbose:
-        print("Loading load plan...")
+        logger.info("Loading load plan...")
 
     lp_df = eptr.call(
         "load-plan",
@@ -31,7 +35,7 @@ def get_hourly_consumption_and_forecast_data(
     df = lp_df[["date", "lep"]].rename(columns={"lep": "load_plan", "date": "dt"})
 
     if verbose:
-        print("Loading UECM...")
+        logger.info("Loading UECM...")
 
     uecm_df: pd.DataFrame = eptr.call(
         "uecm", start_date=start_date, end_date=end_date, request_kwargs={"timeout": 5}
@@ -49,7 +53,7 @@ def get_hourly_consumption_and_forecast_data(
         )
 
     if verbose:
-        print("Loading real time consumption...")
+        logger.info("Loading real time consumption...")
 
     rt_cons = eptr.call(
         "rt-cons",
@@ -77,6 +81,6 @@ def get_hourly_consumption_and_forecast_data(
         try:
             df["contract"] = df["dt"].apply(lambda x: iso_to_contract(x))
         except Exception as e:
-            print("Contract information could not be added. Error:", e)
+            logger.warning("Contract information could not be added. Error: %s", e)
 
     return df

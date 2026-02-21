@@ -1,4 +1,5 @@
 from typing import Any
+import logging
 import urllib3
 import re
 import os
@@ -24,6 +25,9 @@ from eptr2.processing.preprocess import preprocess_parameter, process_special_ca
 from datetime import datetime, timedelta
 import shlex
 from urllib.parse import quote
+
+
+logger = logging.getLogger(__name__)
 
 
 class EPTR2:
@@ -86,7 +90,7 @@ class EPTR2:
         if self.username is None or self.password is None:
             ### DEPRECATED: Credentials file path is being deprecated in favor of dotenv usage
             if self.credentials_file_path is not None:
-                print(
+                logger.warning(
                     "Credentials file path is being deprecated in favor of dotenv usage. Use use_dotenv parameter and environment file instead. In current iteration, dotenv overrides credentials file path."
                 )
                 with open(self.credentials_file_path, "r") as f:
@@ -100,7 +104,7 @@ class EPTR2:
         if self.username is None or self.password is None:
             if env_check_d is not None:
                 if not all(env_check_d.values()):
-                    print(
+                    logger.warning(
                         "Warning: EPTR_USERNAME and/or EPTR_PASSWORD not found in environment variables even after checking .env file."
                     )
             raise Exception(
@@ -243,7 +247,7 @@ class EPTR2:
             try:
                 from eptr2.mapping.processing import get_postprocess_function  # noqa: F401
             except ImportError:
-                print(
+                logger.warning(
                     "pandas is not installed. Some functionalities may not work properly. Postprocessing is disabled. To disable postprocessing just set 'postprocess' parameter to False when calling EPTR2 class.",
                 )
                 self.postprocess = False
@@ -495,7 +499,7 @@ def load_eptr_credentials_from_dotenv(env_file_path: str = ".env") -> None:
     check_d = {"EPTR_USERNAME": False, "EPTR_PASSWORD": False}
     ### If the .env file does not exist, return False and print a warning
     if not os.path.exists(env_file_path):
-        print(f"Dotenv file not found at {env_file_path}.")
+        logger.warning("Dotenv file not found at %s.", env_file_path)
         return check_d
 
     ## Read the .env file line by line
@@ -521,7 +525,7 @@ def load_eptr_credentials_from_dotenv(env_file_path: str = ".env") -> None:
 def set_eptr_credentials_to_env(cred_path: str = "creds/eptr_credentials.json"):
     """Set EPTR credentials to environment variables from a JSON file."""
 
-    print(
+    logger.warning(
         "DEPRECATED in favor of dotenv usage. Use use_dotenv parameter and environment file instead."
     )
 
@@ -549,7 +553,7 @@ def eptr_w_tgt_wrapper(
 ) -> EPTR2:
     """This function is a wrapper for the EPTR2 class to handle TGT (Ticket Granting Ticket) management and credentials loading. This way TGT is automatically renewed when it expires, and credentials are loaded from a file or environment variables."""
 
-    print(
+    logger.warning(
         "This function is being deprecated. Please use EPTR2 class directly with recycle_tgt=True parameter. Soon enough, recycle_tgt parameter will be set to True by default in EPTR2 class."
     )
 
@@ -619,7 +623,7 @@ def eptr_w_tgt_wrapper(
                     f,
                 )
         else:
-            print(
+            logger.warning(
                 "EPTR_USERNAME and/or EPTR_PASSWORD are not set in the environment variables. Credentials file is not updated."
             )
 
@@ -634,12 +638,12 @@ def generate_eptr2_credentials_file(
 ):
     """Generate a credentials file for EPTR2 class. It creates a JSON file with EPTR_USERNAME and EPTR_PASSWORD."""
 
-    print(
+    logger.warning(
         "DEPRECATED in favor of dotenv usage. Use use_dotenv parameter and environment file instead."
     )
 
     if not overwrite and os.path.exists(cred_path):
-        print(
+        logger.info(
             f"Credentials file already exists at {cred_path}. Use overwrite=True to overwrite."
         )
         return
@@ -655,4 +659,4 @@ def generate_eptr2_credentials_file(
     with open(cred_path, "w") as f:
         json.dump(cred_d, f)
 
-    print(f"Credentials file created at {cred_path}.")
+    logger.info("Credentials file created at %s.", cred_path)

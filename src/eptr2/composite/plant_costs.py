@@ -1,4 +1,5 @@
 import os
+import logging
 from typing import Literal
 
 import pandas as pd
@@ -14,6 +15,9 @@ from eptr2.util.costs import (
     calculate_unit_kupst_cost,
 )
 from eptr2.util.time import contract_to_floor_ceil_prices, date_str_to_contract
+
+
+logger = logging.getLogger(__name__)
 
 
 def postprocess_plant_cost_df(df: pd.DataFrame):
@@ -242,7 +246,12 @@ def calculate_portfolio_costs(
     res_d["plant_info"] = id_df.copy()
     for idx, row in id_df.iterrows():
         if verbose:
-            print(f"Processing Plant: {row[plant_name_col]}", idx + 1, "of", len(id_df))
+            logger.info(
+                "Processing Plant: %s %s of %s",
+                row[plant_name_col],
+                idx + 1,
+                len(id_df),
+            )
 
         sub_df = wrapper_hourly_production_plan_and_realized(
             start_date=start_date,
@@ -326,7 +335,7 @@ def calculate_portfolio_costs(
 
         if use_latest_regulation:
             if verbose:
-                print(
+                logger.info(
                     "Using latest regulation for cost data. But beware, currently we adjust ceiling prices only based on start date."
                 )
 
@@ -654,7 +663,7 @@ def calculate_portfolio_costs(
         }
 
         if verbose:
-            print(f"Exporting cost details to Excel: {excel_export_path}")
+            logger.info("Exporting cost details to Excel: %s", excel_export_path)
         with pd.ExcelWriter(excel_export_path) as writer:
             for k, v in res_d.items():
                 v: pd.DataFrame

@@ -7,9 +7,13 @@ allowing AI agents to query Turkish electricity market data from EPIAS Transpare
 
 import json
 import sys
+import logging
 from typing import Any, Optional
 
 from eptr2 import EPTR2
+
+
+logger = logging.getLogger(__name__)
 
 # Try to import FastMCP
 try:
@@ -141,10 +145,7 @@ if MCP_AVAILABLE:
 def main():
     """Entry point for the eptr2-mcp-server command."""
     if not MCP_AVAILABLE:
-        print(
-            "Error: FastMCP is not installed. Install it with: pip install fastmcp",
-            file=sys.stderr,
-        )
+        logger.error("FastMCP is not installed. Install it with: pip install fastmcp")
         sys.exit(1)
     mcp.run()
 

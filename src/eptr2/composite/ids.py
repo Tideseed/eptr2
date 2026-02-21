@@ -1,6 +1,10 @@
 from eptr2 import EPTR2
 from eptr2.composite.periodic_orgs import get_generation_org_and_uevcb_wrapper
 import os
+import logging
+
+
+logger = logging.getLogger(__name__)
 
 
 def get_all_important_ids(
@@ -29,10 +33,10 @@ def get_all_important_ids(
     }
 
     if verbose:
-        print(f"Fetching all important IDs for date: {the_date}")
+        logger.info("Fetching all important IDs for date: %s", the_date)
 
     if verbose:
-        print("Fetching day ahead market participants organization list")
+        logger.info("Fetching day ahead market participants organization list")
     d["dam_clearing_org_list"] = eptr.call(
         "dam-clearing-org-list",
         period=the_date,
@@ -41,7 +45,7 @@ def get_all_important_ids(
     )
 
     if verbose:
-        print("Fetching balancing responsible parties list")
+        logger.info("Fetching balancing responsible parties list")
 
     d["imb_org_list"] = eptr.call(
         "imb-org-list",
@@ -52,21 +56,21 @@ def get_all_important_ids(
     )
 
     if verbose:
-        print("Fetching generation organization and UEVCB data")
+        logger.info("Fetching generation organization and UEVCB data")
 
     d["gen_org_uevcb"] = get_generation_org_and_uevcb_wrapper(
         period=the_date, eptr=eptr, **retry_kwargs
     )
 
     if verbose:
-        print("Fetching power plant list")
+        logger.info("Fetching power plant list")
 
     d["pp_list"] = eptr.call(
         "pp-list", request_kwargs={"timeout": kwargs.get("timeout", 10)}, **retry_kwargs
     )
 
     if verbose:
-        print("Fetching UEVM power plant list")
+        logger.info("Fetching UEVM power plant list")
 
     d["uevm_pp_list"] = eptr.call("uevm-pp-list", **retry_kwargs)
 

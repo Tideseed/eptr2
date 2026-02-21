@@ -1,9 +1,13 @@
+import logging
 from eptr2 import EPTR2
 from eptr2.util.costs import (
     calculate_unit_kupst_cost_by_contract,
 )
 from eptr2.util.time import iso_to_contract
 import pandas as pd
+
+
+logger = logging.getLogger(__name__)
 
 
 def get_hourly_price_and_cost_data(
@@ -46,7 +50,7 @@ def get_hourly_price_and_cost_data(
     }
 
     if verbose:
-        print("Getting MCP, SMP and imbalance price data...")
+        logger.info("Getting MCP, SMP and imbalance price data...")
 
     price_df = eptr.call(
         "mcp-smp-imb",
@@ -78,7 +82,7 @@ def get_hourly_price_and_cost_data(
 
     if include_wap:
         if verbose:
-            print("Getting WAP data...")
+            logger.info("Getting WAP data...")
 
         wap_df = eptr.call(
             "wap",
@@ -95,11 +99,11 @@ def get_hourly_price_and_cost_data(
         try:
             price_df["contract"] = price_df["date"].apply(lambda x: iso_to_contract(x))
         except Exception as e:
-            print("Contract information could not be added. Error:", e)
+            logger.warning("Contract information could not be added. Error: %s", e)
 
     if add_kupst_cost:
         if verbose:
-            print("Calculating unit KUPST cost...")
+            logger.info("Calculating unit KUPST cost...")
 
         added_params = {
             k: v
@@ -265,7 +269,7 @@ def get_hourly_imbalance_data(
                 lambda x: iso_to_contract(x)
             )
         except Exception as e:
-            print("Contract information could not be added. Error:", e)
+            logger.warning("Contract information could not be added. Error: %s", e)
 
     if not include_price_and_cost_data:
         return merged_df

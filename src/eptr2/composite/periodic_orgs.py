@@ -3,7 +3,11 @@ from datetime import datetime, timedelta
 import pandas as pd
 import numpy as np
 import time
+import logging
 from eptr2.util.time import get_utc3_now, transform_date
+
+
+logger = logging.getLogger(__name__)
 
 
 def get_generation_organization_list(period: str, **kwargs):
@@ -94,7 +98,7 @@ def get_uevcb_ids(org_df: pd.DataFrame, period: str, **kwargs):
             break
 
         if verbose:
-            print(f"Processing chunk {c}")
+            logger.info("Processing chunk %s", c)
 
         def fetch_uevcb_list(the_date):
             return eptr.call(
@@ -176,7 +180,7 @@ def get_periodic_generation_organization_lists(
         )
 
     for period in periods:
-        print(f"Processing period: {period}")
+        logger.info("Processing period: %s", period)
         df_res = get_generation_organization_list(period=period, period_range="month")
         df_res["period"] = period
         df = pd.concat([df, df_res], ignore_index=True)
@@ -212,14 +216,15 @@ def get_multiperiod_generation_org_and_uevcb_wrapper(
     try:
         for period in periods:
             if verbose:
-                print(f"Processing period: {period}")
+                logger.info("Processing period: %s", period)
             df_res = get_generation_org_and_uevcb_wrapper(period=period, **kwargs)
             df = pd.concat([df, df_res], ignore_index=True)
             time.sleep(1)
     except Exception as e:
-        print(
-            f"Error processing period {period}: {e}",
-            " returning data collected so far.",
+        logger.warning(
+            "Error processing period %s: %s returning data collected so far.",
+            period,
+            e,
         )
 
     return df
@@ -237,7 +242,7 @@ def get_aggregators_data_for_period(
         eptr = EPTR2(recycle_tgt=True)
 
     if period is None:
-        print("No period provided. Using current month as default.")
+        logger.info("No period provided. Using current month as default.")
         period = get_utc3_now().replace(day=1).strftime("%Y-%m-%d")
 
     df: pd.DataFrame = get_generation_org_and_uevcb_wrapper(

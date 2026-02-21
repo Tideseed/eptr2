@@ -1,5 +1,9 @@
 import pandas as pd
 import json
+import logging
+
+
+logger = logging.getLogger(__name__)
 
 
 def postprocess_direct_dict(res, key: str | None = None):
@@ -14,7 +18,7 @@ def postprocess_direct_dict(res, key: str | None = None):
         if subkey is not None:
             return d[subkey]
     except Exception as e:
-        print(e)
+        logger.warning("%s", e)
 
     return d
 

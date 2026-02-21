@@ -1,7 +1,11 @@
+import logging
 from eptr2 import EPTR2
 import pandas as pd
 from eptr2.util.time import iso_to_contract, get_utc3_now
 from datetime import datetime, timedelta
+
+
+logger = logging.getLogger(__name__)
 
 
 def get_bpm_range(
@@ -47,11 +51,13 @@ def get_bpm_range(
 
     for i, date_str in enumerate(date_range):
         if date_str > today:
-            print("Skipping future dates:", date_str)
+            logger.info("Skipping future dates: %s", date_str)
             break
 
         if verbose:
-            print(f"Fetching data for {date_str} ({i + 1}/{len(date_range)})...")
+            logger.info(
+                "Fetching data for %s (%s/%s)...", date_str, i + 1, len(date_range)
+            )
         try:
             df = eptr.call(
                 "bpm-orders-w-avg",
@@ -63,13 +69,13 @@ def get_bpm_range(
                 retry_jitter=0.0,
             )
             if df.empty:
-                print(f"No data found for {date_str}. Skipping...")
+                logger.info("No data found for %s. Skipping...", date_str)
             else:
                 df.drop(columns=["date"], inplace=True)
                 df.rename(columns={"time": "dt"}, inplace=True)
                 main_df = pd.concat([main_df, df])
         except Exception as e:
-            print(f"Failed to fetch data for {date_str} after retries: {e}")
+            logger.warning("Failed to fetch data for %s after retries: %s", date_str, e)
             if strict:
                 raise
             continue
@@ -80,7 +86,7 @@ def get_bpm_range(
         try:
             main_df["contract"] = main_df["dt"].apply(lambda x: iso_to_contract(x))
         except Exception as e:
-            print("Contract information could not be added. Error:", e)
+            logger.warning("Contract information could not be added. Error: %s", e)
 
     return main_df
 

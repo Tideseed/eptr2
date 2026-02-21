@@ -1,6 +1,10 @@
+import logging
 from eptr2 import EPTR2
 from eptr2.util.time import iso_to_contract
 import pandas as pd
+
+
+logger = logging.getLogger(__name__)
 
 
 def get_mms_detail(
@@ -41,7 +45,7 @@ def get_mms_detail(
 
     if include_summary and not include_contract_symbol:
         if verbose:
-            print(
+            logger.info(
                 "Contract symbols are required for summary. Setting include_contract_symbol to True."
             )
         include_contract_symbol = True
@@ -51,7 +55,7 @@ def get_mms_detail(
 
     if include_summary:
         if verbose:
-            print("Getting MMS loss summary by contract...")
+            logger.info("Getting MMS loss summary by contract...")
         df_summary = get_mms_loss_summary_by_contract(df_res)
         return {"detail": df_res, "summary": df_summary}
 

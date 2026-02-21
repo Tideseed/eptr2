@@ -1,9 +1,13 @@
+import logging
 from eptr2 import EPTR2
 import pandas as pd
 from eptr2.util.time import (
     iso_to_contract,
     check_date_for_settlement,
 )
+
+
+logger = logging.getLogger(__name__)
 
 
 def get_hourly_production_data(
@@ -57,7 +61,7 @@ def get_hourly_production_data(
     else:
         rt_included = True
         if verbose:
-            print("Loading real time production data...")
+            logger.info("Loading real time production data...")
 
         rt_gen_df: pd.DataFrame = eptr.call(
             "rt-gen",
@@ -75,7 +79,7 @@ def get_hourly_production_data(
             rt_gen_df.drop("hour", axis=1, inplace=True)
         except Exception as e:
             if verbose:
-                print(e)
+                logger.info("%s", e)
 
         rt_gen_df.columns = [
             x + "_rt" if x not in ["date"] else x for x in rt_gen_df.columns
@@ -89,7 +93,7 @@ def get_hourly_production_data(
     else:
         uevm_included = True
         if verbose:
-            print("Loading UEVM data...")
+            logger.info("Loading UEVM data...")
 
         uevm_df: pd.DataFrame = eptr.call(
             "uevm",
@@ -105,9 +109,9 @@ def get_hourly_production_data(
         except Exception as e:
             within_settlement = check_date_for_settlement(x=end_date)
             if not within_settlement:
-                print("Warning: The end date may not be within the settlement period.")
+                logger.warning("The end date may not be within the settlement period.")
             if verbose:
-                print(e)
+                logger.info("%s", e)
 
         uevm_df.columns = [
             x + "_uevm" if x not in ["date"] else x for x in uevm_df.columns
@@ -115,7 +119,7 @@ def get_hourly_production_data(
 
     if uevm_included and rt_included:
         if verbose:
-            print("Merging data...")
+            logger.info("Merging data...")
 
         if uevm_df.empty:
             merged_df = rt_gen_df.copy()
@@ -132,7 +136,7 @@ def get_hourly_production_data(
                 lambda x: iso_to_contract(x)
             )
         except Exception as e:
-            print("Contract information could not be added. Error:", e)
+            logger.warning("Contract information could not be added. Error: %s", e)
 
     merged_df = merged_df.rename(columns={"date": "dt"})
 
@@ -186,7 +190,7 @@ def get_hourly_production_plan_data(
 
     if not skip_kgup_v1:
         if verbose:
-            print("Loading KGUP v1...")
+            logger.info("Loading KGUP v1...")
 
         kgup_v1_df: pd.DataFrame = eptr.call(
             "kgup-v1",
@@ -200,7 +204,7 @@ def get_hourly_production_plan_data(
 
         if kgup_v1_df.empty:
             skip_kgup_v1 = True
-            print("No data (KGUP v1) is available for this date range.")
+            logger.info("No data (KGUP v1) is available for this date range.")
         else:
             kgup_v1_df.columns = [
                 x + "_kgup_v1" if x not in ["date", "time"] else x
@@ -209,7 +213,7 @@ def get_hourly_production_plan_data(
 
     if not skip_kgup:
         if verbose:
-            print("Loading KGUP...")
+            logger.info("Loading KGUP...")
 
         kgup_df: pd.DataFrame = eptr.call(
             "kgup",
@@ -222,7 +226,7 @@ def get_hourly_production_plan_data(
         )
         if kgup_df.empty:
             skip_kgup = True
-            print("No data (KGUP) is available for this date range.")
+            logger.info("No data (KGUP) is available for this date range.")
         else:
             kgup_df.columns = [
                 x + "_kgup" if x not in ["date", "time"] else x for x in kgup_df.columns
@@ -230,7 +234,7 @@ def get_hourly_production_plan_data(
 
     if not skip_kudup:
         if verbose:
-            print("Loading KUDUP...")
+            logger.info("Loading KUDUP...")
 
         kudup_df: pd.DataFrame = eptr.call(
             "kudup",
@@ -244,7 +248,7 @@ def get_hourly_production_plan_data(
 
         if kudup_df.empty:
             skip_kudup = True
-            print("No data (KUDUP) is available for this date range.")
+            logger.info("No data (KUDUP) is available for this date range.")
         else:
             kudup_df.columns = [
                 x + "_kudup" if x not in ["date", "time"] else x
@@ -253,7 +257,7 @@ def get_hourly_production_plan_data(
 
     #### MERGE PHASE ####
     if verbose:
-        print("Merging dataframes...")
+        logger.info("Merging dataframes...")
 
     merged_df = None
     for _ in ["kgup_v1", "kgup", "kudup"]:
@@ -272,7 +276,7 @@ def get_hourly_production_plan_data(
                 lambda x: iso_to_contract(x)
             )
         except Exception as e:
-            print("Contract information could not be added. Error:", e)
+            logger.warning("Contract information could not be added. Error: %s", e)
 
     merged_df = merged_df.rename(columns={"date": "dt"})
 
@@ -305,7 +309,7 @@ def wrapper_hourly_production_plan_and_realized(
         eptr = EPTR2(dotenv_path=kwargs.get("dotenv_path", ".env"))
 
     if verbose:
-        print("Loading production plan data...")
+        logger.info("Loading production plan data...")
 
     plan_df = get_hourly_production_plan_data(
         start_date=start_date,
@@ -319,7 +323,7 @@ def wrapper_hourly_production_plan_and_realized(
     )
 
     if verbose:
-        print("Loading production realizations data...")
+        logger.info("Loading production realizations data...")
 
     realized_df = get_hourly_production_data(
         start_date=start_date,

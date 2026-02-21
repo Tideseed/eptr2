@@ -1,6 +1,10 @@
 from datetime import datetime, timedelta, timezone
+import logging
 import pytz
 from typing import Literal, Union
+
+
+logger = logging.getLogger(__name__)
 
 
 def contract_duration(
@@ -761,7 +765,7 @@ def time_to_contract_close(c, dt_then: datetime | str = None, ts_then: float = N
         try:
             now_ts = datetime.fromisoformat(dt_then).timestamp()
         except ValueError:
-            print("Invalid datetime string format. ISO format expected.")
+            logger.warning("Invalid datetime string format. ISO format expected.")
             return None
 
     return dt_close - now_ts
@@ -1015,7 +1019,7 @@ def date_str_to_datetime(date_str: str, fmt: str = "%Y-%m-%d"):
             datetime.strptime(date_str, fmt)
         )
     except ValueError:
-        print(f"Invalid date format: {date_str}. Expected format: {fmt}.")
+        logger.warning("Invalid date format: %s. Expected format: %s.", date_str, fmt)
         return None
 
 

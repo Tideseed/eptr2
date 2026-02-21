@@ -1,3 +1,4 @@
+import logging
 from eptr2 import EPTR2
 import pandas as pd
 from eptr2.util.time import (
@@ -5,6 +6,9 @@ from eptr2.util.time import (
     get_previous_day,
     get_start_end_dates_period,
 )
+
+
+logger = logging.getLogger(__name__)
 
 
 def process_idm_data(
@@ -71,7 +75,7 @@ def get_day_ahead_and_bilateral_matches(
         eptr = EPTR2(dotenv_path=kwargs.get("dotenv_path", ".env"))
 
     if verbose:
-        print("Getting day ahead matches...")
+        logger.info("Getting day ahead matches...")
 
     retry_kwargs = {
         "retry_attempts": kwargs.get("lives", 2),
@@ -99,7 +103,7 @@ def get_day_ahead_and_bilateral_matches(
 
     for cc in ["bi-long", "bi-short"]:
         if verbose:
-            print(f"Getting bilateral {cc} matches...")
+            logger.info("Getting bilateral %s matches...", cc)
 
         df_bi = eptr.call(
             cc,
@@ -127,11 +131,11 @@ def get_day_ahead_and_bilateral_matches(
         try:
             df["contract"] = df["date"].apply(lambda x: iso_to_contract(x))
         except Exception as e:
-            print("Contract information could not be added. Error:", e)
+            logger.warning("Contract information could not be added. Error: %s", e)
 
     if include_idm_data:
         if verbose:
-            print("Getting IDM data...")
+            logger.info("Getting IDM data...")
         df_idm = process_idm_data(eptr, start_date, end_date, org_id)
         df = (
             df.merge(df_idm, on=["contract"], how="left")
@@ -257,7 +261,7 @@ def get_day_ahead_detail_info(
         for item in items:
             try:
                 if verbose:
-                    print(f"Fetching {item} data...")
+                    logger.info("Fetching %s data...", item)
                 sub_df = eptr.call(
                     item,
                     start_date=start_date,
@@ -284,10 +288,10 @@ def get_day_ahead_detail_info(
 
             except Exception as e:
                 if verbose:
-                    print(f"Error fetching {item}: {e}")
+                    logger.warning("Error fetching %s: %s", item, e)
                 lives -= 1
                 if lives <= 0:
-                    print("Max lives reached. Exiting.")
+                    logger.warning("Max lives reached. Exiting.")
                     break
                 continue
 
@@ -297,6 +301,6 @@ def get_day_ahead_detail_info(
         try:
             df["contract"] = df["date"].apply(lambda x: iso_to_contract(x))
         except Exception as e:
-            print("Contract information could not be added. Error:", e)
+            logger.warning("Contract information could not be added. Error: %s", e)
 
     return df

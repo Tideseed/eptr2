@@ -1,7 +1,11 @@
 from eptr2 import EPTR2
 import pandas as pd
 from datetime import datetime, timedelta
+import logging
 from eptr2.util.time import get_hourly_contract_range_list
+
+
+logger = logging.getLogger(__name__)
 
 
 def idm_log_longer(
@@ -36,7 +40,7 @@ def idm_log_longer(
     ## Make a sanity check and show a friendly warning
     whole_interval = (end_dt - start_dt).days
     if whole_interval > 32:
-        print(
+        logger.warning(
             "Friendly warning: Your time interval might be a bit long. You might lose all data if the API fails. We recommmend monthly aggregate calls in order to have proper checkpoints."
         )
 
@@ -48,7 +52,11 @@ def idm_log_longer(
         period_start_date = period_start_dt.strftime("%Y-%m-%d")
         period_end_date = period_end_dt.strftime("%Y-%m-%d")
         if verbose:
-            print(f"Getting IDM log data for {period_start_date} to {period_end_date}")
+            logger.info(
+                "Getting IDM log data for %s to %s",
+                period_start_date,
+                period_end_date,
+            )
 
         try:
             df = eptr.call(
@@ -61,10 +69,10 @@ def idm_log_longer(
                 retry_jitter=0.0,
             )
         except Exception as e:
-            print(
+            logger.warning(
                 f"Error getting IDM log data for {period_start_date} to {period_end_date}"
             )
-            print(e)
+            logger.warning("%s", e)
             break
 
         main_df = pd.concat([main_df, df], ignore_index=True)
