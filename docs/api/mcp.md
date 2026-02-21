@@ -24,6 +24,33 @@ asyncio.run(run_mcp_server(use_dotenv=True, recycle_tgt=True))
 
 ## Module Reference
 
+### create_mcp_server
+
+Create and configure the FastMCP server instance.
+
+```python
+from eptr2.mcp import create_mcp_server
+
+server = create_mcp_server(
+  use_dotenv=True,
+  recycle_tgt=True,
+  dotenv_path=".env",
+  tgt_path=".",
+)
+
+# Run when ready
+server.run()
+```
+
+**Parameters:**
+
+| Parameter | Type | Default | Description |
+|-----------|------|---------|-------------|
+| `use_dotenv` | `bool` | `True` | Load credentials from `.env` file |
+| `recycle_tgt` | `bool` | `True` | Reuse authentication tickets |
+| `dotenv_path` | `str` | `".env"` | Path to `.env` file |
+| `tgt_path` | `str` | `"."` | Directory for `.eptr2-tgt` cache |
+
 ### run_mcp_server
 
 Main entry point for the MCP server.
@@ -46,6 +73,7 @@ asyncio.run(run_mcp_server(
 | `use_dotenv` | `bool` | `True` | Load credentials from `.env` file |
 | `recycle_tgt` | `bool` | `True` | Reuse authentication tickets |
 | `dotenv_path` | `str` | `".env"` | Path to `.env` file |
+| `tgt_path` | `str` | `"."` | Directory for `.eptr2-tgt` cache |
 
 ## Available Tools
 
@@ -194,10 +222,13 @@ Calls any API endpoint by key.
   "arguments": {
     "call_key": "mcp",
     "start_date": "2024-07-29",
-    "end_date": "2024-07-29"
+    "end_date": "2024-07-29",
+    "additional_params": {"org_id": 195}
   }
 }
 ```
+
+`additional_params` also accepts a JSON string when dictionary values cannot be passed directly by the MCP client.
 
 ## Claude Desktop Configuration
 

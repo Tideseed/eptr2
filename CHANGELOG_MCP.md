@@ -58,7 +58,7 @@
 
 ### Dependencies
 - Core: urllib3, pytz (existing)
-- MCP Support: `mcp>=0.9.0` (new optional)
+- MCP Support: `fastmcp` via `eptr2[mcp]` (new optional)
 - All Extras: pandas, streamlit, tornado, requests (existing)
 
 ## Usage Examples

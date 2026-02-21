@@ -100,7 +100,7 @@ mcp = eptr.call("mcp", start_date="2024-07-29", end_date="2024-07-29")
 
 ### Get Consumption Data
 ```python
-consumption = eptr.call("rt-consumption", start_date="2024-07-29", end_date="2024-07-29")
+consumption = eptr.call("rt-cons", start_date="2024-07-29", end_date="2024-07-29")
 ```
 
 ### Use Composite Functions
@@ -141,8 +141,8 @@ print(f"Total calls: {len(calls['keys'])}")
 - For MCP support: `pip install "eptr2[mcp]"`
 
 ### MCP Server Issues
-- Verify MCP SDK is installed: `pip install mcp`
-- Check Python version (>=3.9.6 required)
+- Verify FastMCP is installed: `pip install fastmcp`
+- Check Python version (>=3.10 required)
 - Ensure credentials are properly configured
 
 ## License

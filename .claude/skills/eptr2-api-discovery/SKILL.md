@@ -72,9 +72,9 @@ print(f"URL: {help_info['url']}")
 | GÖP | Gün Öncesi Piyasası | Day-Ahead Market | `mcp`, `dam-clearing`, `dam-volume` |
 | GİP | Gün İçi Piyasası | Intraday Market | `wap`, `idm-qty`, `idm-log` |
 | DGP | Dengeleme Güç Piyasası | Balancing Power Market | `smp`, `bpm-up`, `bpm-down` |
-| Üretim | Üretim | Generation | `rt-generation`, `uevm`, `dpp` |
+| Üretim | Üretim | Generation | `rt-gen`, `uevm`, `dpp` |
 | Tüketim | Tüketim | Consumption | `rt-cons`, `uecm`, `load-plan` |
-| Dengesizlik | Dengesizlik | Imbalance | `imbalance-price`, `imb-qty`, `imb-vol` |
+| Dengesizlik | Dengesizlik | Imbalance | `mcp-smp-imb`, `imb-qty`, `imb-vol` |
 | İA | İkili Anlaşmalar | Bilateral Contracts | `bi-long`, `bi-short` |
 | Barajlar | Barajlar | Dams/Reservoirs | `dams-daily-level`, `dams-active-fullness` |
 | Kurulu Güç | Kurulu Güç | Installed Capacity | `installed-capacity`, `lic-pp-list` |
@@ -85,10 +85,10 @@ print(f"URL: {help_info['url']}")
 - `mcp` / `ptf` - Market Clearing Price
 - `smp` / `smf` - System Marginal Price
 - `wap` - Weighted Average Price (IDM)
-- `imbalance-price` - Imbalance prices
+- `mcp-smp-imb` - Imbalance prices
 
 ### Quantity Data
-- `rt-generation` - Real-time generation
+- `rt-gen` - Real-time generation
 - `rt-cons` - Real-time consumption
 - `dam-clearing` - DAM cleared quantity
 - `idm-qty` - IDM matched quantity
@@ -174,13 +174,12 @@ print(f"Optional: {optional}")
 | `mcp` | Market Clearing Price |
 | `smp` | System Marginal Price |
 | `wap` | IDM Weighted Average Price |
-| `imbalance-price` | Imbalance prices |
 | `mcp-smp-imb` | Combined MCP, SMP, Imbalance |
 
 ### Most Used Quantity Endpoints
 | Call | Description |
 |------|-------------|
-| `rt-generation` | Real-time generation by type |
+| `rt-gen` | Real-time generation by type |
 | `rt-cons` | Real-time consumption |
 | `load-plan` | Demand forecast |
 | `dam-clearing` | DAM cleared volume |

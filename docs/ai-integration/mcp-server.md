@@ -32,10 +32,15 @@ eptr2-mcp-server
 Or programmatically:
 
 ```python
-from eptr2.mcp import run_mcp_server
+from eptr2.mcp import create_mcp_server, run_mcp_server
 import asyncio
 
+# Option A: async helper
 asyncio.run(run_mcp_server(use_dotenv=True, recycle_tgt=True))
+
+# Option B: explicit server creation
+server = create_mcp_server(use_dotenv=True, recycle_tgt=True)
+# server.run()
 ```
 
 ## Configuration
@@ -99,7 +104,7 @@ The MCP server exposes the following tools:
 | Tool | Description |
 |------|-------------|
 | `get_available_eptr2_calls` | List all 213+ API endpoints |
-| `call_eptr2_api` | Call any API endpoint by key |
+| `call_eptr2_api` | Call any API endpoint by key (`additional_params` supported) |
 
 ## Example Queries
 

@@ -1,9 +1,5 @@
-"""
-MCP (Model Context Protocol) server for eptr2 library.
+"""Public MCP APIs for eptr2."""
 
-This module provides an MCP server that exposes eptr2's functionality to AI agents.
-"""
+from eptr2.mcp.server import create_mcp_server, run_mcp_server, main
 
-from eptr2.mcp.server import main
-
-__all__ = ["main"]
+__all__ = ["create_mcp_server", "run_mcp_server", "main"]

@@ -40,9 +40,9 @@ eptr2 provides access to various Turkish electricity market data:
 
 | Category | Description | Example Calls |
 |----------|-------------|---------------|
-| **Prices** | Market clearing, system marginal, imbalance prices | `mcp`, `smp`, `imbalance-price` |
-| **Consumption** | Real-time consumption, load forecasts | `rt-consumption`, `load-plan` |
-| **Generation** | Real-time generation by source type | `rt-generation`, `uevm` |
+| **Prices** | Market clearing, system marginal, imbalance prices | `mcp`, `smp`, `mcp-smp-imb` |
+| **Consumption** | Real-time consumption, load forecasts | `rt-cons`, `load-plan` |
+| **Generation** | Real-time generation by source type | `rt-gen`, `uevm` |
 | **Market Operations** | Day-ahead, intraday market data | `dpp`, `kgup` |
 
 ## Installation

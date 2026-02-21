@@ -30,7 +30,7 @@ print(mcp)
 | `mcp` | `ptf` | Market Clearing Price (Day-Ahead) | Piyasa Takas Fiyatı |
 | `smp` | `smf` | System Marginal Price | Sistem Marjinal Fiyatı |
 | `wap` | - | Weighted Average Price (Intraday) | Ağırlıklı Ortalama Fiyat |
-| `imbalance-price` | - | Positive/Negative Imbalance Prices | Dengesizlik Fiyatları |
+| `mcp-smp-imb` | `imbalance-price` | Positive/Negative Imbalance Prices | Dengesizlik Fiyatları |
 | `interim-mcp` | - | Interim MCP (before finalization) | Kesinleşmemiş PTF |
 | `mcp-smp-imb` | - | Combined MCP, SMP and Imbalance | PTF, SMF ve Dengesizlik |
 
@@ -96,7 +96,7 @@ comparison["dam_idm_spread"] = comparison["price"] - comparison["wap"]
 ### 3. Imbalance Price Analysis
 
 ```python
-imb_df = eptr.call("imbalance-price", start_date="2024-07-29", end_date="2024-07-29")
+imb_df = eptr.call("mcp-smp-imb", start_date="2024-07-29", end_date="2024-07-29")
 # Returns: positiveImbalancePrice, negativeImbalancePrice columns
 ```
 

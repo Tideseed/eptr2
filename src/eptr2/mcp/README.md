@@ -39,7 +39,7 @@ pip install "eptr2[allextras,mcp]"
 ### Manual Installation
 
 ```bash
-pip install eptr2 mcp
+pip install eptr2 fastmcp
 ```
 
 ## Setup
@@ -198,10 +198,10 @@ List all available API calls in the eptr2 library (213+ endpoints).
 Generic function to call any eptr2 API endpoint.
 
 **Parameters:**
-- `call_key` (required): The API call key (e.g., 'mcp', 'smp', 'rt-consumption')
+- `call_key` (required): The API call key (e.g., 'mcp', 'smp', 'rt-cons')
 - `start_date` (optional): Start date in YYYY-MM-DD format
 - `end_date` (optional): End date in YYYY-MM-DD format
-- `additional_params` (optional): Additional parameters as key-value pairs
+- `additional_params` (optional): Additional parameters as key-value pairs (dict or JSON string)
 
 ### 9. get_hourly_consumption_and_forecast
 Get composite data combining load plan, UECM, and real-time consumption.
@@ -263,9 +263,9 @@ if __name__ == "__main__":
 
 To add new tools:
 
-1. Add tool definition to `EPTR2_TOOLS` in `server.py`
-2. Implement handler method in `EPTR2MCPServer` class
-3. Add case to `call_tool` handler
+1. Add a new function in `server.py`
+2. Decorate it with `@mcp.tool()`
+3. Use `_get_eptr_client()` and `client.call(...)` for endpoint execution
 4. Update documentation
 
 ## Resources
@@ -278,9 +278,9 @@ To add new tools:
 ## Troubleshooting
 
 ### Server won't start
-- Check that `mcp` package is installed: `pip install mcp`
+- Check that `fastmcp` package is installed: `pip install fastmcp`
 - Verify credentials in `.env` file
-- Check Python version (>=3.9.6 required)
+- Check Python version (>=3.10 required)
 
 ### Authentication errors
 - Verify your EPIAS Transparency Platform credentials

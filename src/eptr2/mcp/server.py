@@ -8,6 +8,7 @@ allowing AI agents to query Turkish electricity market data from EPIAS Transpare
 import json
 import sys
 import logging
+import asyncio
 from typing import Any, Optional
 
 from eptr2 import EPTR2
@@ -37,6 +38,49 @@ def _get_eptr_client() -> EPTR2:
     if _eptr_client is None:
         _eptr_client = EPTR2(use_dotenv=True, recycle_tgt=True)
     return _eptr_client
+
+
+def create_mcp_server(
+    use_dotenv: bool = True,
+    recycle_tgt: bool = True,
+    dotenv_path: str = ".env",
+    tgt_path: str = ".",
+):
+    """
+    Create and configure the FastMCP server instance for eptr2.
+
+    Parameters mirror EPTR2 initialization so users can configure credential loading
+    and TGT recycling behavior programmatically.
+    """
+    if not MCP_AVAILABLE:
+        raise ImportError(
+            "FastMCP is not installed. Install it with: pip install fastmcp"
+        )
+
+    global _eptr_client
+    _eptr_client = EPTR2(
+        use_dotenv=use_dotenv,
+        recycle_tgt=recycle_tgt,
+        dotenv_path=dotenv_path,
+        tgt_path=tgt_path,
+    )
+    return mcp
+
+
+async def run_mcp_server(
+    use_dotenv: bool = True,
+    recycle_tgt: bool = True,
+    dotenv_path: str = ".env",
+    tgt_path: str = ".",
+) -> None:
+    """Run the eptr2 MCP server with configurable EPTR2 initialization."""
+    server = create_mcp_server(
+        use_dotenv=use_dotenv,
+        recycle_tgt=recycle_tgt,
+        dotenv_path=dotenv_path,
+        tgt_path=tgt_path,
+    )
+    await asyncio.to_thread(server.run)
 
 
 def _format_result(result: Any) -> str:
@@ -70,14 +114,14 @@ if MCP_AVAILABLE:
     def get_real_time_consumption(start_date: str, end_date: str) -> str:
         """Get real-time electricity consumption data in MWh."""
         client = _get_eptr_client()
-        result = client.call("rt-consumption", start_date=start_date, end_date=end_date)
+        result = client.call("rt-cons", start_date=start_date, end_date=end_date)
         return _format_result(result)
 
     @mcp.tool()
     def get_real_time_generation(start_date: str, end_date: str) -> str:
         """Get real-time generation data by resource type (wind, solar, hydro, etc.)."""
         client = _get_eptr_client()
-        result = client.call("rt-generation", start_date=start_date, end_date=end_date)
+        result = client.call("rt-gen", start_date=start_date, end_date=end_date)
         return _format_result(result)
 
     @mcp.tool()
@@ -91,9 +135,7 @@ if MCP_AVAILABLE:
     def get_imbalance_price(start_date: str, end_date: str) -> str:
         """Get electricity imbalance prices (positive and negative)."""
         client = _get_eptr_client()
-        result = client.call(
-            "imbalance-price", start_date=start_date, end_date=end_date
-        )
+        result = client.call("mcp-smp-imb", start_date=start_date, end_date=end_date)
         return _format_result(result)
 
     @mcp.tool()
@@ -108,6 +150,7 @@ if MCP_AVAILABLE:
         call_key: str,
         start_date: Optional[str] = None,
         end_date: Optional[str] = None,
+        additional_params: Optional[dict[str, Any] | str] = None,
     ) -> str:
         """Generic function to call any eptr2 API endpoint. Use get_available_eptr2_calls first."""
         client = _get_eptr_client()
@@ -116,6 +159,12 @@ if MCP_AVAILABLE:
             params["start_date"] = start_date
         if end_date:
             params["end_date"] = end_date
+        if additional_params:
+            if isinstance(additional_params, str):
+                additional_params = json.loads(additional_params)
+            if not isinstance(additional_params, dict):
+                raise TypeError("additional_params must be a dictionary or JSON string")
+            params.update(additional_params)
         result = client.call(call_key, **params)
         return _format_result(result)
 
@@ -147,7 +196,7 @@ def main():
     if not MCP_AVAILABLE:
         logger.error("FastMCP is not installed. Install it with: pip install fastmcp")
         sys.exit(1)
-    mcp.run()
+    asyncio.run(run_mcp_server())
 
 
 if __name__ == "__main__":

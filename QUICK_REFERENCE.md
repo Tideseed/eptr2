@@ -13,9 +13,9 @@ df = eptr.call("mcp", start_date="2024-07-29", end_date="2024-07-29")
 |----------|-------|-------------|---------|
 | `mcp` | `ptf` | Market Clearing Price | Day-ahead prices (TL/MWh) |
 | `smp` | `smf` | System Marginal Price | System prices (TL/MWh) |
-| `rt-consumption` | - | Real-time Consumption | Hourly consumption (MWh) |
-| `rt-generation` | - | Real-time Generation | Generation by type (MWh) |
-| `imbalance-price` | - | Imbalance Prices | Pos/neg imbalance prices |
+| `rt-cons` | - | Real-time Consumption | Hourly consumption (MWh) |
+| `rt-gen` | - | Real-time Generation | Generation by type (MWh) |
+| `mcp-smp-imb` | - | Imbalance Prices | Pos/neg imbalance prices |
 | `load-plan` | - | Load Plan (UECM) | Demand forecast (MWh) |
 | `dpp` | `kgup` | Daily Production Plan | Production plans by unit |
 | `uevm` | - | Generation Forecast | Plant-level forecasts |
@@ -33,16 +33,16 @@ mcp = eptr.call("mcp", start_date="2024-07-01", end_date="2024-07-31")
 smp = eptr.call("smp", start_date="2024-07-01", end_date="2024-07-31")
 
 # Imbalance prices
-imb = eptr.call("imbalance-price", start_date="2024-07-01", end_date="2024-07-31")
+imb = eptr.call("mcp-smp-imb", start_date="2024-07-01", end_date="2024-07-31")
 ```
 
 ### Get Consumption/Generation
 ```python
 # Real-time consumption
-cons = eptr.call("rt-consumption", start_date="2024-07-01", end_date="2024-07-31")
+cons = eptr.call("rt-cons", start_date="2024-07-01", end_date="2024-07-31")
 
 # Real-time generation by type
-gen = eptr.call("rt-generation", start_date="2024-07-01", end_date="2024-07-31")
+gen = eptr.call("rt-gen", start_date="2024-07-01", end_date="2024-07-31")
 
 # Demand forecast
 forecast = eptr.call("load-plan", start_date="2024-07-01", end_date="2024-07-31")

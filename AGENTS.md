@@ -66,11 +66,11 @@ result = eptr.call("mcp", start_date="2024-07-29", end_date="2024-07-29")
 ### Prices
 - `mcp` or `ptf`: Market Clearing Price (day-ahead market price)
 - `smp` or `smf`: System Marginal Price
-- `imbalance-price`: Imbalance prices (positive and negative)
+- `mcp-smp-imb`: Imbalance prices (positive and negative)
 
 ### Consumption & Generation
-- `rt-consumption`: Real-time electricity consumption
-- `rt-generation`: Real-time generation by resource type
+- `rt-cons`: Real-time electricity consumption
+- `rt-gen`: Real-time generation by resource type
 - `load-plan`: Demand forecast (UECM)
 
 ### Market Data

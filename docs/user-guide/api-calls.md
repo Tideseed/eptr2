@@ -10,7 +10,7 @@ eptr2 provides access to 213+ API endpoints for Turkish electricity market data.
 |----------|-------|-------------|
 | `mcp` | `ptf` | Market Clearing Price (Piyasa Takas Fiyatı) |
 | `smp` | `smf` | System Marginal Price (Sistem Marjinal Fiyatı) |
-| `imbalance-price` | - | Positive and negative imbalance prices |
+| `mcp-smp-imb` | - | Positive and negative imbalance prices |
 | `wap` | `aof` | Weighted Average Price (Ağırlıklı Ortalama Fiyat) |
 
 ```python
@@ -21,7 +21,7 @@ mcp = eptr.call("mcp", start_date="2024-07-29", end_date="2024-07-29")
 smp = eptr.call("smp", start_date="2024-07-29", end_date="2024-07-29")
 
 # Imbalance prices
-imbalance = eptr.call("imbalance-price", start_date="2024-07-29", end_date="2024-07-29")
+imbalance = eptr.call("mcp-smp-imb", start_date="2024-07-29", end_date="2024-07-29")
 ```
 
 ### Intraday Market Prices
@@ -36,7 +36,7 @@ imbalance = eptr.call("imbalance-price", start_date="2024-07-29", end_date="2024
 
 | Call Key | Alias | Description |
 |----------|-------|-------------|
-| `rt-consumption` | `rt-cons` | Real-time electricity consumption |
+| `rt-cons` | - | Real-time electricity consumption |
 | `uecm` | - | Settlement consumption (Uzlaştırmaya Esas Çekiş Miktarı) |
 | `load-plan` | - | Demand forecast |
 
@@ -57,12 +57,12 @@ forecast = eptr.call("load-plan", start_date="2024-07-29", end_date="2024-07-29"
 
 | Call Key | Description |
 |----------|-------------|
-| `rt-generation` | Real-time generation by resource type |
+| `rt-gen` | Real-time generation by resource type |
 | `uevm` | Settlement generation (Uzlaştırmaya Esas Veriş Miktarı) |
 
 ```python
 # Real-time generation by fuel type
-generation = eptr.call("rt-generation", start_date="2024-07-29", end_date="2024-07-29")
+generation = eptr.call("rt-gen", start_date="2024-07-29", end_date="2024-07-29")
 
 # Settlement generation
 uevm = eptr.call("uevm", start_date="2024-07-29", end_date="2024-07-29")

@@ -30,7 +30,7 @@ print(rt_cons)
 | `rt-cons` | Real-time electricity consumption | Gerçek Zamanlı Tüketim |
 | `uecm` | Settlement consumption (UECM) | Uzlaştırmaya Esas Çekiş Miktarı |
 | `load-plan` | Demand forecast (Load Plan) | Yük Tahmini / Yük Planı |
-| `rt-consumption` | Same as rt-cons | Gerçek Zamanlı Tüketim |
+| `rt-consumption` | Alias for rt-cons | Gerçek Zamanlı Tüketim |
 
 ## Composite Function for Consumption Analysis
 

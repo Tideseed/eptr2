@@ -36,7 +36,7 @@ The `call` method is the primary way to fetch data:
 
 ```python
 result = eptr.call(
-    key,           # API endpoint name (e.g., "mcp", "smp", "rt-consumption")
+    key,           # API endpoint name (e.g., "mcp", "smp", "rt-cons")
     start_date,    # Start date in "YYYY-MM-DD" format
     end_date,      # End date in "YYYY-MM-DD" format
     **kwargs       # Additional parameters (varies by endpoint)
@@ -55,7 +55,7 @@ mcp = eptr.call("mcp", start_date="2024-07-29", end_date="2024-07-29")
 smp = eptr.call("smp", start_date="2024-07-29", end_date="2024-07-29")
 
 # Imbalance Prices
-imbalance = eptr.call("imbalance-price", start_date="2024-07-29", end_date="2024-07-29")
+imbalance = eptr.call("mcp-smp-imb", start_date="2024-07-29", end_date="2024-07-29")
 ```
 
 ### Consumption & Generation
@@ -65,7 +65,7 @@ imbalance = eptr.call("imbalance-price", start_date="2024-07-29", end_date="2024
 consumption = eptr.call("rt-cons", start_date="2024-07-29", end_date="2024-07-29")
 
 # Real-time Generation by Source
-generation = eptr.call("rt-generation", start_date="2024-07-29", end_date="2024-07-29")
+generation = eptr.call("rt-gen", start_date="2024-07-29", end_date="2024-07-29")
 
 # Load Plan (Demand Forecast)
 load_plan = eptr.call("load-plan", start_date="2024-07-29", end_date="2024-07-29")

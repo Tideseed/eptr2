@@ -19,7 +19,7 @@ from eptr2 import EPTR2
 eptr = EPTR2(use_dotenv=True, recycle_tgt=True)
 
 # Get real-time generation by resource type
-rt_gen = eptr.call("rt-generation", start_date="2024-07-29", end_date="2024-07-29")
+rt_gen = eptr.call("rt-gen", start_date="2024-07-29", end_date="2024-07-29")
 print(rt_gen)
 ```
 
@@ -27,8 +27,8 @@ print(rt_gen)
 
 | Call | Description (EN) | Description (TR) |
 |------|------------------|------------------|
-| `rt-generation` | Real-time generation by resource type | Kaynak Bazlı Gerçek Zamanlı Üretim |
-| `rt-gen` | Real-time generation (same as above) | Gerçek Zamanlı Üretim |
+| `rt-gen` | Real-time generation by resource type | Kaynak Bazlı Gerçek Zamanlı Üretim |
+| `rt-generation` | Alias for `rt-gen` | Gerçek Zamanlı Üretim |
 | `uevm` | Settlement generation (UEVM) | Uzlaştırmaya Esas Veriş Miktarı |
 | `dpp` / `kgup` | Daily Production Plan | Kesinleşmiş Günlük Üretim Planı (KGÜP) |
 | `rt-gen-org` | Real-time generation by organization | Organizasyon Bazlı GZÜ |
@@ -82,7 +82,7 @@ Columns include `_rt` (real-time) and `_uevm` (settlement) suffixes:
 ### 1. Total Generation Mix
 
 ```python
-rt_gen = eptr.call("rt-generation", start_date="2024-07-15", end_date="2024-07-15")
+rt_gen = eptr.call("rt-gen", start_date="2024-07-15", end_date="2024-07-15")
 
 # Sum by resource type
 fuel_mix = rt_gen.drop(columns=['date', 'hour']).sum()
@@ -97,7 +97,7 @@ for fuel, gen in fuel_mix.items():
 ### 2. Renewable Energy Share
 
 ```python
-rt_gen = eptr.call("rt-generation", start_date="2024-07-15", end_date="2024-07-15")
+rt_gen = eptr.call("rt-gen", start_date="2024-07-15", end_date="2024-07-15")
 
 # Define renewable columns
 renewables = ['wind', 'sun', 'river', 'dammedHydro', 'geothermal', 'biomass']

@@ -99,23 +99,18 @@ def pytest_collection_modifyitems(config, items):
     Tests that use EPTR2 are marked as api_call and serial.
 
     Automatic marking rules:
-    - All tests in tests/composite/ are marked @api_call
-    - Tests WITHOUT "without_eptr" in name are marked @serial and @integration
-    - Tests WITH "without_eptr" in name get minimal marking (lighter API usage)
+    - All tests in tests/composite/ are marked @api_call, @serial, and @integration
+    - Tests WITHOUT "without_eptr" in name are additionally marked @slow
     """
     for item in items:
         # All composite tests make API calls (EPTR2 initialization)
         if "composite" in str(item.fspath):
             item.add_marker(pytest.mark.api_call)
+            item.add_marker(pytest.mark.serial)
+            item.add_marker(pytest.mark.integration)
 
-            # Distinguish between real API calls and auto-initialized calls
-            if "without_eptr" in item.name:
-                # These are lighter - just minimal API usage for auto-init
-                pass
-            else:
-                # These make real API calls
-                item.add_marker(pytest.mark.serial)
-                item.add_marker(pytest.mark.integration)
+            # Heavier composite paths are also marked slow
+            if "without_eptr" not in item.name:
                 item.add_marker(pytest.mark.slow)
 
 

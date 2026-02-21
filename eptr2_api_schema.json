@@ -171,8 +171,10 @@
       "returns": "DataFrame with date, hour, and wap columns"
     },
     {
-      "key": "imbalance-price",
-      "aliases": [],
+      "key": "mcp-smp-imb",
+      "aliases": [
+        "imbalance-price"
+      ],
       "name": "Imbalance Price",
       "nameTR": "Dengesizlik Fiyatı",
       "description": "Positive and negative imbalance prices",
@@ -185,9 +187,9 @@
       "returns": "DataFrame with date, hour, positive and negative imbalance prices"
     },
     {
-      "key": "rt-consumption",
+      "key": "rt-cons",
       "aliases": [
-        "rt-cons"
+        "rt-consumption"
       ],
       "name": "Real-Time Consumption",
       "nameTR": "Gerçek Zamanlı Tüketim",
@@ -215,8 +217,10 @@
       "returns": "DataFrame with settlement consumption data"
     },
     {
-      "key": "rt-generation",
-      "aliases": [],
+      "key": "rt-gen",
+      "aliases": [
+        "rt-generation"
+      ],
       "name": "Real-Time Generation",
       "nameTR": "Gerçek Zamanlı Üretim",
       "description": "Real-time generation by resource type (hourly)",
