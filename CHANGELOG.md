@@ -3,9 +3,31 @@
 All notable changes are published via GitHub Releases.
 
 - Repository: [Tideseed/eptr2](https://github.com/Tideseed/eptr2)
-- Auto-generated: 2026-03-11 21:01 UTC
+- Auto-generated: 2026-03-11 21:18 UTC
 
 ## Releases
+
+### [v.1.3.6 - Under the Hood Changes and Ancillary Composite Function ](https://github.com/Tideseed/eptr2/releases/tag/v1.3.6) - 2026-03-11
+
+- Tag: `v1.3.6`
+
+This release is intended to bolster the repository's inner workings and to increase its capabilities and convenience of use.
+
++ Logger is used instead of print in many parts
++ Skills, Agents.md and other parts are refreshed
++ A new composite function (`get_ancillary_reserve_data`) to call all ancillary services data (PFK/SFK reserve amounts and prices) 
++ Metadata improvements and project links
++ Added a changelog.md
+
+```python
+from eptr2.composite import get_ancillary_reserve_data
+
+df = get_ancillary_reserve_data(
+    start_date="2026-01-01",
+    end_date="2026-01-02",
+    verbose=True,
+)
+```
 
 ### [v1.3.5 - Better Portfolio Costs and improved imbalance pricing](https://github.com/Tideseed/eptr2/releases/tag/v1.3.5) - 2026-02-03
 
