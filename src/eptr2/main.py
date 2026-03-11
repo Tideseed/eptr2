@@ -357,6 +357,9 @@ class EPTR2:
         if key == "uevm" and "powerPlantId" in call_body.keys():
             call_body["powerplantId"] = call_body.pop("powerPlantId")
 
+        if key in ["bpm-orders-w-avg"]:
+            call_body["page"] = {"number": 1, "size": 24}
+
         res = transparency_call(
             call_path=call_path,
             call_method=call_method,

@@ -1,6 +1,6 @@
 [project]
 name = "eptr2"
-version = "1.3.6.dev0"
+version = "1.3.6.dev1"
 description = "EPIAS Transparency Platform v2.0 Python client by Robokami / Tideseed"
 authors = [{ name = "Tideseed", email = "info@tideseed.com" }]
 license = { text = "Apache License 2.0" }
@@ -10,10 +10,7 @@ dependencies = ["urllib3>=2.6.3", "pytz>=2024.1"]
 
 [project.optional-dependencies]
 dataframe = ["pandas>=2.1.3"]
-mcp = [
-    "fastmcp>=2.14.5",
-    "pandas>=2.1.3",
-]
+mcp = ["fastmcp>=2.14.5", "pandas>=2.1.3"]
 allextras = [
     "pandas>=2.1.3",
     "xlsxwriter>=3.2.9",

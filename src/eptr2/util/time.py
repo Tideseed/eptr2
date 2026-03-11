@@ -309,9 +309,10 @@ def contract_to_datetime(
         >>> contract_to_datetime("PH24072914", to_str=True)
         '2024-07-29T14:00:00+03:00'
     """
-    dt_obj = datetime.strptime(
-        contract[2:10] + ":00:00" + ("+03:00" if localize else ""), "%y%m%d%H:%M:%S%z"
-    )
+    dt_obj = datetime.strptime(contract[2:10] + ":00:00+03:00", "%y%m%d%H:%M:%S%z")
+
+    if not localize:
+        dt_obj = dt_obj.astimezone(pytz.utc).replace(tzinfo=None)
 
     if to_str:
         return dt_obj.isoformat(timespec="seconds")
