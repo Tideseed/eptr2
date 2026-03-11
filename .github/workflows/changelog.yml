@@ -1,0 +1,38 @@
+name: Update Changelog
+
+on:
+    release:
+        types: [published, edited, deleted, unpublished]
+    workflow_dispatch:
+
+permissions:
+    contents: write
+
+concurrency:
+    group: changelog-update
+    cancel-in-progress: true
+
+jobs:
+    update-changelog:
+        runs-on: ubuntu-latest
+        steps:
+            - name: Checkout default branch
+              uses: actions/checkout@v4
+              with:
+                  ref: ${{ github.event.repository.default_branch }}
+
+            - name: Setup Python
+              uses: actions/setup-python@v5
+              with:
+                  python-version: "3.11"
+
+            - name: Generate CHANGELOG.md from GitHub Releases
+              env:
+                  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+              run: python scripts/generate_changelog.py
+
+            - name: Commit updated changelog
+              uses: stefanzweifel/git-auto-commit-action@v5
+              with:
+                  commit_message: "docs(changelog): sync from GitHub releases"
+                  file_pattern: CHANGELOG.md
