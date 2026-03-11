@@ -436,7 +436,7 @@ wheels = [
 
 [[package]]
 name = "eptr2"
-version = "1.3.6.dev1"
+version = "1.3.6"
 source = { editable = "." }
 dependencies = [
     { name = "pytz" },
