@@ -1,7 +1,8 @@
+from datetime import datetime
 import warnings
 from typing import Literal
 import math
-from eptr2.util.time import contract_to_floor_ceil_prices
+from eptr2.util.time import contract_to_floor_ceil_prices, iso_to_contract
 
 
 def get_regulation_period_by_contract(contract: str):
@@ -782,6 +783,7 @@ def calculate_unit_imbalance_price_2026(
     high_margin: float = 0.06,
     ceil_margin: float = 0.05,
     sd_sign: int | None = None,
+    strict: bool = True,
     **kwargs,
 ):
     """
@@ -860,6 +862,16 @@ def calculate_unit_imbalance_price_2026(
     mcp = round(mcp, 2)
     smp = round(smp, 2)
 
+    if strict:
+        if mcp < floor_price:
+            raise ValueError(f"MCP {mcp} is below floor price {floor_price}")
+        if smp < floor_price:
+            raise ValueError(f"SMP {smp} is below floor price {floor_price}")
+        if mcp > ceil_price:
+            raise ValueError(f"MCP {mcp} is above ceiling price {ceil_price}")
+        if smp > ceil_price:
+            raise ValueError(f"SMP {smp} is above ceiling price {ceil_price}")
+
     if sd_sign is not None:
         try:
             sd_sign = int(sd_sign)
@@ -902,7 +914,7 @@ def calculate_unit_imbalance_price_2026(
         neg_margin = low_margin
         pos_margin = low_margin
 
-    if max(mcp, smp) == ceil_price:
+    if max(mcp, smp) >= ceil_price:
         neg_imb_mult = 1 + ceil_margin
     else:
         neg_imb_mult = 1
@@ -1130,6 +1142,7 @@ def calculate_unit_imbalance_cost_2026(
     high_margin: float = 0.06,
     ceil_margin: float = 0.05,
     include_prices: bool = False,
+    strict: bool = True,
     **kwargs,
 ):
     """
@@ -1202,6 +1215,7 @@ def calculate_unit_imbalance_cost_2026(
         low_margin=low_margin,
         high_margin=high_margin,
         ceil_margin=ceil_margin,
+        strict=strict,
         **kwargs,
     )
 
@@ -1298,12 +1312,36 @@ def calculate_unit_imbalance_cost_pre_2026(
     return cost_d
 
 
+def calculate_unit_price_and_costs_by_datetime(
+    dt: str | datetime,
+    mcp: float,
+    smp: float,
+    include_kupst: bool = True,
+    include_dynamic_floor_ceil: bool = True,
+    **kwargs,
+):
+    """
+    Calculate unit imbalance prices, costs, and optionally KUPST cost using a datetime.
+    """
+    contract = iso_to_contract(dt)
+    res = calculate_unit_price_and_costs_by_contract(
+        contract=contract,
+        mcp=mcp,
+        smp=smp,
+        include_kupst=include_kupst,
+        include_dynamic_floor_ceil=include_dynamic_floor_ceil,
+        **kwargs,
+    )
+
+    return res
+
+
 def calculate_unit_price_and_costs_by_contract(
     contract: str,
     mcp: float,
     smp: float,
     include_kupst: bool = True,
-    include_dynamic_floor_ceil: bool = False,
+    include_dynamic_floor_ceil: bool = True,
     **kwargs,
 ):
     """
@@ -1359,7 +1397,9 @@ def calculate_unit_price_and_costs_by_contract(
 
     if include_dynamic_floor_ceil:
         fc_d = contract_to_floor_ceil_prices(contract)
-        kwargs.update({"floor_price": fc_d["min"], "ceil_price": fc_d["max"]})
+        ## Only set floor and ceil if not already provided in kwargs, to allow overrides
+        kwargs["floor_price"] = kwargs.get("floor_price", fc_d["min"])
+        kwargs["ceil_price"] = kwargs.get("ceil_price", fc_d["max"])
 
     res = calculate_unit_price_and_costs(
         mcp=mcp,
@@ -1579,6 +1619,38 @@ def calculate_imbalance_amount(
     return d
 
 
+def calculate_diff_costs_by_datetime(
+    forecast: float,
+    actual: float,
+    is_producer: bool,
+    dt: str | datetime,
+    mcp: float,
+    smp: float,
+    production_source: str | None = None,
+    include_quantities: bool = False,
+    include_dynamic_floor_ceil: bool = True,
+    **kwargs,
+) -> dict | float:
+    """
+    Calculate total imbalance and KUPST costs for a single period using a datetime with ISO format.
+    """
+
+    contract = iso_to_contract(dt)
+
+    return calculate_diff_costs_by_contract(
+        forecast=forecast,
+        actual=actual,
+        is_producer=is_producer,
+        contract=contract,
+        mcp=mcp,
+        smp=smp,
+        production_source=production_source,
+        include_quantities=include_quantities,
+        include_dynamic_floor_ceil=include_dynamic_floor_ceil,
+        **kwargs,
+    )
+
+
 def calculate_diff_costs_by_contract(
     forecast: float,
     actual: float,
@@ -1588,7 +1660,7 @@ def calculate_diff_costs_by_contract(
     smp: float,
     production_source: str | None = None,
     include_quantities: bool = False,
-    include_dynamic_floor_ceil: bool = False,
+    include_dynamic_floor_ceil: bool = True,
     **kwargs,
 ) -> dict | float:
     """
@@ -1677,7 +1749,9 @@ def calculate_diff_costs_by_contract(
 
     if include_dynamic_floor_ceil:
         fc_d = contract_to_floor_ceil_prices(contract)
-        kwargs.update({"floor_price": fc_d["min"], "ceil_price": fc_d["max"]})
+        # Only set floor and ceil if not already provided in kwargs, to allow overrides
+        kwargs["floor_price"] = kwargs.get("floor_price", fc_d["min"])
+        kwargs["ceil_price"] = kwargs.get("ceil_price", fc_d["max"])
 
     return calculate_diff_costs(
         forecast=forecast,
@@ -1815,7 +1889,7 @@ def calculate_diff_costs(
         mcp=mcp,
         smp=smp,
         regulation_period=regulation_period,
-        include_kupst=True,
+        include_kupst=kwargs.pop("include_kupst", True),
         **kwargs,
     )
 

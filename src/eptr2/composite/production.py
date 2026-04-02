@@ -2,6 +2,7 @@ import logging
 from eptr2 import EPTR2
 import pandas as pd
 from eptr2.util.time import (
+    get_utc3_now,
     iso_to_contract,
     check_date_for_settlement,
 )
@@ -344,3 +345,83 @@ def wrapper_hourly_production_plan_and_realized(
     )
 
     return merged_df
+
+
+def get_kgup_bulk_range(
+    start_date: str,
+    end_date: str,
+    uevcb_ids: list,
+    eptr: EPTR2 | None = None,
+    verbose: bool = False,
+    strict: bool = True,
+    include_contract_symbol: bool = True,
+    **kwargs,
+) -> pd.DataFrame:
+    """
+    This function retrieves KGÜP bulk for multiple days between the specified start and end dates.
+
+    start_date: str
+        The start date in "YYYY-MM-DD" format.
+    end_date: str
+        The end date in "YYYY-MM-DD" format.
+    uevcb_ids: list
+        List of UEV-CB IDs to fetch data for.
+    verbose: bool
+        If True, prints detailed information about the fetching process.
+    strict: bool
+        If True, raises an exception if data fetching fails after retries.
+    include_contract_symbol: bool
+        If True, adds a column with the contract symbol derived from the date.
+    Returns:
+    pd.DataFrame
+        A DataFrame containing the KGÜP bulk data with columns for date, time, and YAL-YAT values.
+    """
+
+    if eptr is None:
+        eptr = EPTR2(dotenv_path=kwargs.get("dotenv_path", ".env"))
+
+    date_range = pd.date_range(start=start_date, end=end_date, freq="D").to_list()
+
+    date_range = sorted([d.strftime("%Y-%m-%d") for d in date_range])
+
+    main_df = pd.DataFrame()
+
+    today = get_utc3_now().strftime("%Y-%m-%d")
+
+    for i, date_str in enumerate(date_range):
+        if date_str > today:
+            logger.info("Skipping future dates: %s", date_str)
+            break
+
+        if verbose:
+            logger.info(
+                "Fetching data for %s (%s/%s)...", date_str, i + 1, len(date_range)
+            )
+        try:
+            df = eptr.call(
+                "dpp-bulk",
+                date=date_str,
+                uevcb_ids=uevcb_ids,
+                request_kwargs={"timeout": 5},
+            )
+            if df.empty:
+                logger.info("No data found for %s. Skipping...", date_str)
+            else:
+                df.drop(columns=["time"], inplace=True)
+                df.rename(columns={"date": "dt"}, inplace=True)
+                main_df = pd.concat([main_df, df])
+        except Exception as e:
+            logger.warning("Failed to fetch data for %s after retries: %s", date_str, e)
+            if strict:
+                raise
+            continue
+
+    main_df.reset_index(drop=True, inplace=True)
+
+    if include_contract_symbol:
+        try:
+            main_df["contract"] = main_df["dt"].apply(lambda x: iso_to_contract(x))
+        except Exception as e:
+            logger.warning("Contract information could not be added. Error: %s", e)
+
+    return main_df
