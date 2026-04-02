@@ -800,6 +800,13 @@ def get_time_min_max_price_map():
     """
     map_l = [
         {
+            "date": "2026-04-04",
+            "min": 0,
+            "max": 4500.0,
+            "idm_min": 0,
+            "idm_max": 4635.0,
+        },
+        {
             "date": "2025-04-05",
             "min": 0,
             "max": 3400.0,
