@@ -3,9 +3,34 @@
 All notable changes are published via GitHub Releases.
 
 - Repository: [Tideseed/eptr2](https://github.com/Tideseed/eptr2)
-- Auto-generated: 2026-03-11 21:18 UTC
+- Auto-generated: 2026-04-03 06:46 UTC
 
 ## Releases
+
+### [v1.3.7 - New Ceiling Price, New Cost Functions, Bulk DPP/KGUP Composite Function](https://github.com/Tideseed/eptr2/releases/tag/v1.3.7) - 2026-04-03
+
+- Tag: `v1.3.7`
+
+This version is accelerated a bit ahead of schedule due to new day ahead and imbalance prices being increased to 4500 TL/MWh\*.
+
++ New price floor and ceiling prices [0,4500] are defined at `contract_to_floor_ceil_prices`. This part is important because contract/datetime sensitive cost functions use this function to determine ceiling prices (you can override).  
++ Two new cost functions are added: `calculate_unit_price_and_costs_by_datetime` and `calculate_diff_costs_by_datetime`. They are wrappers around `calculate_unit_price_and_costs_by_contract`, `calculate_diff_costs_by_contract`. `include_dynamic_floor_ceil` parameter is also set to `True` as default value.
++ A new composite function for bulk KGUP/DPP calls is added: `get_kgup_bulk_range`. You can now get bulk KGUP calls in a time range. You can see an example below.
+
+```python
+## You must have EPTR_USERNAME and EPTR_PASSWORD defined in your `.env` file
+from eptr2.composite import get_kgup_bulk_range
+
+df = get_kgup_bulk_range(
+    start_date="2026-04-01",
+    end_date="2026-04-03",
+    uevcb_ids=[3204384, 3204385],  ## BOZCAADA RES, BOZCAADA RES2
+    verbose=True,
+)
+```
+
+
+_\* Official announcement on April 2, starting from April 4 but effective from April 3 (due to "day ahead" prices being determined on the previous day)_
 
 ### [v.1.3.6 - Under the Hood Changes and Ancillary Composite Function ](https://github.com/Tideseed/eptr2/releases/tag/v1.3.6) - 2026-03-11
 
