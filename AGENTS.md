@@ -14,6 +14,7 @@ eptr2 includes Claude Agent Skills for enhanced AI assistance. Skills are automa
 | **eptr2-imbalance-costs** | Imbalance, KUPST, deviation costs, penalties | `.claude/skills/eptr2-imbalance-costs/` |
 | **eptr2-market-operations** | DAM, IDM, GÖP, GİP, bilateral contracts | `.claude/skills/eptr2-market-operations/` |
 | **eptr2-api-discovery** | Available endpoints, API search, discovery | `.claude/skills/eptr2-api-discovery/` |
+| **eptr2-convenience-wrappers** | get_* functions, typed wrappers, eptr2.calls, IDE-friendly code | `.claude/skills/eptr2-convenience-wrappers/` |
 
 ### Using Skills
 
@@ -22,6 +23,8 @@ Skills are model-invoked - Claude automatically selects the relevant skill based
 - "Show me wind generation data" → triggers `eptr2-generation-tracking`
 - "Calculate imbalance costs" → triggers `eptr2-imbalance-costs`
 - "What APIs are available?" → triggers `eptr2-api-discovery`
+- "Use get_mcp instead of eptr.call" → triggers `eptr2-convenience-wrappers`
+- "Write typed code with get_* functions" → triggers `eptr2-convenience-wrappers`
 
 ### Installing Skills Personally
 
