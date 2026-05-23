@@ -1236,7 +1236,7 @@ def get_next_contracts(c: str, n: int = 1, include_current: bool = False):
         ['PH24072914', 'PH24072915', 'PH24072916', 'PH24072917']
     """
 
-    if n > 0:
+    if n >= 0:
         c_dt = contract_to_datetime(c)
         l = [datetime_to_contract(c_dt + timedelta(hours=x + 1)) for x in range(n)]  # noqa: E741
     if n < 0:
