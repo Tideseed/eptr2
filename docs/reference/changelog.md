@@ -2,6 +2,29 @@
 
 All notable changes to eptr2 are documented here.
 
+## Version 1.3.8 (Development)
+
+### Added
+- **`eptr2.calls` package** — typed convenience wrappers for every endpoint
+  (`get_mcp`, `get_smp`, `get_rt_cons`, …). 231 endpoints + 2 aliases =
+  233 top-level functions.
+- Bilingual (EN/TR) docstrings on each wrapper, sourced from
+  `eptr2.mapping.help.get_help_d`, including category and the EPIAS reference
+  URL.
+- Type hints on every parameter (`str`, `str | int`, `list`, `bool`).
+- Optional `eptr` argument with lazy `EPTR2()` construction when omitted.
+- `scripts/generate_call_wrappers.py` regenerator for the wrapper package.
+- Parametrised test suite `tests/test_call_wrappers.py` (655 cases) covering
+  wrapper existence, parameter forwarding, required-arg enforcement, alias
+  routing, and `__all__` coverage.
+- New documentation pages: *Convenience Wrappers* (user guide) and
+  *Convenience Wrappers* (API reference).
+
+### Changed
+- The legacy `src/eptr2/calls/market.py` is superseded by the generated
+  per-category modules (`dam.py`, `bpm.py`, `consumption.py`, `generation.py`,
+  `idm.py`, …).
+
 ## Version 1.3.4 (Development)
 
 ### Added

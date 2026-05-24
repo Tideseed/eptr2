@@ -2,6 +2,12 @@
 
 eptr2 provides access to 213+ API endpoints for Turkish electricity market data. This page lists the most commonly used calls organized by category.
 
+!!! tip "Prefer typed wrappers?"
+    Every endpoint listed below is also available as a typed top-level function
+    in [`eptr2.calls`](convenience-wrappers.md) (e.g. `get_mcp`, `get_smp`,
+    `get_rt_cons`). The wrappers give you auto-complete, parameter type hints,
+    and bilingual docstrings while calling the exact same endpoints.
+
 ## Price Data
 
 ### Day-Ahead Market Prices

@@ -152,6 +152,7 @@ nav:
   - User Guide:
     - Basic Usage: user-guide/basic-usage.md
     - Available API Calls: user-guide/api-calls.md
+    - Convenience Wrappers: user-guide/convenience-wrappers.md
     - Composite Functions: user-guide/composite-functions.md
     - Working with DataFrames: user-guide/dataframes.md
   - AI Integration:
@@ -161,6 +162,7 @@ nav:
   - API Reference:
     - eptr2: api/eptr2.md
     - EPTR2 Class: api/main.md
+    - Convenience Wrappers: api/calls.md
     - Composite Functions: api/composite.md
     - MCP Server: api/mcp.md
     - Utilities: api/util.md
