@@ -3,9 +3,59 @@
 All notable changes are published via GitHub Releases.
 
 - Repository: [Tideseed/eptr2](https://github.com/Tideseed/eptr2)
-- Auto-generated: 2026-04-03 06:46 UTC
+- Auto-generated: 2026-05-24 07:49 UTC
 
 ## Releases
+
+### [v1.3.8 - Convenience Wrappers, Bulk Generation Composite Function and Fixes](https://github.com/Tideseed/eptr2/releases/tag/v1.3.8) - 2026-05-24
+
+- Tag: `v1.3.8`
+
+## Convenience Wrappers
+
+Arguably the biggest update of this version is the convenience wrappers. 
+
+Until recently, the main call function was `eptr.call("call_name", **parameters)`. Now you can get equivalent functions (~230 calls) from eptr2.calls without the need for the call object itself (provided ,you are ok with the defaults).
+
+```python
+from eptr2.calls import (
+    get_mcp,
+    get_ptf,
+    get_smp,
+    get_smf,
+    get_rt_cons,
+    get_rt_gen,
+    get_load_plan,
+    get_dam_clearing,
+    get_uevm,
+    # ... 233 in total
+)
+```
+
+See [(1)](https://tideseed.github.io/eptr2/1.3.8/api/calls/#top-level-exports) and [(2)](https://github.com/Tideseed/eptr2/tree/main/src/eptr2/calls) for more information.
+
+## Bulk Real Time Generation Composite Function
+
+Similar to `get_kgup_bulk_range` there is now a `get_dpp_bulk_range` function to get data for multiple power plant ids and for multiple days (recall, EPIAS bulk function only allows for multiple power plant ids).
+
+See [here](https://github.com/Tideseed/eptr2/blob/4e471b7b5a874ebd994c7d0e603fe7716b6b0232/src/eptr2/composite/production.py#L437-L523) for the function an the example below.
+
+```python
+from eptr2.composite.production import get_dpp_bulk_range
+
+df = get_dpp_bulk_range(
+    start_date="2026-04-01",
+    end_date="2026-04-03",
+    pp_ids=[705, 706],  
+    verbose=True,
+)
+```
+
+## Other Updates
+
++ One time function (`get_next_contracts`) got a small fix
++ Documentation updates
++ Skills updates
 
 ### [v1.3.7 - New Ceiling Price, New Cost Functions, Bulk DPP/KGUP Composite Function](https://github.com/Tideseed/eptr2/releases/tag/v1.3.7) - 2026-04-03
 
