@@ -6,7 +6,7 @@
   "composite_functions": {
     "calculate_portfolio_costs": {
       "module": "eptr2.composite.plant_costs",
-      "signature": "(start_date: str, end_date: str, id_df: pandas.core.frame.DataFrame, *, plant_name_col='plant_name', export_to_excel: bool = False, export_dir: str = 'data', check_existing: bool = False, portfolio_name: str | None = None, translate: bool = False, verbose=True, use_uevm=False, ignore_org_id=True, reduce_cost_details=False, forecast_source: Literal['kgup', 'kudup'] = 'kgup', use_latest_regulation: bool = False, include_price_range_adjustment: bool = False, **kwargs)",
+      "signature": "(start_date: str, end_date: str, id_df: pandas.DataFrame, *, plant_name_col='plant_name', export_to_excel: bool = False, export_dir: str = 'data', check_existing: bool = False, portfolio_name: str | None = None, translate: bool = False, verbose=True, use_uevm=False, ignore_org_id=True, reduce_cost_details=False, forecast_source: Literal['kgup', 'kudup'] = 'kgup', use_latest_regulation: bool = False, include_price_range_adjustment: bool = False, **kwargs)",
       "summary": "For a given portfolio (e.g. an aggregator) of power plants, this function calculates the overall imbalance and kupst costs based on provided production data. There are some caveats to consider."
     },
     "create_template_id_df": {
@@ -21,7 +21,7 @@
     },
     "get_aggregators_data_for_period": {
       "module": "eptr2.composite.periodic_orgs",
-      "signature": "(period: str | None = None, **kwargs) -> pandas.core.frame.DataFrame",
+      "signature": "(period: str | None = None, **kwargs) -> pandas.DataFrame",
       "summary": "Get a list of aggregators with their units (UEVCB) for the specified period (month)."
     },
     "get_all_important_ids": {
@@ -36,12 +36,12 @@
     },
     "get_bpm_period": {
       "module": "eptr2.composite.bpm",
-      "signature": "(period: str, eptr: eptr2.main.EPTR2 | None = None, max_lives: int = 2, verbose: bool = False, strict: bool = True, include_contract_symbol: bool = True, **kwargs) -> pandas.core.frame.DataFrame",
+      "signature": "(period: str, eptr: eptr2.main.EPTR2 | None = None, max_lives: int = 2, verbose: bool = False, strict: bool = True, include_contract_symbol: bool = True, **kwargs) -> pandas.DataFrame",
       "summary": "This function is a wrapper for `get_bpm_range` that retrieves BPM data for a specific month, regardless of the day."
     },
     "get_bpm_range": {
       "module": "eptr2.composite.bpm",
-      "signature": "(start_date: str, end_date: str, eptr: eptr2.main.EPTR2 | None = None, max_lives: int = 2, verbose: bool = False, strict: bool = True, include_contract_symbol: bool = True, **kwargs) -> pandas.core.frame.DataFrame",
+      "signature": "(start_date: str, end_date: str, eptr: eptr2.main.EPTR2 | None = None, max_lives: int = 2, verbose: bool = False, strict: bool = True, include_contract_symbol: bool = True, **kwargs) -> pandas.DataFrame",
       "summary": "This function retrieves BPM (Balancing Power Market) weighted average data for multiple days between the specified start and end dates."
     },
     "get_dabi_idm_data": {
@@ -61,12 +61,12 @@
     },
     "get_day_ahead_detail_info": {
       "module": "eptr2.composite.dabi_idm",
-      "signature": "(start_date: str, end_date: str, eptr: eptr2.main.EPTR2 | None = None, verbose: bool = False, include_contract_symbol: bool = True, lives: int = 3, **kwargs) -> pandas.core.frame.DataFrame",
+      "signature": "(start_date: str, end_date: str, eptr: eptr2.main.EPTR2 | None = None, verbose: bool = False, include_contract_symbol: bool = True, lives: int = 3, **kwargs) -> pandas.DataFrame",
       "summary": "This function gets day ahead detail information such as regular, block, flexible bids & asks (offers)."
     },
     "get_dpp_bulk_range": {
       "module": "eptr2.composite.production",
-      "signature": "(start_date: str, end_date: str, pp_ids: list, eptr: eptr2.main.EPTR2 | None = None, verbose: bool = False, strict: bool = True, include_contract_symbol: bool = True, **kwargs) -> pandas.core.frame.DataFrame",
+      "signature": "(start_date: str, end_date: str, pp_ids: list, eptr: eptr2.main.EPTR2 | None = None, verbose: bool = False, strict: bool = True, include_contract_symbol: bool = True, **kwargs) -> pandas.DataFrame",
       "summary": "This function retrieves KGÜP bulk for multiple days between the specified start and end dates."
     },
     "get_generation_org_and_uevcb_wrapper": {
@@ -106,7 +106,7 @@
     },
     "get_kgup_bulk_range": {
       "module": "eptr2.composite.production",
-      "signature": "(start_date: str, end_date: str, uevcb_ids: list, eptr: eptr2.main.EPTR2 | None = None, verbose: bool = False, strict: bool = True, include_contract_symbol: bool = True, **kwargs) -> pandas.core.frame.DataFrame",
+      "signature": "(start_date: str, end_date: str, uevcb_ids: list, eptr: eptr2.main.EPTR2 | None = None, verbose: bool = False, strict: bool = True, include_contract_symbol: bool = True, **kwargs) -> pandas.DataFrame",
       "summary": "This function retrieves KGÜP bulk for multiple days between the specified start and end dates."
     },
     "get_mms_detail": {
@@ -116,27 +116,27 @@
     },
     "get_mms_loss_summary_by_contract": {
       "module": "eptr2.composite.mms",
-      "signature": "(df: pandas.core.frame.DataFrame)",
+      "signature": "(df: pandas.DataFrame)",
       "summary": "This function gets the loss summary of the MMS data."
     },
     "get_multiperiod_generation_org_and_uevcb_wrapper": {
       "module": "eptr2.composite.periodic_orgs",
-      "signature": "(start_date: str, end_date: str, **kwargs) -> pandas.core.frame.DataFrame",
+      "signature": "(start_date: str, end_date: str, **kwargs) -> pandas.DataFrame",
       "summary": "This is a wrapper function to get generation organizations with their UEVCB IDs for multiple periods between start_date and end_date."
     },
     "get_periodic_generation_organization_lists": {
       "module": "eptr2.composite.periodic_orgs",
-      "signature": "(start_date: str, end_date: str, **kwargs) -> pandas.core.frame.DataFrame",
+      "signature": "(start_date: str, end_date: str, **kwargs) -> pandas.DataFrame",
       "summary": "This wrapper function gets generation organization lists for periodic intervals (monthly) between the specified start and end dates. Each month organization names can be different, so it captures the changes over time."
     },
     "get_uevcb_ids": {
       "module": "eptr2.composite.periodic_orgs",
-      "signature": "(org_df: pandas.core.frame.DataFrame, period: str, **kwargs)",
+      "signature": "(org_df: pandas.DataFrame, period: str, **kwargs)",
       "summary": "Get UEVCB IDs for the given organization DataFrame and period. The difference of this function is it checks both the start and end dates of the period to ensure capturing all relevant UEVCB IDs. It also uses the latest bulk function for efficiency."
     },
     "idm_log_longer": {
       "module": "eptr2.composite.idm_log",
-      "signature": "(start_date: str, end_date: str, eptr: eptr2.main.EPTR2 | None = None, contract_wise: bool = True, verbose: bool = False, trials: int = 3, cooldown: int = 15, days_interval: int = 6, **kwargs) -> pandas.core.frame.DataFrame",
+      "signature": "(start_date: str, end_date: str, eptr: eptr2.main.EPTR2 | None = None, contract_wise: bool = True, verbose: bool = False, trials: int = 3, cooldown: int = 15, days_interval: int = 6, **kwargs) -> pandas.DataFrame",
       "summary": "This function gets the IDM log data for a longer period."
     },
     "idm_log_period": {
@@ -146,12 +146,12 @@
     },
     "postprocess_plant_cost_df": {
       "module": "eptr2.composite.plant_costs",
-      "signature": "(df: pandas.core.frame.DataFrame)",
+      "signature": "(df: pandas.DataFrame)",
       "summary": null
     },
     "process_idm_data": {
       "module": "eptr2.composite.dabi_idm",
-      "signature": "(eptr: eptr2.main.EPTR2, start_date: str, end_date: str, org_id: str, **kwargs) -> pandas.core.frame.DataFrame",
+      "signature": "(eptr: eptr2.main.EPTR2, start_date: str, end_date: str, org_id: str, **kwargs) -> pandas.DataFrame",
       "summary": "This function processes IDM data and includes it in the DataFrame."
     },
     "wrapper_hourly_production_plan_and_realized": {

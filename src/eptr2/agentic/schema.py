@@ -42,6 +42,12 @@ def _function_entry(func, module_name: str) -> dict:
     summary = doc.strip().split("\n")[0] if doc else None
     try:
         signature = str(inspect.signature(func))
+        # pandas 2 renders the annotation as pandas.core.frame.DataFrame,
+        # pandas 3 as pandas.DataFrame; normalize so the schema is
+        # byte-identical across environments.
+        signature = signature.replace(
+            "pandas.core.frame.DataFrame", "pandas.DataFrame"
+        )
     except (TypeError, ValueError):
         signature = None
     return {"module": module_name, "signature": signature, "summary": summary}
