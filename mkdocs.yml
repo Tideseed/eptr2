@@ -157,8 +157,9 @@ nav:
     - Working with DataFrames: user-guide/dataframes.md
   - AI Integration:
     - MCP Server: ai-integration/mcp-server.md
-    - Claude Desktop Setup: ai-integration/claude-desktop.md
+    - MCP Client Setup: ai-integration/mcp-clients.md
     - Agent Skills: ai-integration/agent-skills.md
+    - CLI for Agents: ai-integration/cli.md
   - API Reference:
     - eptr2: api/eptr2.md
     - EPTR2 Class: api/main.md

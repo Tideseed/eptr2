@@ -5,6 +5,28 @@ All notable changes are published via GitHub Releases.
 - Repository: [Tideseed/eptr2](https://github.com/Tideseed/eptr2)
 - Auto-generated: 2026-05-24 07:49 UTC
 
+## Unreleased (v1.3.9) — Agentic Enhancements
+
+Draft notes for the upcoming release; this section is replaced by the GitHub Release sync once v1.3.9 is published.
+
+### New `eptr2` CLI
+
+A general-purpose command line interface for humans and shell-driven AI agents: `eptr2 list / categories / search / describe / call / schema / install-skills / mcp-config / mcp-server / version`. Data goes to stdout (JSON or CSV), diagnostics to stderr. Also available as `python -m eptr2`.
+
+### Agentic assets now ship in the package
+
+- 7 agent skills (provider-agnostic Agent Skills / SKILL.md format) are bundled under `eptr2/assets/skills/` and installable anywhere with `eptr2 install-skills`.
+- The machine-readable API schema ships in the package and is auto-generated from the library's own metadata (`eptr2 schema`), covering all 231 endpoints with parameters, plus composite functions and cost utilities. It can no longer drift from the code (`eptr2 schema --check`).
+- New `eptr2.agentic` module: `list_calls`, `search_calls`, `describe_call`, `build_schema`, `install_skills`.
+
+### MCP server expanded to 17 tools
+
+New tools: `describe_eptr2_call`, `search_eptr2_calls` (discovery, no credentials), `get_market_operations_summary`, `get_balancing_market_data`, `get_bulk_production_plans`, `calculate_imbalance_prices_and_costs`, `calculate_kupst_deviation_cost` (pure calculations). Plus MCP resources `eptr2://schema` and `eptr2://help/{call_key}`, and an `analyze_market_prices` prompt. Fixed composite tools passing the client positionally (broken since the composite refactor).
+
+### Documentation overhaul
+
+Provider-agnostic agent docs: `AGENTS.md` is the single canonical agent-instruction file. New generic MCP client setup page (VS Code agent mode, Claude Desktop/Code, Cursor) and a CLI page in the docs site. Removed stale artifacts (`PR_DESCRIPTION.md`, `AI_AGENT_INTEGRATION_SUMMARY.md`, `CHANGELOG_MCP.md`, `mcp-config.json`, `CLAUDE_SETUP.md`); fixed UEVM descriptions and endpoint counts.
+
 ## Releases
 
 ### [v1.3.8 - Convenience Wrappers, Bulk Generation Composite Function and Fixes](https://github.com/Tideseed/eptr2/releases/tag/v1.3.8) - 2026-05-24

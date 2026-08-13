@@ -196,4 +196,8 @@ print(f"Optional: {optional}")
 ## For More Details
 
 - See [endpoint-categories.md](endpoint-categories.md) for complete category listings
-- Run the helper script in `scripts/list_endpoints.py` for interactive discovery
+- Prefer the `eptr2` CLI for discovery (no credentials needed):
+  - `eptr2 list [--category CAT]` / `eptr2 categories`
+  - `eptr2 search <keyword>` (English and Turkish)
+  - `eptr2 describe <key>` (parameters, method, path)
+- Fallback: run the helper script in `scripts/list_endpoints.py`

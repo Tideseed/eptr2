@@ -44,4 +44,6 @@ jobs:
 
       - name: Deploy stable docs
         if: github.ref == 'refs/heads/docs'
-        run: mike deploy --push --update-aliases 1.3.8 latest
+        run: |
+          VERSION=$(python -c "import tomllib; print(tomllib.load(open('pyproject.toml','rb'))['project']['version'].split('.dev')[0])")
+          mike deploy --push --update-aliases "$VERSION" latest

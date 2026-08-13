@@ -78,9 +78,9 @@ asyncio.run(run_mcp_server(use_dotenv=True, recycle_tgt=True))
 
 ## Configuration
 
-### For Claude Desktop
+### For MCP Clients
 
-**For complete setup instructions, see `CLAUDE_SETUP.md` in the repository root.**
+**For per-client setup instructions (VS Code, Claude Desktop/Code, Cursor), see the [MCP Client Setup guide](https://tideseed.github.io/eptr2/ai-integration/mcp-clients/), or print a ready-to-paste config with `eptr2 mcp-config --client <name>`.**
 
 Quick reference - Add to your Claude Desktop configuration:
 
@@ -126,26 +126,15 @@ Quick reference - Add to your Claude Desktop configuration:
 }
 ```
 
-Or reference the provided `mcp-config.json`:
+Or generate the config for your client (most clients do not expand `${VAR}` placeholders, so use literal values):
 
-```json
-{
-  "mcpServers": {
-    "eptr2": {
-      "command": "python",
-      "args": ["-m", "eptr2.mcp.server"],
-      "env": {
-        "EPTR_USERNAME": "${EPTR_USERNAME}",
-        "EPTR_PASSWORD": "${EPTR_PASSWORD}"
-      }
-    }
-  }
-}
+```bash
+eptr2 mcp-config --client claude-desktop   # or: vscode, claude-code, cursor, generic
 ```
 
 ## Available Tools
 
-The MCP server exposes 10 tools:
+The MCP server exposes 17 tools:
 
 ### 1. get_market_clearing_price
 Get day-ahead market clearing prices (MCP/PTF).
@@ -190,7 +179,7 @@ Get imbalance prices (positive and negative).
 - `end_date` (required): End date in YYYY-MM-DD format
 
 ### 7. get_available_eptr2_calls
-List all available API calls in the eptr2 library (213+ endpoints).
+List all available API calls in the eptr2 library (231 endpoints).
 
 **Parameters:** None
 
@@ -216,6 +205,66 @@ Get composite pricing data (MCP, SMP, imbalance costs).
 **Parameters:**
 - `start_date` (required): Start date in YYYY-MM-DD format
 - `end_date` (required): End date in YYYY-MM-DD format
+
+### 11. describe_eptr2_call
+Get parameters, HTTP method, path and bilingual descriptions for one call key. Resolves aliases. No credentials needed.
+
+**Parameters:**
+- `call_key` (required): The API call key (e.g., 'mcp', 'ptf')
+
+### 12. search_eptr2_calls
+Keyword search over all call keys, titles and descriptions (English and Turkish). No credentials needed.
+
+**Parameters:**
+- `query` (required): Search keyword
+- `category` (optional): Restrict to a category (e.g., 'GÖP', 'DGP')
+
+### 13. get_market_operations_summary
+Combined DAM matched quantities, bilateral contracts and intraday volumes.
+
+**Parameters:**
+- `start_date`, `end_date` (required): YYYY-MM-DD
+
+### 14. get_balancing_market_data
+Balancing Power Market data: YAL/YAT instructions with SMP.
+
+**Parameters:**
+- `start_date`, `end_date` (required): YYYY-MM-DD
+
+### 15. get_bulk_production_plans
+Bulk per-plant production plans ('dpp' or 'kgup').
+
+**Parameters:**
+- `start_date`, `end_date` (required): YYYY-MM-DD
+- `plant_ids` (required): Powerplant ids for 'dpp' (see 'pp-list'), UEVCB ids for 'kgup' (see 'uevcb-list-bulk')
+- `plan_type` (optional): 'dpp' (default) or 'kgup'
+
+### 16. calculate_imbalance_prices_and_costs
+Pure calculation of unit imbalance prices/costs for one hour. No credentials needed.
+
+**Parameters:**
+- `contract` (required): Hourly contract code 'PHYYMMDDhh'
+- `mcp_price`, `smp_price` (required): Prices in TL/MWh
+- `include_kupst` (optional): Include unit KUPST cost (default true)
+
+### 17. calculate_kupst_deviation_cost
+Pure calculation of the KUPST production-plan deviation cost for one hour. No credentials needed.
+
+**Parameters:**
+- `contract` (required): Hourly contract code 'PHYYMMDDhh'
+- `actual`, `forecast` (required): Production in MWh
+- `mcp_price`, `smp_price` (required): Prices in TL/MWh
+- `source` (optional): Energy source for tolerance (default 'other')
+- `tolerance` (optional): Explicit tolerance as decimal (e.g. 0.15)
+
+### Resources
+
+- `eptr2://schema` — machine-readable schema of all endpoints (generated live)
+- `eptr2://help/{call_key}` — details for one call key
+
+### Prompts
+
+- `analyze_market_prices(start_date, end_date)` — guided market price analysis
 
 ## Example AI Agent Queries
 

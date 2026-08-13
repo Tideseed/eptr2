@@ -1,10 +1,10 @@
 # Agent Skills
 
-eptr2 includes Claude Agent Skills that provide specialized guidance for different types of electricity market data queries.
+eptr2 bundles agent skills that provide specialized guidance for different types of electricity market data queries.
 
 ## What are Agent Skills?
 
-Agent Skills are structured knowledge files that help Claude understand domain-specific concepts and provide better assistance. When you ask about electricity prices, consumption, or generation, Claude automatically loads the relevant skill.
+Agent Skills are structured knowledge files in the provider-agnostic Agent Skills format — a directory containing a `SKILL.md` file with trigger descriptions plus optional reference files and scripts. Any compatible AI assistant or agent runtime can consume them: when you ask about electricity prices, consumption, or generation, the assistant automatically loads the relevant skill.
 
 ## Available Skills
 
@@ -16,6 +16,7 @@ Agent Skills are structured knowledge files that help Claude understand domain-s
 | **eptr2-imbalance-costs** | KUPST, imbalance, deviation costs | Imbalance calculations |
 | **eptr2-market-operations** | GÖP, GİP, DGP, market orders | Market operations data |
 | **eptr2-api-discovery** | Available endpoints, API search | Finding the right API |
+| **eptr2-convenience-wrappers** | get_* functions, typed wrappers, eptr2.calls | IDE-friendly typed code |
 
 ## How Skills Work
 
@@ -109,45 +110,38 @@ Example queries:
 - "How do I get power plant information?"
 - "List all consumption-related endpoints"
 
-## Installing Skills Personally
+## Installing Skills
 
-To use skills across all your projects, copy to your personal skills directory:
+The skills ship inside the pip package — no repository clone needed:
 
-=== "macOS/Linux"
-    ```bash
-    cp -r .claude/skills/* ~/.claude/skills/
-    ```
-
-=== "Windows"
-    ```powershell
-    xcopy /E /I .claude\skills %USERPROFILE%\.claude\skills
-    ```
+```bash
+pip install eptr2
+eptr2 install-skills                 # into ./.claude/skills (project)
+eptr2 install-skills --dest user     # into ~/.claude/skills
+eptr2 install-skills --dest PATH     # anywhere your agent runtime looks for skills
+eptr2 install-skills --list          # see what's bundled
+```
 
 ## Skill Files Location
 
-In the eptr2 repository, skills are located at:
+Inside the package the canonical copies live under `eptr2/assets/skills/`; the repository keeps a synced copy in `.claude/skills/` for repo-local use:
 
 ```
-.claude/skills/
-├── eptr2-price-analysis/
-│   └── SKILL.md
+eptr2/assets/skills/
+├── eptr2-api-discovery/         # SKILL.md + endpoint reference + script
 ├── eptr2-consumption-data/
-│   └── SKILL.md
+├── eptr2-convenience-wrappers/
 ├── eptr2-generation-tracking/
-│   └── SKILL.md
-├── eptr2-imbalance-costs/
-│   └── SKILL.md
+├── eptr2-imbalance-costs/       # SKILL.md + examples + formulas
 ├── eptr2-market-operations/
-│   └── SKILL.md
-└── eptr2-api-discovery/
-    └── SKILL.md
+└── eptr2-price-analysis/
 ```
 
 ## Creating Custom Skills
 
 You can create custom skills for your specific use cases:
 
-1. Create a directory under `.claude/skills/`
+1. Create a directory in your runtime's skills location (e.g. `.claude/skills/`)
 2. Add a `SKILL.md` file with:
    - Skill description
    - Trigger keywords
@@ -184,4 +178,5 @@ This skill helps with [specific use case].
 ## Next Steps
 
 - [MCP Server Setup](mcp-server.md)
-- [Claude Desktop Setup](claude-desktop.md)
+- [MCP Client Setup](mcp-clients.md)
+- [CLI for Agents](cli.md)

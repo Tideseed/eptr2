@@ -7,7 +7,23 @@ eptr = EPTR2(use_dotenv=True, recycle_tgt=True)
 df = eptr.call("mcp", start_date="2024-07-29", end_date="2024-07-29")
 ```
 
-## Top 10 Most Used API Calls
+Or from the shell:
+```bash
+eptr2 call mcp --start-date 2024-07-29 --end-date 2024-07-29
+```
+
+## CLI One-Liners
+
+```bash
+eptr2 list                    # All call keys by category
+eptr2 search imbalance        # Keyword search (EN/TR)
+eptr2 describe mcp            # Parameters for one call
+eptr2 call mcp --start-date 2024-07-29 --end-date 2024-07-29 --format csv
+eptr2 install-skills          # Install bundled agent skills
+eptr2 mcp-config --client vscode
+```
+
+## Top Most Used API Calls
 
 | Call Key | Alias | Description | Returns |
 |----------|-------|-------------|---------|
@@ -18,8 +34,7 @@ df = eptr.call("mcp", start_date="2024-07-29", end_date="2024-07-29")
 | `mcp-smp-imb` | - | Imbalance Prices | Pos/neg imbalance prices |
 | `load-plan` | - | Load Plan (UECM) | Demand forecast (MWh) |
 | `dpp` | `kgup` | Daily Production Plan | Production plans by unit |
-| `uevm` | - | Generation Forecast | Plant-level forecasts |
-| `rt-gen` | - | Real-time Gen by Plant | Generation by plant ID |
+| `uevm` | - | Settlement Actual Generation | Plant-level settlement generation |
 | `wap` | - | Weighted Average Price | Volume-weighted price |
 
 ## Common Patterns
@@ -57,12 +72,12 @@ from eptr2.composite import (
 
 # Comprehensive consumption data
 cons_df = get_hourly_consumption_and_forecast_data(
-    eptr, start_date="2024-07-01", end_date="2024-07-31"
+    start_date="2024-07-01", end_date="2024-07-31", eptr=eptr
 )
 
 # Comprehensive pricing data
 price_df = get_hourly_price_and_cost_data(
-    eptr, start_date="2024-07-01", end_date="2024-07-31"
+    start_date="2024-07-01", end_date="2024-07-31", eptr=eptr
 )
 ```
 
@@ -93,15 +108,16 @@ EPTR_PASSWORD=yourpassword
 
 ## Discovery
 ```python
-# List all 213+ available calls
+# List all 231 available calls
 calls = eptr.get_available_calls()
 
 # Include aliases
 calls_with_aliases = eptr.get_available_calls(include_aliases=True)
 
-# Get call counts
-stats = eptr.get_number_of_calls()
-# Returns: {'n_total_calls': 213, 'n_api_calls': ..., 'n_derived_calls': ...}
+# Rich discovery without a client (no credentials needed)
+from eptr2.agentic import list_calls, search_calls, describe_call
+describe_call("mcp")        # parameters, method, path, descriptions
+search_calls("imbalance")   # keyword search in EN/TR
 
 # View aliases
 aliases = eptr.get_aliases()
@@ -169,16 +185,18 @@ eptr2-mcp-server
 ```
 
 ### Available Tools (via MCP)
-1. `get_market_clearing_price` - MCP data
-2. `get_system_marginal_price` - SMP data
-3. `get_real_time_consumption` - Consumption data
-4. `get_real_time_generation` - Generation data
-5. `get_demand_forecast` - Load plan
-6. `get_imbalance_price` - Imbalance prices
-7. `get_available_eptr2_calls` - List all endpoints
-8. `call_eptr2_api` - Generic API call
-9. `get_hourly_consumption_and_forecast` - Composite
-10. `get_price_and_cost_data` - Composite
+
+17 tools: 6 price/consumption/generation calls, 3 discovery tools
+(`get_available_eptr2_calls`, `describe_eptr2_call`, `search_eptr2_calls`),
+the generic `call_eptr2_api`, 5 composite/market tools, and 2 pure cost
+calculators (`calculate_imbalance_prices_and_costs`,
+`calculate_kupst_deviation_cost`). See [AGENTS.md](AGENTS.md) for the full
+list, plus the `eptr2://schema` and `eptr2://help/{call_key}` resources.
+
+Print a client config with:
+```bash
+eptr2 mcp-config --client vscode   # or claude-desktop, claude-code, cursor, generic
+```
 
 ## Tips for AI Agents
 

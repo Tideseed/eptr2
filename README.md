@@ -63,7 +63,7 @@ eptr = EPTR2(
 res = eptr.call("mcp", start_date="2024-07-29", end_date="2024-07-29")
 ```
 
-There are more than 213 calls available. You can search for available calls with `eptr.get_available_calls()` function. This is almost an exhaustive list of available calls in the platform currently. 
+There are 231 calls available. You can search for available calls with `eptr.get_available_calls()` function. This is almost an exhaustive list of available calls in the platform currently. 
 
 
 ### Alternative: Using .env file for credentials and TGT recycling
@@ -146,79 +146,46 @@ run_calc_app(username="YOUR_USERNAME",password="YOUR_PASSWORD")
 
 _More tutorials are expected to be added in the future._
 
-## AI Agent Integration (MCP Server)
+## AI Agents & Tooling
 
-Starting from version 1.2.4, `eptr2` includes a Model Context Protocol (MCP) server for AI agent integration. This allows AI assistants like Claude to directly query Turkish electricity market data.
+`eptr2` ships provider-agnostic tooling for AI assistants and agents:
+
+- **CLI** — `eptr2 list / search / describe / call` for shell-driven agents (data on stdout, JSON or CSV)
+- **MCP server** — 17 tools for any Model Context Protocol client (`eptr2-mcp-server`)
+- **Agent skills** — 7 bundled skills in the open Agent Skills (SKILL.md) format: `eptr2 install-skills`
+- **Machine-readable schema** — all 231 endpoints with parameters, auto-generated: `eptr2 schema --stdout`
 
 ### Quick Start
 
-Install with all extras (includes MCP support):
-
 ```bash
 pip install "eptr2[allextras]"
-```
 
-Run the MCP server:
+# Discover endpoints (no credentials needed)
+eptr2 search "market clearing price"
+eptr2 describe mcp
 
-```bash
+# Fetch data (credentials in .env: EPTR_USERNAME / EPTR_PASSWORD)
+eptr2 call mcp --start-date 2024-07-29 --end-date 2024-07-29 --format csv
+
+# Install agent skills / run the MCP server
+eptr2 install-skills
 eptr2-mcp-server
 ```
 
-Or programmatically:
+Print MCP client configuration for your tool (VS Code agent mode, Claude Desktop/Code, Cursor, or generic):
 
-```python
-from eptr2.mcp import run_mcp_server
-import asyncio
-
-asyncio.run(run_mcp_server(use_dotenv=True, recycle_tgt=True))
+```bash
+eptr2 mcp-config --client vscode
 ```
 
-### Configuration
-
-Create a `.env` file with your credentials:
-
-```env
-EPTR_USERNAME=your.email@example.com
-EPTR_PASSWORD=yourpassword
-```
-
-For Claude Desktop integration, add to your config file:
-
-```json
-{
-  "mcpServers": {
-    "eptr2": {
-      "command": "eptr2-mcp-server",
-      "env": {
-        "EPTR_USERNAME": "your.email@example.com",
-        "EPTR_PASSWORD": "yourpassword"
-      }
-    }
-  }
-}
-```
-
-### Available MCP Tools
-
-The server exposes 10 tools for querying electricity market data:
-- Market Clearing Price (MCP/PTF)
-- System Marginal Price (SMP/SMF)
-- Real-time Consumption and Generation
-- Demand Forecasts
-- Imbalance Prices
-- Generic API calls (213+ endpoints)
-- Composite data functions
-
-For complete Claude Desktop setup, see [CLAUDE_SETUP.md](CLAUDE_SETUP.md).
-
-For AI agent reference documentation, see [AGENTS.md](AGENTS.md) and [src/eptr2/mcp/README.md](src/eptr2/mcp/README.md).
+For AI agent reference documentation, see [AGENTS.md](AGENTS.md), the [MCP client setup guide](https://tideseed.github.io/eptr2/ai-integration/mcp-clients/) and [src/eptr2/mcp/README.md](src/eptr2/mcp/README.md).
 
 # About EPIAS Transparency Platform v2.0 Python client by Robokami Data
 
-🇬🇧 `eptr2` (**EP**IAS **Tr**ansparency **2**.0) package is a thin wrapper around [EPIAS Transparency Platform v2.0](https://seffaflik.epias.com.tr/home) API brought to you by [Robokami](https://robokami.com). It is an unofficial package with Apache License 2.0 (free and permissable use for commercial applications, [see details](https://www.tldrlegal.com/license/apache-license-2-0-apache-2-0)). `eptr2` accesses currently more than 213 services with convenience methods.
+🇬🇧 `eptr2` (**EP**IAS **Tr**ansparency **2**.0) package is a thin wrapper around [EPIAS Transparency Platform v2.0](https://seffaflik.epias.com.tr/home) API brought to you by [Robokami](https://robokami.com). It is an unofficial package with Apache License 2.0 (free and permissable use for commercial applications, [see details](https://www.tldrlegal.com/license/apache-license-2-0-apache-2-0)). `eptr2` accesses currently 231 services with convenience methods.
 
 
-🇹🇷 `eptr2` (**EP**İAŞ **Tr**ansparency **2**.0) paketi [Robokami](https://robokami.com) tarafından [EPİAŞ Şeffaflık Platformu 2.0](https://seffaflik.epias.com.tr/home) API'si üzerine geliştirilmiş bir Python paketidir. Apache License 2.0 ile lisanslanmıştır ([ücretsiz ve büyük ölçüde serbest kullanım](https://www.tldrlegal.com/license/apache-license-2-0-apache-2-0)). `eptr2` 213'ten fazla veri servisine erişim sağlar.
+🇹🇷 `eptr2` (**EP**İAŞ **Tr**ansparency **2**.0) paketi [Robokami](https://robokami.com) tarafından [EPİAŞ Şeffaflık Platformu 2.0](https://seffaflik.epias.com.tr/home) API'si üzerine geliştirilmiş bir Python paketidir. Apache License 2.0 ile lisanslanmıştır ([ücretsiz ve büyük ölçüde serbest kullanım](https://www.tldrlegal.com/license/apache-license-2-0-apache-2-0)). `eptr2` 231 veri servisine erişim sağlar.
 
 
 ## Advanced Topics

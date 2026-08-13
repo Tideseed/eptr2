@@ -203,7 +203,7 @@ Fetches comprehensive price and cost data.
 
 #### get_available_eptr2_calls
 
-Lists all 213+ available API endpoints.
+Lists all 231 available API endpoints.
 
 ```json
 {
@@ -282,5 +282,5 @@ The MCP server returns errors in a standardized format:
 ## See Also
 
 - [MCP Server Guide](../ai-integration/mcp-server.md)
-- [Claude Desktop Setup](../ai-integration/claude-desktop.md)
+- [MCP Client Setup](../ai-integration/mcp-clients.md)
 - [Agent Skills](../ai-integration/agent-skills.md)

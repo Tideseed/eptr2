@@ -127,7 +127,7 @@ If you have Claude Desktop:
 
 1. **Configure Claude Desktop**
 
-   **See `CLAUDE_SETUP.md` for complete setup instructions.**
+   **See `docs/ai-integration/mcp-clients.md` for setup instructions, or run `eptr2 mcp-config --client claude-desktop`.**
 
    Quick reference - config file locations:
    - macOS: `~/Library/Application Support/Claude/claude_desktop_config.json`
@@ -199,9 +199,9 @@ Check that all documentation files exist and are readable:
 
 ```bash
 # Check documentation files
-for file in README.md AGENT_GUIDE.md QUICK_REFERENCE.md CHANGELOG_MCP.md \
-            AI_AGENT_INTEGRATION_SUMMARY.md src/eptr2/mcp/README.md \
-            examples/README.md eptr2_api_schema.json mcp-config.json; do
+for file in README.md AGENTS.md AGENT_GUIDE.md QUICK_REFERENCE.md \
+            src/eptr2/mcp/README.md \
+            examples/README.md eptr2_api_schema.json; do
     if [ -f "$file" ]; then
         echo "✓ $file exists"
     else
@@ -211,7 +211,7 @@ done
 
 # Validate JSON files
 python -c "import json; json.load(open('eptr2_api_schema.json')); print('✓ eptr2_api_schema.json is valid JSON')"
-python -c "import json; json.load(open('mcp-config.json')); print('✓ mcp-config.json is valid JSON')"
+eptr2 schema --check
 ```
 
 **Expected Output:**
@@ -347,4 +347,4 @@ The AI agent integration is ready for release when:
 - **Quick Reference**: [QUICK_REFERENCE.md](QUICK_REFERENCE.md)
 - **MCP Docs**: [src/eptr2/mcp/README.md](src/eptr2/mcp/README.md)
 - **Examples**: [examples/README.md](examples/README.md)
-- **Summary**: [AI_AGENT_INTEGRATION_SUMMARY.md](AI_AGENT_INTEGRATION_SUMMARY.md)
+- **Agents Reference**: [AGENTS.md](AGENTS.md)

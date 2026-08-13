@@ -33,6 +33,13 @@ async def example_run_mcp_server():
     print("8. call_eptr2_api - Generic API call")
     print("9. get_hourly_consumption_and_forecast - Composite data")
     print("10. get_price_and_cost_data - Comprehensive pricing")
+    print("11. describe_eptr2_call - Parameter help for any call key")
+    print("12. search_eptr2_calls - Keyword search over endpoints")
+    print("13. get_market_operations_summary - DAM + bilateral + intraday")
+    print("14. get_balancing_market_data - Balancing market (YAL/YAT + SMP)")
+    print("15. get_bulk_production_plans - Bulk per-plant plans (dpp/kgup)")
+    print("16. calculate_imbalance_prices_and_costs - Pure cost calculation")
+    print("17. calculate_kupst_deviation_cost - KUPST deviation cost")
     print()
     print("=" * 60)
     print()
@@ -93,7 +100,8 @@ def print_configuration_guide():
     print("   Windows: %APPDATA%\\Claude\\claude_desktop_config.json")
     print("   Linux: ~/.config/Claude/claude_desktop_config.json")
     print()
-    print("   See CLAUDE_SETUP.md for complete setup instructions.")
+    print("   See docs/ai-integration/mcp-clients.md for setup instructions,")
+    print("   or run: eptr2 mcp-config --client claude-desktop")
     print()
     print(json.dumps(claude_config, indent=2))
     print()
@@ -197,7 +205,7 @@ def print_tool_details():
         {
             "name": "get_available_eptr2_calls",
             "params": "None",
-            "returns": "List of all 213+ available API endpoints",
+            "returns": "List of all 231 available API endpoints",
             "example": "No parameters required",
         },
         {

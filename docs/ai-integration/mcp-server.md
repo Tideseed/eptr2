@@ -69,7 +69,7 @@ asyncio.run(run_mcp_server(
 
 ## Available MCP Tools
 
-The MCP server exposes the following tools:
+The MCP server exposes 17 tools:
 
 ### Price Tools
 
@@ -91,6 +91,14 @@ The MCP server exposes the following tools:
 | Tool | Description |
 |------|-------------|
 | `get_real_time_generation` | Generation by resource type |
+| `get_bulk_production_plans` | Bulk per-plant production plans (dpp/kgup) |
+
+### Market Operations Tools
+
+| Tool | Description |
+|------|-------------|
+| `get_market_operations_summary` | DAM matched + bilateral + intraday volumes |
+| `get_balancing_market_data` | Balancing market (YAL/YAT + SMP) |
 
 ### Composite Tools
 
@@ -99,12 +107,30 @@ The MCP server exposes the following tools:
 | `get_hourly_consumption_and_forecast` | Combined consumption and forecast data |
 | `get_price_and_cost_data` | Comprehensive price and cost data |
 
-### Discovery Tools
+### Discovery Tools (no credentials needed)
 
 | Tool | Description |
 |------|-------------|
-| `get_available_eptr2_calls` | List all 213+ API endpoints |
+| `get_available_eptr2_calls` | List all 231 API endpoints |
+| `describe_eptr2_call` | Parameters and metadata for one call key |
+| `search_eptr2_calls` | Keyword search over endpoints (EN/TR) |
 | `call_eptr2_api` | Call any API endpoint by key (`additional_params` supported) |
+
+### Calculation Tools (pure, no credentials needed)
+
+| Tool | Description |
+|------|-------------|
+| `calculate_imbalance_prices_and_costs` | Unit imbalance prices/costs for one hour |
+| `calculate_kupst_deviation_cost` | Production plan deviation (KUPST) cost |
+
+### Resources and Prompts
+
+| Resource | Description |
+|----------|-------------|
+| `eptr2://schema` | Machine-readable schema of all endpoints (generated live) |
+| `eptr2://help/{call_key}` | Details for one call key |
+
+The `analyze_market_prices` prompt guides a price analysis over a date range.
 
 ## Example Queries
 
@@ -117,22 +143,15 @@ Once connected to Claude or another MCP-compatible assistant, you can ask:
 
 ## Integration Methods
 
-### 1. Claude Desktop
+### 1. MCP Clients (VS Code, Claude Desktop/Code, Cursor, ...)
 
-See [Claude Desktop Setup](claude-desktop.md) for detailed instructions.
+See [MCP Client Setup](mcp-clients.md) for per-client instructions, or print a ready-to-paste config:
 
-### 2. VS Code with Copilot
+```bash
+eptr2 mcp-config --client vscode
+```
 
-1. Enable MCP in VS Code settings:
-   ```json
-   {
-     "chat.mcp.discovery.enabled": true
-   }
-   ```
-
-2. Configure MCP server in `mcp-config.json`
-
-### 3. Custom Integration
+### 2. Custom Integration
 
 Use the MCP client library:
 
@@ -197,6 +216,7 @@ print(f"Server created: {server}")
 
 ## Next Steps
 
-- [Claude Desktop Setup](claude-desktop.md)
+- [MCP Client Setup](mcp-clients.md)
 - [Agent Skills](agent-skills.md)
+- [CLI for Agents](cli.md)
 - [API Reference - MCP](../api/mcp.md)

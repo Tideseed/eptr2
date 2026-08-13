@@ -56,8 +56,9 @@ docs/
 │   └── dataframes.md
 ├── ai-integration/             # AI integration docs
 │   ├── mcp-server.md
-│   ├── claude-desktop.md
-│   └── agent-skills.md
+│   ├── mcp-clients.md
+│   ├── agent-skills.md
+│   └── cli.md
 ├── api/                        # API reference
 │   ├── eptr2.md
 │   ├── main.md
