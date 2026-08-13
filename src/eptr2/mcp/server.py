@@ -140,10 +140,43 @@ if MCP_AVAILABLE:
 
     @mcp.tool()
     def get_available_eptr2_calls() -> str:
-        """List all 213+ available API calls in the eptr2 library."""
+        """List all 231 available API calls in the eptr2 library."""
         client = _get_eptr_client()
         calls = client.get_available_calls(include_aliases=True)
         return json.dumps(calls, indent=2)
+
+    @mcp.tool()
+    def describe_eptr2_call(call_key: str) -> str:
+        """Get full details for one API call key: description (EN/TR), category,
+        HTTP method, endpoint path, and required/optional parameters.
+        Use before call_eptr2_api to learn which parameters an endpoint needs.
+        Resolves aliases (e.g. 'ptf' -> 'mcp'). Requires no credentials."""
+        from eptr2.agentic.discovery import describe_call
+
+        d = describe_call(call_key)
+        if d is None:
+            return json.dumps(
+                {"error": f"Unknown call key '{call_key}'. Use search_eptr2_calls to find keys."}
+            )
+        return json.dumps(d, indent=2, ensure_ascii=False, default=str)
+
+    @mcp.tool()
+    def search_eptr2_calls(query: str, category: Optional[str] = None) -> str:
+        """Search API call keys by keyword (matches key, title and description in
+        English and Turkish). Optionally filter by category (e.g. GÖP, GİP, DGP).
+        Returns a compact key -> summary mapping. Requires no credentials."""
+        from eptr2.agentic.discovery import search_calls
+
+        matches = search_calls(query, category=category)
+        compact = {
+            key: {
+                "category": info.get("category"),
+                "title_en": info.get("title", {}).get("en"),
+                "desc_en": (info.get("desc", {}).get("en") or "")[:150],
+            }
+            for key, info in matches.items()
+        }
+        return json.dumps(compact, indent=2, ensure_ascii=False)
 
     @mcp.tool()
     def call_eptr2_api(
@@ -175,7 +208,7 @@ if MCP_AVAILABLE:
         from eptr2.composite import get_hourly_consumption_and_forecast_data
 
         result = get_hourly_consumption_and_forecast_data(
-            client, start_date=start_date, end_date=end_date
+            start_date=start_date, end_date=end_date, eptr=client
         )
         return _format_result(result)
 
@@ -186,9 +219,157 @@ if MCP_AVAILABLE:
         from eptr2.composite import get_hourly_price_and_cost_data
 
         result = get_hourly_price_and_cost_data(
-            client, start_date=start_date, end_date=end_date
+            start_date=start_date, end_date=end_date, eptr=client
         )
         return _format_result(result)
+
+    @mcp.tool()
+    def get_market_operations_summary(start_date: str, end_date: str) -> str:
+        """Get combined market operations data: Day-Ahead Market (GÖP) matched
+        quantities, bilateral contracts (İA) and Intraday Market (GİP) volumes,
+        merged into one hourly table."""
+        client = _get_eptr_client()
+        from eptr2.composite import get_dabi_idm_data
+
+        result = get_dabi_idm_data(
+            start_date=start_date, end_date=end_date, eptr=client
+        )
+        return _format_result(result)
+
+    @mcp.tool()
+    def get_balancing_market_data(start_date: str, end_date: str) -> str:
+        """Get Balancing Power Market (DGP) data: up/down regulation
+        instructions (YAL/YAT) together with the System Marginal Price."""
+        client = _get_eptr_client()
+        from eptr2.composite import get_bpm_range
+
+        result = get_bpm_range(start_date=start_date, end_date=end_date, eptr=client)
+        return _format_result(result)
+
+    @mcp.tool()
+    def get_bulk_production_plans(
+        start_date: str,
+        end_date: str,
+        plant_ids: list[int],
+        plan_type: str = "dpp",
+    ) -> str:
+        """Get bulk per-plant production plans for a date range. plan_type is
+        'dpp' (Final Daily Production Plan) with plant_ids as powerplant ids
+        (see the 'pp-list' call), or 'kgup' (Daily Production Plan / KGÜP)
+        with plant_ids as UEVCB ids (see the 'uevcb-list-bulk' call). Use
+        call_eptr2_api with those list endpoints to find the ids first."""
+        client = _get_eptr_client()
+        from eptr2.composite import get_dpp_bulk_range, get_kgup_bulk_range
+
+        if plan_type == "dpp":
+            result = get_dpp_bulk_range(
+                start_date=start_date,
+                end_date=end_date,
+                pp_ids=plant_ids,
+                eptr=client,
+            )
+        elif plan_type == "kgup":
+            result = get_kgup_bulk_range(
+                start_date=start_date,
+                end_date=end_date,
+                uevcb_ids=plant_ids,
+                eptr=client,
+            )
+        else:
+            raise ValueError("plan_type must be 'dpp' or 'kgup'")
+        return _format_result(result)
+
+    @mcp.tool()
+    def calculate_imbalance_prices_and_costs(
+        contract: str,
+        mcp_price: float,
+        smp_price: float,
+        include_kupst: bool = True,
+    ) -> str:
+        """Calculate unit imbalance prices and costs (and optionally unit KUPST
+        cost) for one hour. Pure calculation, no API call. contract is the
+        hourly contract code 'PHYYMMDDhh' (e.g. 'PH26010100' = 2026-01-01
+        hour 00); the applicable regulation period is derived from it.
+        mcp_price/smp_price are MCP (PTF) and SMP (SMF) in TL/MWh. Returns
+        pos/neg imbalance prices and costs per MWh."""
+        from eptr2.util.costs import calculate_unit_price_and_costs_by_contract
+
+        result = calculate_unit_price_and_costs_by_contract(
+            contract=contract,
+            mcp=mcp_price,
+            smp=smp_price,
+            include_kupst=include_kupst,
+        )
+        return _format_result(result)
+
+    @mcp.tool()
+    def calculate_kupst_deviation_cost(
+        contract: str,
+        actual: float,
+        forecast: float,
+        mcp_price: float,
+        smp_price: float,
+        source: str = "other",
+        tolerance: Optional[float] = None,
+    ) -> str:
+        """Calculate the KUPST production-plan deviation cost for one hour.
+        Pure calculation, no API call. contract is 'PHYYMMDDhh'; actual and
+        forecast are production in MWh; mcp_price/smp_price in TL/MWh.
+        source sets the tolerance band (e.g. 'wind', 'solar', 'other') unless
+        an explicit tolerance (decimal, e.g. 0.15) is given. Returns the cost
+        breakdown including deviation amount and unit KUPST price."""
+        from eptr2.util.costs import calculate_kupst_cost_by_contract
+
+        result = calculate_kupst_cost_by_contract(
+            contract=contract,
+            actual=actual,
+            forecast=forecast,
+            mcp=mcp_price,
+            smp=smp_price,
+            tol=tolerance,
+            source=source,
+            return_detail=True,
+        )
+        return _format_result(result)
+
+    @mcp.resource(
+        "eptr2://schema",
+        description="Machine-readable schema of all eptr2 API endpoints, "
+        "composite functions and cost utilities (generated live).",
+        mime_type="application/json",
+    )
+    def schema_resource() -> str:
+        from eptr2.agentic.schema import schema_json
+
+        return schema_json()
+
+    @mcp.resource(
+        "eptr2://help/{call_key}",
+        description="Details for one eptr2 API call key: parameters, method, "
+        "path and bilingual descriptions.",
+        mime_type="application/json",
+    )
+    def call_help_resource(call_key: str) -> str:
+        from eptr2.agentic.discovery import describe_call
+
+        d = describe_call(call_key)
+        if d is None:
+            return json.dumps({"error": f"Unknown call key '{call_key}'"})
+        return json.dumps(d, indent=2, ensure_ascii=False, default=str)
+
+    @mcp.prompt()
+    def analyze_market_prices(start_date: str, end_date: str) -> str:
+        """Guided analysis of Turkish electricity market prices for a date range."""
+        return (
+            f"Analyze Turkish electricity market prices between {start_date} and "
+            f"{end_date}. Use get_market_clearing_price for day-ahead prices (MCP/PTF), "
+            "get_system_marginal_price for balancing prices (SMP/SMF), and "
+            "get_imbalance_price for imbalance prices. Summarize the price levels, "
+            "daily patterns (peak vs off-peak hours), and any notable spreads between "
+            "MCP and SMP (a positive SMP-MCP spread signals an energy-deficit system, "
+            "negative signals surplus). Prices are in TL/MWh and hours are in "
+            "Europe/Istanbul time."
+        )
 
 
 def main():
