@@ -153,6 +153,7 @@ _More tutorials are expected to be added in the future._
 - **CLI** — `eptr2 list / search / describe / call` for shell-driven agents (data on stdout, JSON or CSV)
 - **MCP server** — 17 tools for any Model Context Protocol client (`eptr2-mcp-server`)
 - **Agent skills** — 7 bundled skills in the open Agent Skills (SKILL.md) format: `eptr2 install-skills`
+- **Agent Plugin** — skills + MCP server packaged in the portable [agent-plugins.org](https://agent-plugins.org) format: `eptr2 plugin-path`
 - **Machine-readable schema** — all 231 endpoints with parameters, auto-generated: `eptr2 schema --stdout`
 
 ### Quick Start

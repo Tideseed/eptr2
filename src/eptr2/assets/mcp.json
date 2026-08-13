@@ -1,0 +1,9 @@
+{
+  "$schema": "https://agent-plugins.org/schemas/1.0.0/mcp.schema.json",
+  "mcpServers": {
+    "eptr2": {
+      "type": "stdio",
+      "command": "eptr2-mcp-server"
+    }
+  }
+}

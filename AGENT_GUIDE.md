@@ -9,6 +9,7 @@ This file is kept as a stable entry point for AI-agent documentation. It is prov
 - [eptr2_api_schema.json](eptr2_api_schema.json) — Machine-readable schema of all 231 endpoints (auto-generated with `eptr2 schema`)
 - [src/eptr2/mcp/README.md](src/eptr2/mcp/README.md) — MCP server usage, tools, and troubleshooting
 - [docs/ai-integration/mcp-clients.md](docs/ai-integration/mcp-clients.md) — MCP setup for specific clients (VS Code, Claude, Cursor, generic)
+- [docs/ai-integration/agent-plugin.md](docs/ai-integration/agent-plugin.md) — Portable Agent Plugin (agent-plugins.org format)
 - [docs/ai-integration/cli.md](docs/ai-integration/cli.md) — The `eptr2` CLI for shell-driven agents
 - [docs/api/mcp.md](docs/api/mcp.md) — API-level MCP reference
 

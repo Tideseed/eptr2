@@ -199,3 +199,26 @@ def test_call_output_file(capsys, fake_client, tmp_path):
     assert out == ""
     assert str(target) in err
     assert len(json.loads(target.read_text(encoding="utf-8"))) == 2
+
+
+def test_plugin_path(capsys):
+    from pathlib import Path
+
+    code, out, _ = run(capsys, "plugin-path")
+    assert code == 0
+    root = Path(out.strip())
+    assert (root / "plugin.json").is_file()
+
+
+def test_install_plugin_cli(capsys, tmp_path):
+    dest = tmp_path / "plugin"
+    code, _, err = run(capsys, "install-plugin", "--dest", str(dest))
+    assert code == 0
+    assert (dest / "plugin.json").is_file()
+
+    code, _, err = run(capsys, "install-plugin", "--dest", str(dest))
+    assert code == 1
+    assert "already exists" in err
+
+    code, _, _ = run(capsys, "install-plugin", "--dest", str(dest), "--force")
+    assert code == 0

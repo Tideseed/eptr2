@@ -22,6 +22,8 @@ from eptr2.agentic.skills import (
     list_bundled_skills,
     install_skills,
     resolve_dest,
+    plugin_root,
+    install_plugin,
 )
 
 __all__ = [
@@ -37,4 +39,6 @@ __all__ = [
     "list_bundled_skills",
     "install_skills",
     "resolve_dest",
+    "plugin_root",
+    "install_plugin",
 ]

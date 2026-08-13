@@ -90,3 +90,65 @@ def test_resolve_dest():
     assert skills_mod.resolve_dest("user") == Path.home() / ".claude" / "skills"
     assert skills_mod.resolve_dest("project") == Path.cwd() / ".claude" / "skills"
     assert skills_mod.resolve_dest("/x/y") == Path("/x/y")
+
+
+# --- Agent Plugin (https://agent-plugins.org) ---
+
+import json
+import re
+
+
+def test_plugin_manifest_valid():
+    manifest = json.loads((CANONICAL.parent / "plugin.json").read_text(encoding="utf-8"))
+    assert manifest["$schema"] == (
+        "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json"
+    )
+    # name: 1-64 chars, lowercase alphanumeric with hyphens/periods, no -- or ..
+    assert re.fullmatch(
+        r"(?!.*(?:--|\.\.))[a-z0-9](?:[a-z0-9.-]*[a-z0-9])?", manifest["name"]
+    )
+    assert len(manifest["name"]) <= 64
+    allowed = {
+        "$schema", "name", "version", "description", "author", "homepage",
+        "repository", "license", "keywords", "extensions",
+    }
+    assert set(manifest) <= allowed
+    author_allowed = {"name", "email", "url"}
+    assert set(manifest.get("author", {})) <= author_allowed
+
+
+def test_plugin_mcp_json_valid():
+    mcp = json.loads((CANONICAL.parent / "mcp.json").read_text(encoding="utf-8"))
+    assert mcp["$schema"] == "https://agent-plugins.org/schemas/1.0.0/mcp.schema.json"
+    server = mcp["mcpServers"]["eptr2"]
+    assert server["type"] == "stdio"
+    # command must be a bare name or ./ path
+    assert "/" not in server["command"] or server["command"].startswith("./")
+
+
+def test_plugin_root_is_valid_plugin():
+    root = skills_mod.plugin_root()
+    assert (root / "plugin.json").is_file()
+    assert (root / "mcp.json").is_file()
+    skill_dirs = [p for p in (root / "skills").iterdir() if p.is_dir()]
+    assert len(skill_dirs) == 7
+    for d in skill_dirs:
+        assert (d / "SKILL.md").is_file()
+
+
+def test_install_plugin(tmp_path):
+    dest = tmp_path / "eptr2-plugin"
+    installed = skills_mod.install_plugin(dest)
+    assert installed == dest
+    assert (dest / "plugin.json").is_file()
+    assert (dest / "mcp.json").is_file()
+    assert (dest / "skills" / "eptr2-price-analysis" / "SKILL.md").is_file()
+    # no stray python/package files in the installed plugin
+    assert not (dest / "__init__.py").exists()
+    assert not (dest / "eptr2_api_schema.json").exists()
+
+    import pytest as _pytest
+
+    with _pytest.raises(FileExistsError):
+        skills_mod.install_plugin(dest)
+    assert skills_mod.install_plugin(dest, force=True) == dest

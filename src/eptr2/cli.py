@@ -250,6 +250,25 @@ def _cmd_mcp_config(args) -> int:
     return 0
 
 
+def _cmd_plugin_path(args) -> int:
+    from eptr2.agentic import skills as skills_mod
+
+    print(skills_mod.plugin_root())
+    return 0
+
+
+def _cmd_install_plugin(args) -> int:
+    from eptr2.agentic import skills as skills_mod
+
+    try:
+        dest = skills_mod.install_plugin(args.dest, force=args.force)
+    except FileExistsError as e:
+        _err(str(e))
+        return 1
+    _err(f"Installed Agent Plugin to {dest}")
+    return 0
+
+
 def _cmd_mcp_server(args) -> int:
     from eptr2.mcp.server import main as mcp_main
 
@@ -324,6 +343,20 @@ def build_parser() -> argparse.ArgumentParser:
     p.add_argument("--only", action="append", metavar="SKILL", help="Install only these skills")
     p.add_argument("--force", action="store_true", help="Overwrite existing skill directories")
     p.set_defaults(func=_cmd_install_skills)
+
+    p = sub.add_parser(
+        "plugin-path",
+        help="Print the path of the bundled Agent Plugin (agent-plugins.org format)",
+    )
+    p.set_defaults(func=_cmd_plugin_path)
+
+    p = sub.add_parser(
+        "install-plugin",
+        help="Copy the bundled Agent Plugin (plugin.json, mcp.json, skills/) to a directory",
+    )
+    p.add_argument("--dest", required=True, help="Target directory for the plugin")
+    p.add_argument("--force", action="store_true", help="Overwrite an existing directory")
+    p.set_defaults(func=_cmd_install_plugin)
 
     p = sub.add_parser("mcp-config", help="Print MCP client configuration for eptr2")
     p.add_argument(

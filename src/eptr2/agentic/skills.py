@@ -11,8 +11,33 @@ from pathlib import Path
 from typing import Optional, Union
 
 
+def plugin_root() -> Path:
+    """Root of the bundled Agent Plugin (https://agent-plugins.org):
+    the packaged assets directory containing plugin.json, mcp.json and
+    skills/."""
+    return Path(str(files("eptr2.assets")))
+
+
+def install_plugin(dest: Union[str, Path], force: bool = False) -> Path:
+    """Copy the bundled Agent Plugin (plugin.json, mcp.json, skills/) into
+    ``dest``. Refuses to overwrite an existing directory unless ``force``."""
+    root = plugin_root()
+    dest_path = Path(dest)
+    if dest_path.exists():
+        if not force:
+            raise FileExistsError(
+                f"{dest_path} already exists; use force=True to overwrite."
+            )
+        shutil.rmtree(dest_path)
+    dest_path.mkdir(parents=True)
+    for name in ("plugin.json", "mcp.json"):
+        shutil.copy2(root / name, dest_path / name)
+    shutil.copytree(root / "skills", dest_path / "skills")
+    return dest_path
+
+
 def _bundled_skills_root() -> Path:
-    return Path(str(files("eptr2.assets") / "skills"))
+    return plugin_root() / "skills"
 
 
 def list_bundled_skills() -> list[str]:

@@ -71,6 +71,15 @@ eptr2 install-skills --dest PATH     # anywhere your runtime looks for skills
 | **eptr2-api-discovery** | Available endpoints, API search, discovery |
 | **eptr2-convenience-wrappers** | get_* functions, typed wrappers, eptr2.calls |
 
+## Agent Plugin
+
+The skills and MCP server also ship together as a portable [Agent Plugin](https://agent-plugins.org) (plugin.json + mcp.json + skills/). Compatible clients can consume it directly from the installed package:
+
+```bash
+eptr2 plugin-path                                  # print the plugin root
+eptr2 install-plugin --dest ~/.your-agent/plugins/eptr2
+```
+
 ## Machine-Readable API Schema
 
 `eptr2_api_schema.json` (repo root; also shipped in the package under `eptr2/assets/`) describes all 231 endpoints — categories, bilingual titles/descriptions, HTTP method, path, required and optional parameters — plus composite functions and cost utilities. It is generated from the library's own metadata with `eptr2 schema`, so it never drifts from the code.

@@ -159,6 +159,7 @@ nav:
     - MCP Server: ai-integration/mcp-server.md
     - MCP Client Setup: ai-integration/mcp-clients.md
     - Agent Skills: ai-integration/agent-skills.md
+    - Agent Plugin: ai-integration/agent-plugin.md
     - CLI for Agents: ai-integration/cli.md
   - API Reference:
     - eptr2: api/eptr2.md

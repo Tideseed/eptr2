@@ -1,0 +1,22 @@
+{
+  "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
+  "name": "eptr2",
+  "description": "Turkish electricity market data from the EPIAS Transparency Platform: 7 agent skills for prices, consumption, generation, imbalance costs and market operations, plus an MCP server with 17 tools covering 231 API endpoints.",
+  "author": {
+    "name": "Tideseed",
+    "email": "info@tideseed.com",
+    "url": "https://tideseed.com"
+  },
+  "homepage": "https://tideseed.github.io/eptr2/",
+  "repository": "https://github.com/Tideseed/eptr2",
+  "license": "Apache-2.0",
+  "keywords": [
+    "epias",
+    "electricity",
+    "energy",
+    "turkey",
+    "transparency-platform",
+    "market-data",
+    "mcp"
+  ]
+}

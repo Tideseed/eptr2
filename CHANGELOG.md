@@ -19,6 +19,10 @@ A general-purpose command line interface for humans and shell-driven AI agents: 
 - The machine-readable API schema ships in the package and is auto-generated from the library's own metadata (`eptr2 schema`), covering all 231 endpoints with parameters, plus composite functions and cost utilities. It can no longer drift from the code (`eptr2 schema --check`).
 - New `eptr2.agentic` module: `list_calls`, `search_calls`, `describe_call`, `build_schema`, `install_skills`.
 
+### Portable Agent Plugin
+
+The skills and MCP server ship together as an [Agent Plugin](https://agent-plugins.org) (v1 spec: `plugin.json` + `mcp.json` + `skills/`), with the packaged `eptr2/assets/` directory as the plugin root. New CLI commands: `eptr2 plugin-path` and `eptr2 install-plugin --dest PATH`. The manifest and MCP config are validated against the spec's constraints in CI.
+
 ### MCP server expanded to 17 tools
 
 New tools: `describe_eptr2_call`, `search_eptr2_calls` (discovery, no credentials), `get_market_operations_summary`, `get_balancing_market_data`, `get_bulk_production_plans`, `calculate_imbalance_prices_and_costs`, `calculate_kupst_deviation_cost` (pure calculations). Plus MCP resources `eptr2://schema` and `eptr2://help/{call_key}`, and an `analyze_market_prices` prompt. Fixed composite tools passing the client positionally (broken since the composite refactor).
