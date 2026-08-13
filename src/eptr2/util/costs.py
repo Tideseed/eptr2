@@ -1397,9 +1397,12 @@ def calculate_unit_price_and_costs_by_contract(
 
     if include_dynamic_floor_ceil:
         fc_d = contract_to_floor_ceil_prices(contract)
-        ## Only set floor and ceil if not already provided in kwargs, to allow overrides
-        kwargs["floor_price"] = kwargs.get("floor_price", fc_d["min"])
-        kwargs["ceil_price"] = kwargs.get("ceil_price", fc_d["max"])
+        ## fc_d is None when the contract predates the dynamic floor/ceil price map;
+        ## fall back to the regulation-period defaults in that case
+        if fc_d is not None:
+            ## Only set floor and ceil if not already provided in kwargs, to allow overrides
+            kwargs["floor_price"] = kwargs.get("floor_price", fc_d["min"])
+            kwargs["ceil_price"] = kwargs.get("ceil_price", fc_d["max"])
 
     res = calculate_unit_price_and_costs(
         mcp=mcp,
@@ -1749,9 +1752,12 @@ def calculate_diff_costs_by_contract(
 
     if include_dynamic_floor_ceil:
         fc_d = contract_to_floor_ceil_prices(contract)
-        # Only set floor and ceil if not already provided in kwargs, to allow overrides
-        kwargs["floor_price"] = kwargs.get("floor_price", fc_d["min"])
-        kwargs["ceil_price"] = kwargs.get("ceil_price", fc_d["max"])
+        # fc_d is None when the contract predates the dynamic floor/ceil price map;
+        # fall back to the regulation-period defaults in that case
+        if fc_d is not None:
+            # Only set floor and ceil if not already provided in kwargs, to allow overrides
+            kwargs["floor_price"] = kwargs.get("floor_price", fc_d["min"])
+            kwargs["ceil_price"] = kwargs.get("ceil_price", fc_d["max"])
 
     return calculate_diff_costs(
         forecast=forecast,
