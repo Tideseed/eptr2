@@ -34,6 +34,7 @@ docs = [
 dev = ["pytest>=9.0.3"]
 
 [project.scripts]
+eptr2 = "eptr2.cli:main"
 eptr2-mcp-server = "eptr2.mcp.server:main"
 
 [build-system]
