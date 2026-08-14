@@ -83,7 +83,7 @@ uevm = eptr.call("uevm", start_date="2024-07-29", end_date="2024-07-29")
 
 ## Discovering Available Calls
 
-List all 213+ available API endpoints:
+List all 231 available API endpoints:
 
 ```python
 # Get list of all available calls

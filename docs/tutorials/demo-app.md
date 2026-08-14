@@ -49,7 +49,7 @@ The demo app provides:
 
 ### Data Explorer
 
-- Browse all 213+ API endpoints
+- Browse all 231 API endpoints
 - Filter by category
 - View data in tables
 - Download as CSV

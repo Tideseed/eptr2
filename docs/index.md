@@ -14,7 +14,7 @@
 
 ## Features
 
-- 🔌 **213+ API Endpoints** - Access comprehensive Turkish electricity market data
+- 🔌 **231 API Endpoints** - Access comprehensive Turkish electricity market data
 - 📊 **Pandas Integration** - Returns data as DataFrames for easy analysis
 - 🤖 **AI Agent Ready** - Built-in MCP server for Claude and other AI assistants
 - 🔑 **Easy Authentication** - Simple credential management with `.env` files

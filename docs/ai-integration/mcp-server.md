@@ -8,7 +8,7 @@ The Model Context Protocol (MCP) is a standard for connecting AI assistants to e
 
 - Query real-time electricity prices
 - Fetch consumption and generation data
-- Access all 213+ API endpoints
+- Access all 231 API endpoints
 - Perform complex market analysis
 
 ## Quick Start
