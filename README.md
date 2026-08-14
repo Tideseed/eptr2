@@ -25,6 +25,26 @@ pip install "eptr2[allextras]"
 
 Minimal install (thin client only): `pip install eptr2`. Both work with `uv pip install` as well.
 
+### Development Versions
+
+Get the latest pre-release from PyPI (pip skips `.devN` versions unless `--pre` is given):
+
+```bash
+pip install --pre "eptr2[allextras]"
+```
+
+Or install straight from GitHub — a specific dev branch or the default branch:
+
+```bash
+pip install "eptr2[allextras] @ git+https://github.com/Tideseed/eptr2.git@dev-1.3.9"
+```
+
+```bash
+pip install "eptr2[allextras] @ git+https://github.com/Tideseed/eptr2.git"
+```
+
+Pin a released version with `eptr2==1.3.8` if you need to stay off dev builds.
+
 ## Quickstart
 
 [Register](https://kayit.epias.com.tr/epias-transparency-platform-registration-form) with the EPIAS Transparency Platform, then:
