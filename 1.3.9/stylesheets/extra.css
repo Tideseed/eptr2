@@ -1,0 +1,93 @@
+/* Custom styles for eptr2 documentation */
+
+/* Card grid for homepage */
+.md-typeset .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr));
+    gap: 1rem;
+    margin: 1rem 0;
+}
+
+.md-typeset .grid.cards > ul {
+    display: contents;
+}
+
+.md-typeset .grid.cards > ul > li {
+    border: 1px solid var(--md-default-fg-color--lightest);
+    border-radius: 0.5rem;
+    padding: 1rem;
+    list-style: none;
+    margin: 0;
+}
+
+.md-typeset .grid.cards > ul > li:hover {
+    border-color: var(--md-accent-fg-color);
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+}
+
+/* Improve code block readability */
+.md-typeset pre > code {
+    font-size: 0.85rem;
+}
+
+/* API reference styling */
+.doc-heading {
+    border-bottom: 2px solid var(--md-accent-fg-color);
+    padding-bottom: 0.5rem;
+    margin-bottom: 1rem;
+}
+
+/* Table improvements */
+.md-typeset table:not([class]) {
+    font-size: 0.85rem;
+}
+
+.md-typeset table:not([class]) th {
+    background-color: var(--md-default-fg-color--lightest);
+}
+
+/* Admonition customization */
+.md-typeset .admonition.tip {
+    border-color: #10b981;
+}
+
+.md-typeset .admonition.tip > .admonition-title {
+    background-color: rgba(16, 185, 129, 0.1);
+}
+
+/* Badge styling for version numbers */
+.version-badge {
+    display: inline-block;
+    padding: 0.25rem 0.5rem;
+    border-radius: 0.25rem;
+    background-color: var(--md-accent-fg-color);
+    color: white;
+    font-size: 0.75rem;
+    font-weight: 600;
+}
+
+/* Source code links */
+.md-typeset a[href*="github.com"] {
+    text-decoration: none;
+}
+
+.md-typeset a[href*="github.com"]:hover {
+    text-decoration: underline;
+}
+
+/* Navigation improvements */
+.md-nav__link--active {
+    font-weight: 600;
+}
+
+/* Footer styling */
+.md-footer-meta {
+    background-color: var(--md-default-bg-color);
+}
+
+/* Mobile improvements */
+@media screen and (max-width: 76.1875em) {
+    .md-typeset .grid {
+        grid-template-columns: 1fr;
+    }
+}
