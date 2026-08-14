@@ -4667,7 +4667,7 @@
       "url": "https://seffaflik.epias.com.tr/electricity/electricity-transmission/zero-balance-adjustment/monthly-zero-balance-adjustment"
     }
   },
-  "eptr2_version": "1.3.9.dev1",
+  "eptr2_version": "1.3.9.dev2",
   "schema_format_version": "2.0",
   "usage": {
     "cli": "eptr2 call <key> --start-date ... --end-date ...",
