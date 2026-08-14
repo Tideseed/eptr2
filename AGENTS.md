@@ -4,6 +4,21 @@ This document is the canonical quick reference for AI agents and assistants work
 
 eptr2 is a Python client for Turkish electricity and natural gas market data from the EPIAS Transparency Platform v2.0, with 231 API endpoints.
 
+## How to Learn This Library (Recommended Path)
+
+If you are an AI agent encountering eptr2 for the first time, learn it in this order — each step needs no credentials:
+
+1. **Read this file** (AGENTS.md) end to end: authentication, usage pattern, call keys, abbreviations.
+2. **Load the machine-readable schema** for the full endpoint catalog with parameters:
+   - installed package: `eptr2 schema --stdout`
+   - from GitHub: <https://raw.githubusercontent.com/Tideseed/eptr2/main/eptr2_api_schema.json>
+3. **Query interactively while coding**: `eptr2 search <keyword>` (English/Turkish) and `eptr2 describe <key>` (parameters, method, path), or in Python `from eptr2.agentic import search_calls, describe_call`.
+4. **Install the bundled skills** (`eptr2 install-skills`) for task-specific guidance on prices, consumption, generation, imbalance costs and market operations — including worked examples and formulas.
+5. **Learn the domain terms** from the abbreviations table at the bottom of this file; Turkish terms (PTF, SMF, KGÜP, UEVM) appear throughout the API.
+6. **See working code**: `examples/` in the repo, the docs site (<https://tideseed.github.io/eptr2/>), and `tests/` (especially `tests/test_cli.py` and `tests/test_mcp_server.py` for the agent-facing surfaces).
+
+For understanding the codebase itself (contributing rather than using): start at `src/eptr2/main.py` (`EPTR2.call`), then `src/eptr2/mapping/` (endpoint metadata — the single source of truth that discovery, schema and MCP tools are generated from), `src/eptr2/composite/` (multi-call helpers), and `src/eptr2/util/costs.py` (imbalance/KUPST math).
+
 ## Installation
 
 ```bash
