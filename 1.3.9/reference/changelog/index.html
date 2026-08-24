@@ -2716,7 +2716,7 @@
 <li>
 <p>Update authentication:
    <div class="language-python highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="c1"># Old</span>
-</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="n">eptr</span> <span class="o">=</span> <span class="n">EPTR2</span><span class="p">(</span><span class="n">username</span><span class="o">=</span><span class="s2">&quot;...&quot;</span><span class="p">,</span> <span class="n">password</span><span class="o">=</span><span class="s2">&quot;...&quot;</span><span class="p">)</span>
+</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="n">eptr</span> <span class="o">=</span> <span class="n">EPTR2</span><span class="p">(</span><span class="n">username</span><span class="o">=</span><span class="s2">"..."</span><span class="p">,</span> <span class="n">password</span><span class="o">=</span><span class="s2">"..."</span><span class="p">)</span>
 </span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>
 </span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="c1"># New (recommended)</span>
 </span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a><span class="n">eptr</span> <span class="o">=</span> <span class="n">EPTR2</span><span class="p">(</span><span class="n">use_dotenv</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">recycle_tgt</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
@@ -2733,7 +2733,7 @@
 <ol>
 <li>Replace credentials file with <code>.env</code>:
    <div class="language-python highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="c1"># Old</span>
-</span><span id="__span-2-2"><a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="n">eptr</span> <span class="o">=</span> <span class="n">EPTR2</span><span class="p">(</span><span class="n">credentials_file_path</span><span class="o">=</span><span class="s2">&quot;creds/eptr_credentials.json&quot;</span><span class="p">)</span>
+</span><span id="__span-2-2"><a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="n">eptr</span> <span class="o">=</span> <span class="n">EPTR2</span><span class="p">(</span><span class="n">credentials_file_path</span><span class="o">=</span><span class="s2">"creds/eptr_credentials.json"</span><span class="p">)</span>
 </span><span id="__span-2-3"><a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a>
 </span><span id="__span-2-4"><a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a><span class="c1"># New</span>
 </span><span id="__span-2-5"><a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a><span class="n">eptr</span> <span class="o">=</span> <span class="n">EPTR2</span><span class="p">(</span><span class="n">use_dotenv</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
