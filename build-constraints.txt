@@ -1,0 +1,9 @@
+# Build-time constraints for producing PyPI-uploadable distributions.
+#
+# hatchling >= 1.28 emits "Metadata-Version: 2.5", which current twine (6.2)
+# still rejects with:
+#   InvalidDistribution: Invalid distribution metadata: '2.5' is not a valid
+#   metadata version
+# Pinning below that keeps the metadata at 2.4. Remove this file once twine
+# accepts metadata 2.5.
+hatchling<1.28

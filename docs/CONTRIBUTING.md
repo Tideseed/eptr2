@@ -30,7 +30,7 @@ The static site will be generated in the `site/` directory.
 
 ## Deployment
 
-Documentation is automatically deployed to GitHub Pages when changes are pushed to the `main` branch.
+Documentation is automatically deployed to GitHub Pages when changes are pushed to the `docs` branch (the workflow also filters on `docs/**`, `mkdocs.yml` and `src/eptr2/**`).
 
 The deployment workflow is defined in `.github/workflows/docs.yml`.
 
