@@ -27,6 +27,20 @@ The skills and MCP server ship together as an [Agent Plugin](https://agent-plugi
 
 New tools: `describe_eptr2_call`, `search_eptr2_calls` (discovery, no credentials), `get_market_operations_summary`, `get_balancing_market_data`, `get_bulk_production_plans`, `calculate_imbalance_prices_and_costs`, `calculate_kupst_deviation_cost` (pure calculations). Plus MCP resources `eptr2://schema` and `eptr2://help/{call_key}`, and an `analyze_market_prices` prompt. Fixed composite tools passing the client positionally (broken since the composite refactor).
 
+### Ceiling price defaults now resolve dynamically
+
+The `ceil_price` parameter of the 2026-regulation cost functions
+(`calculate_unit_imbalance_price_2026`, `calculate_unit_imbalance_cost_2026` and the two
+deprecated forwarders) now defaults to `None`, resolving the ceiling in force at call time
+from `eptr2.util.time.contract_to_floor_ceil_prices` instead of a hardcoded literal.
+
+This fixes a real bug: the previous hardcoded `3400.0` default was the 2025-04-05 ceiling,
+so in strict mode any price above it — legitimate under the 4500 TL/MWh ceiling in force
+since 2026-04-04 — raised `ValueError: MCP ... is above ceiling price 3400.0`. Stale 3400
+references in docstrings, examples and tests were updated to 4500 as well. Pass
+`ceil_price` explicitly for historical hours, or use the `*_by_contract` helpers, which
+already resolve floor and ceiling from the contract date.
+
 ### Documentation overhaul
 
 Provider-agnostic agent docs: `AGENTS.md` is the single canonical agent-instruction file. New generic MCP client setup page (VS Code agent mode, Claude Desktop/Code, Cursor) and a CLI page in the docs site. Removed stale artifacts (`PR_DESCRIPTION.md`, `AI_AGENT_INTEGRATION_SUMMARY.md`, `CHANGELOG_MCP.md`, `mcp-config.json`, `CLAUDE_SETUP.md`); fixed UEVM descriptions and endpoint counts.

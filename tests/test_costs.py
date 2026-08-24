@@ -1302,3 +1302,57 @@ class TestAPIIntegration:
         # If we get here, test passed
         print(f"\n✅ Successfully validated {total_rows} rows of imbalance price data")
         print(f"   Match rate: {match_rate:.2%}")
+
+
+# ============================================================================
+# Dynamic ceiling price resolution
+# ============================================================================
+
+
+class TestDynamicCeilingPrice:
+    """ceil_price=None resolves the ceiling in force at call time, so the
+    default tracks EPDK revisions instead of going stale in the signature."""
+
+    def test_default_matches_current_price_map(self):
+        from eptr2.util.time import contract_to_floor_ceil_prices
+
+        current_ceiling = contract_to_floor_ceil_prices()["max"]
+        explicit = calculate_unit_imbalance_price_2026(
+            mcp=current_ceiling, smp=current_ceiling, ceil_price=current_ceiling
+        )
+        resolved = calculate_unit_imbalance_price_2026(
+            mcp=current_ceiling, smp=current_ceiling
+        )
+        assert resolved == explicit
+        # ceiling margin applied -> neg price above the raw ceiling
+        assert resolved["neg_imb_price"] > current_ceiling
+
+    def test_default_accepts_prices_up_to_current_ceiling(self):
+        from eptr2.util.time import contract_to_floor_ceil_prices
+
+        current_ceiling = contract_to_floor_ceil_prices()["max"]
+        # Must not raise for any price at or below the ceiling in force
+        calculate_unit_imbalance_price_2026(
+            mcp=current_ceiling - 500, smp=current_ceiling
+        )
+        with pytest.raises(ValueError, match="above ceiling price"):
+            calculate_unit_imbalance_price_2026(
+                mcp=current_ceiling + 1, smp=current_ceiling
+            )
+
+    def test_explicit_ceiling_still_honoured(self):
+        """Historical hours can pass their own ceiling explicitly."""
+        prices = calculate_unit_imbalance_price_2026(
+            mcp=3400, smp=3400, ceil_price=3400.0, sd_sign=0
+        )
+        # 3400 * 1.03 * 1.05 with the 2025-04-05 ceiling
+        assert prices["neg_imb_price"] == pytest.approx(3400 * 1.03 * 1.05)
+
+    def test_cost_function_propagates_none(self):
+        from eptr2.util.time import contract_to_floor_ceil_prices
+
+        current_ceiling = contract_to_floor_ceil_prices()["max"]
+        costs = calculate_unit_imbalance_cost_2026(
+            mcp=current_ceiling, smp=current_ceiling, include_prices=True
+        )
+        assert costs["neg_imb_price"] > current_ceiling
