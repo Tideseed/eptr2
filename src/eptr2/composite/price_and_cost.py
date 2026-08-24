@@ -4,6 +4,7 @@ from eptr2.util.costs import (
     calculate_unit_kupst_cost_by_contract,
 )
 from eptr2.util.time import iso_to_contract
+
 import pandas as pd
 
 
@@ -289,3 +290,24 @@ def get_hourly_imbalance_data(
     merged_df = merged_df.merge(price_df, on="date", how="outer")
 
     return merged_df
+
+
+def get_reference_imbalance_costs(
+    start_date: str,
+    end_date: str,
+    eptr: EPTR2 | None = None,
+):
+    """
+    Get reference imbalance cost for a given period. Reference imbalance means if the
+    """
+
+    if eptr is None:
+        eptr = EPTR2()
+
+    df = eptr.call("mcp-smp-imb", start_date=start_date, end_date=end_date)
+
+    df["neg_imb_cost"] = df["negativeImbalance"] - df["ptf"]
+    df["pos_imb_cost"] = df["ptf"] - df["positiveImbalance"]
+    df["ref_imb_cost"] = round((df["neg_imb_cost"] + df["pos_imb_cost"]) / 2, 4)
+
+    return df
