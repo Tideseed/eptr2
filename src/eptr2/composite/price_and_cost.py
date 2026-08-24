@@ -298,7 +298,7 @@ def get_reference_imbalance_costs(
     eptr: EPTR2 | None = None,
 ):
     """
-    Get reference imbalance cost for a given period. Reference imbalance means if the
+    Get reference imbalance cost for a given period. Reference imbalance cost means the average of positive imbalance and negative imbalance costs. Imbalance costs are calculated as the difference from PTF/MCP, always positive values.
     """
 
     if eptr is None:
