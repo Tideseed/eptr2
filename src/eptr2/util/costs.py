@@ -776,7 +776,7 @@ def calculate_unit_imbalance_price_2026(
     mcp: float,
     smp: float,
     floor_price: float = 0.0,
-    ceil_price: float = 3400.0,
+    ceil_price: float = 4500.0,
     V: float = 150,
     B: float = 100,
     low_margin: float = 0.03,
@@ -800,8 +800,13 @@ def calculate_unit_imbalance_price_2026(
         System Marginal Price (real-time balancing price) in TL/MWh.
     floor_price : float, default 0.0
         Minimum price floor in TL/MWh. Prices cannot fall below this value.
-    ceil_price : float, default 3400.0
+    ceil_price : float, default 4500.0
         Maximum price ceiling in TL/MWh. When this is reached, additional margins apply.
+        The default is the ceiling in force since 2026-04-04 (previously 3400.0 from
+        2025-04-05). EPDK revises it periodically, so for historical hours pass the
+        applicable value, or use the ``*_by_contract`` helpers, which resolve floor and
+        ceiling automatically from the contract date via
+        :func:`eptr2.util.time.contract_to_floor_ceil_prices`.
     V : float, default 150
         Reference/threshold price in TL/MWh. Used for:
         - Calculating negative imbalance price (floor for price calculation)
@@ -1135,7 +1140,7 @@ def calculate_unit_imbalance_cost_2026(
     mcp: float,
     smp: float,
     floor_price: float = 0.0,
-    ceil_price: float = 3400.0,
+    ceil_price: float = 4500.0,
     V: float = 150,
     B: float = 100,
     low_margin: float = 0.03,
@@ -1159,7 +1164,7 @@ def calculate_unit_imbalance_cost_2026(
         System Marginal Price in TL/MWh.
     floor_price : float, default 0.0
         Minimum price floor in TL/MWh.
-    ceil_price : float, default 3400.0
+    ceil_price : float, default 4500.0
         Maximum price ceiling in TL/MWh.
     V : float, default 150
         Reference/threshold price in TL/MWh.
@@ -2239,7 +2244,7 @@ def temp_calculate_imbalance_price_and_costs_new(
     mcp: float,
     smp: float,
     floor_price: float = 0.0,
-    ceil_price: float = 3400.0,
+    ceil_price: float = 4500.0,
     V: float = 150,
     B: float = 100,
     low_margin: float = 0.03,
@@ -2275,7 +2280,7 @@ def calculate_imbalance_price_and_costs_2026(
     mcp: float,
     smp: float,
     floor_price: float = 0.0,
-    ceil_price: float = 3400.0,
+    ceil_price: float = 4500.0,
     V: float = 150,
     B: float = 100,
     low_margin: float = 0.03,
@@ -2292,7 +2297,7 @@ def calculate_imbalance_price_and_costs_2026(
     mcp: Market Clearing Price (Day-ahead price) (PTF)
     smp: System Marginal Price (Real-time price) (SMF)
     floor_price: Price floor (0 TL/MWh)
-    ceil_price: Price ceiling (3400 TL/MWh)
+    ceil_price: Price ceiling (4500 TL/MWh)
     V: Reference price for negative imbalance price calculation and positive imbalance threshold (150 TL/MWh)
     B: Reference price for positive imbalance price calculation (100 TL/MWh)
     low_margin: Margin for the opposite side of the imbalance (3%)

@@ -66,9 +66,9 @@ def example_calculate_imbalance_prices_costs_and_kupst():
     generate_cost_scenario_output(mcp=mcp, smp=smp)
     print("=====")
 
-    ### Scenario: System in Negative Imbalance (MCP < SMP) and ceiling prices (for early 2026)
+    ### Scenario: System in Negative Imbalance (MCP < SMP) and ceiling prices (current regulation, ceiling 4500 TL/MWh)
     mcp = 2000.0
-    smp = 3400.0
+    smp = 4500.0
     print("=====")
     print(
         f"Scenario 4: MCP ({mcp}) < SMP ({smp}) => System in Negative Imbalance and Ceiling Prices"
@@ -76,9 +76,9 @@ def example_calculate_imbalance_prices_costs_and_kupst():
     generate_cost_scenario_output(mcp=mcp, smp=smp)
     print("=====")
 
-    ### Scenario: System in Negative Imbalance (MCP < SMP) and extreme low/high prices (for early 2026)
+    ### Scenario: System in Negative Imbalance (MCP < SMP) and extreme low/high prices (current regulation, ceiling 4500 TL/MWh)
     mcp = 100.0
-    smp = 3400.0
+    smp = 4500.0
     print("=====")
     print(
         f"Scenario 5: MCP ({mcp}) < SMP ({smp}) => System in Negative Imbalance and Extreme  Prices"
@@ -86,8 +86,8 @@ def example_calculate_imbalance_prices_costs_and_kupst():
     generate_cost_scenario_output(mcp=mcp, smp=smp)
     print("=====")
 
-    ### Scenario: System in Negative Imbalance (MCP < SMP) and extreme low/high prices (for early 2026)
-    mcp = 3400.0
+    ### Scenario: System in Negative Imbalance (MCP < SMP) and extreme low/high prices (current regulation, ceiling 4500 TL/MWh)
+    mcp = 4500.0
     smp = 120.0
     print("=====")
     print(
@@ -96,7 +96,7 @@ def example_calculate_imbalance_prices_costs_and_kupst():
     generate_cost_scenario_output(mcp=mcp, smp=smp)
     print("=====")
 
-    ### Scenario: System in Negative Imbalance (MCP < SMP) and both low prices (for early 2026)
+    ### Scenario: System in Negative Imbalance (MCP < SMP) and both low prices (current regulation)
     mcp = 150.0
     smp = 120.0
     print("=====")
@@ -106,9 +106,9 @@ def example_calculate_imbalance_prices_costs_and_kupst():
     generate_cost_scenario_output(mcp=mcp, smp=smp)
     print("=====")
 
-    ### Scenario: System in Negative Imbalance (MCP < SMP) and both ceiling prices (for early 2026) (ps. negative imbalance implied by ceiling SMP price)
-    mcp = 3400.0
-    smp = 3400.0
+    ### Scenario: System in Negative Imbalance (MCP < SMP) and both ceiling prices (current regulation, ceiling 4500 TL/MWh) (ps. negative imbalance implied by ceiling SMP price)
+    mcp = 4500.0
+    smp = 4500.0
     print("=====")
     print(
         f"Scenario 8: MCP ({mcp}) < SMP ({smp}) => System in Negative Imbalance and Ceiling Prices"

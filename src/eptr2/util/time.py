@@ -796,7 +796,7 @@ def get_time_min_max_price_map():
     Example:
         >>> price_map = get_time_min_max_price_map()
         >>> price_map[0]  # Most recent limits
-        {'date': '2025-04-05', 'min': 0, 'max': 3400.0, 'idm_min': 0, 'idm_max': 3502.0}
+        {'date': '2026-04-04', 'min': 0, 'max': 4500.0, 'idm_min': 0, 'idm_max': 4635.0}
     """
     map_l = [
         {
@@ -896,7 +896,7 @@ def contract_to_floor_ceil_prices(c: str | None = None):
         {'date': '2024-06-01', 'min': 0, 'max': 3000.0, 'idm_min': 0, 'idm_max': 3090.0}
 
         >>> contract_to_floor_ceil_prices()  # No contract = current limits
-        {'date': '2025-04-05', 'min': 0, 'max': 3400.0, 'idm_min': 0, 'idm_max': 3502.0}
+        {'date': '2026-04-04', 'min': 0, 'max': 4500.0, 'idm_min': 0, 'idm_max': 4635.0}
     """
 
     ### Min max price map is always sorted by date descending

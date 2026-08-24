@@ -385,9 +385,9 @@ class TestImbalancePrice:
 
     def test_calculate_unit_imbalance_price_2026_at_ceiling(self):
         """Test imbalance price when max(MCP, SMP) equals ceiling."""
-        prices = calculate_unit_imbalance_price_2026(mcp=3400, smp=3000)
+        prices = calculate_unit_imbalance_price_2026(mcp=4500, smp=3000)
         # neg_imb_price should include ceil_margin
-        assert prices["neg_imb_price"] == pytest.approx(3400 * (1 + 0.03) * (1 + 0.05))
+        assert prices["neg_imb_price"] == pytest.approx(4500 * (1 + 0.03) * (1 + 0.05))
 
     def test_calculate_unit_imbalance_price_pre_2026(self):
         """Test imbalance price for pre-2026 regulation."""
@@ -493,23 +493,23 @@ class TestImbalancePrice:
     def test_calculate_unit_imbalance_price_2026_ceiling_exception_with_balanced(self):
         """Test ceiling behavior when MCP==SMP==ceiling and system_direction=0."""
         # At ceiling with balanced direction, uses low_margin for both
-        prices = calculate_unit_imbalance_price_2026(mcp=3400, smp=3400, sd_sign=0)
-        # pos = 3400 * (1 - 0.03) = 3298
-        assert prices["pos_imb_price"] == 3298
-        # neg = 3400 * (1 + 0.03) * (1 + 0.05) = 3677.1 (with ceiling multiplier)
-        assert prices["neg_imb_price"] == 3677.1
+        prices = calculate_unit_imbalance_price_2026(mcp=4500, smp=4500, sd_sign=0)
+        # pos = 4500 * (1 - 0.03) = 4365
+        assert prices["pos_imb_price"] == 4365
+        # neg = 4500 * (1 + 0.03) * (1 + 0.05) = 4866.75 (with ceiling multiplier)
+        assert prices["neg_imb_price"] == 4866.75
 
     def test_calculate_unit_imbalance_price_2026_ceiling_explicit_direction_overrides(
         self,
     ):
         """Test that explicit system_direction affects margins even at ceiling."""
         # At ceiling with explicit positive direction
-        prices = calculate_unit_imbalance_price_2026(mcp=3400, smp=3400, sd_sign=1)
+        prices = calculate_unit_imbalance_price_2026(mcp=4500, smp=4500, sd_sign=1)
         # Should use low_margin for neg, high_margin for pos (positive direction)
-        # pos = 3400 * (1 - 0.06) = 3196
-        assert prices["pos_imb_price"] == 3196
-        # neg = 3400 * (1 + 0.03) * (1 + 0.05) = 3677.1 (with ceiling multiplier)
-        assert prices["neg_imb_price"] == 3677.1
+        # pos = 4500 * (1 - 0.06) = 4230
+        assert prices["pos_imb_price"] == 4230
+        # neg = 4500 * (1 + 0.03) * (1 + 0.05) = 4866.75 (with ceiling multiplier)
+        assert prices["neg_imb_price"] == 4866.75
 
     def test_calculate_unit_imbalance_price_2026_floor_exception_with_balanced(self):
         """Test floor behavior when MCP==SMP==floor and system_direction=0."""
@@ -829,7 +829,7 @@ class TestEdgeCases:
     def test_identical_mcp_smp_high_price(self):
         """Test calculations when MCP equals SMP but at ceiling."""
         # Test with ceil_price condition to avoid uninitialized variable
-        prices = calculate_unit_imbalance_price_2026(mcp=3400, smp=3400)
+        prices = calculate_unit_imbalance_price_2026(mcp=4500, smp=4500)
         assert isinstance(prices, dict)
         assert "pos_imb_price" in prices
         assert "neg_imb_price" in prices
@@ -1044,11 +1044,11 @@ class TestRegulation2026Specifics:
 
     def test_imbalance_price_2026_ceil_margin_applied(self):
         """Test that 2026 regulation applies ceil_margin when at ceiling."""
-        # At ceiling (3400), additional 5% margin applies to neg_imb_price
-        prices = calculate_unit_imbalance_price_2026(mcp=3400, smp=3300)
-        # neg_imb_price = max(3400, 3300, 150) * (1 + margin) * (1 + 0.05)
-        # = 3400 * 1.03 * 1.05 = 3677.1
-        expected = 3400 * (1 + 0.03) * (1 + 0.05)
+        # At ceiling (4500), additional 5% margin applies to neg_imb_price
+        prices = calculate_unit_imbalance_price_2026(mcp=4500, smp=3300)
+        # neg_imb_price = max(4500, 3300, 150) * (1 + margin) * (1 + 0.05)
+        # = 4500 * 1.03 * 1.05 = 4866.75
+        expected = 4500 * (1 + 0.03) * (1 + 0.05)
         assert prices["neg_imb_price"] == pytest.approx(expected)
 
 
