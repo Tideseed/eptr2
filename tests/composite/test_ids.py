@@ -119,21 +119,35 @@ class TestGetAllImportantIds:
         assert isinstance(result, dict)
 
     @pytest.mark.api_call
-    def test_get_all_important_ids_verbose_mode(self, ids_params, capsys):
-        """Test that verbose mode produces output."""
+    def test_get_all_important_ids_verbose_mode(self, ids_params):
+        """Test that verbose mode produces log output.
+
+        Asserts against the eptr2 logger rather than stdout: diagnostics go to
+        stderr (stdout is reserved for CLI data and MCP protocol frames), and
+        attaching a handler here is independent of which stream is bound.
+        """
+        import io
+        import logging
+
         is_env_ok = load_dotenv(".env")
         assert is_env_ok
 
-        eptr = EPTR2()
-        get_all_important_ids(
-            the_date=ids_params["the_date"],
-            eptr=eptr,
-            export_to_excel=False,
-            verbose=True,
-        )
+        stream = io.StringIO()
+        handler = logging.StreamHandler(stream)
+        eptr2_logger = logging.getLogger("eptr2")
+        eptr2_logger.addHandler(handler)
+        try:
+            eptr = EPTR2()
+            get_all_important_ids(
+                the_date=ids_params["the_date"],
+                eptr=eptr,
+                export_to_excel=False,
+                verbose=True,
+            )
+        finally:
+            eptr2_logger.removeHandler(handler)
 
-        captured = capsys.readouterr()
-        assert "Fetching" in captured.out
+        assert "Fetching" in stream.getvalue()
 
     @pytest.mark.api_call
     def test_get_all_important_ids_dam_clearing_org_list_structure(self, ids_params):

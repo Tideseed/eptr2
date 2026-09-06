@@ -478,3 +478,19 @@ def test_optional_settings_survive_partially_constructed_clients():
     assert isinstance(timeout, urllib3.Timeout)
     assert isinstance(timeout.connect_timeout, float)
     assert isinstance(timeout.read_timeout, float)
+
+
+def test_reserved_options_cover_everything_the_call_path_consumes():
+    """Any option EPTR2/transparency_call consumes must be reserved, or the
+    unknown-parameter warning fires on the library's own internal calls."""
+    import re
+    from pathlib import Path
+
+    from eptr2.main import RESERVED_CALL_OPTIONS
+
+    source = (Path(__file__).resolve().parents[1] / "src" / "eptr2" / "main.py").read_text(
+        encoding="utf-8"
+    )
+    consumed = set(re.findall(r'kwargs\.(?:pop|get)\("([a-z_]+)"', source))
+    missing = sorted(consumed - set(RESERVED_CALL_OPTIONS))
+    assert not missing, f"not reserved, will warn spuriously: {missing}"

@@ -231,8 +231,14 @@ class EPTR2:
             body=body_str,
             **apply_default_timeout(
                 kwargs.get("request_kwargs"),
-                connect_timeout=self.__dict__.get("connect_timeout"),
-                read_timeout=self.__dict__.get("read_timeout"),
+                ## Login kept its own 10s bound before default timeouts existed;
+                ## preserve it rather than relaxing the read side to 60s.
+                connect_timeout=self.__dict__.get(
+                    "connect_timeout", DEFAULT_LOGIN_TIMEOUT
+                ),
+                read_timeout=self.__dict__.get("read_timeout", DEFAULT_LOGIN_TIMEOUT)
+                if "read_timeout" in self.__dict__
+                else DEFAULT_LOGIN_TIMEOUT,
             ),
         )
         if res.status not in [200, 201]:
@@ -542,6 +548,9 @@ def tgt_account_id(username: str | None, profile: str | None = None) -> str:
 ## EPTR2(connect_timeout=..., read_timeout=...).
 DEFAULT_CONNECT_TIMEOUT = 10.0
 DEFAULT_READ_TIMEOUT = 60.0
+## Authentication was already bounded at 10s before default timeouts
+## existed; keep that unless the client configures its own.
+DEFAULT_LOGIN_TIMEOUT = 10.0
 
 
 def apply_default_timeout(
@@ -581,6 +590,13 @@ RESERVED_CALL_OPTIONS = frozenset(
         "query_parameters",
         "read_timeout",
         "request_kwargs",
+        "retries",
+        "retry_attempts",
+        "retry_backoff",
+        "retry_backoff_max",
+        "retry_jitter",
+        "retry_on_exceptions",
+        "retry_on_status",
         "root_phrase",
         "secure",
         "just_call_phrase",
