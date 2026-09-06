@@ -6,7 +6,7 @@ authors = [{ name = "Tideseed", email = "info@tideseed.com" }]
 license = { text = "Apache License 2.0" }
 readme = "README.md"
 requires-python = ">=3.10"
-dependencies = ["urllib3>=2.6.3", "pytz>=2024.1"]
+dependencies = ["urllib3>=2.7.0", "pytz>=2024.1"]
 
 
 [project.urls]

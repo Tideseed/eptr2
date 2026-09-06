@@ -108,6 +108,20 @@ Follow-up to the agent-first evaluation, for unattended/agent use:
   `AttributeError` when every source returned empty; it now returns an empty
   DataFrame with stable columns.
 
+### Security: dependency refresh
+
+Raised the `urllib3` floor to `>=2.7.0`. Two HIGH-severity advisories affect the
+previous floor of 2.6.3 (decompression-bomb safeguards bypassed in parts of the
+streaming API, and sensitive headers forwarded across origins on proxied
+low-level redirects); both are fixed in 2.7.0. `urllib3` is one of only two
+mandatory runtime dependencies, so this is the one that reaches every install.
+
+Also refreshed `uv.lock`, clearing 74 advisories across 15 packages (the rest
+were optional extras or docs/dev-only tooling). The refresh pulled major
+upgrades — fastmcp 3.3 -> 4.0 and pandas 2.3 -> 3.0 — with the full offline
+suite, MCP tool surface, generated schema, CLI and strict docs build all
+verified against them.
+
 ### Documentation overhaul
 
 Provider-agnostic agent docs: `AGENTS.md` is the single canonical agent-instruction file. New generic MCP client setup page (VS Code agent mode, Claude Desktop/Code, Cursor) and a CLI page in the docs site. Removed stale artifacts (`PR_DESCRIPTION.md`, `AI_AGENT_INTEGRATION_SUMMARY.md`, `CHANGELOG_MCP.md`, `mcp-config.json`, `CLAUDE_SETUP.md`); fixed UEVM descriptions and endpoint counts.
