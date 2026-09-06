@@ -872,13 +872,22 @@ def calculate_unit_imbalance_price_2026(
     ceil_margin : float, default 0.05
         Additional margin (5%) applied when max(MCP, SMP) equals ceil_price,
         only to negative imbalance price.
-    system_direction : int or None, optional
-        System imbalance direction when MCP == SMP. Allowed values:
-        - 1: positive system imbalance (surplus)
-        - 0: balanced system
-        - -1: negative system imbalance (deficit)
-        If provided, it will be coerced with int(system_direction).
+    sd_sign : int or None, optional
+        System imbalance direction, needed when MCP == SMP (equal prices do not
+        reveal the direction, and assuming a balanced system understates the
+        negative imbalance price). Allowed values:
+        - 1: positive system imbalance (surplus / "Enerji Fazlası")
+        - 0: balanced system ("Dengede")
+        - -1: negative system imbalance (deficit / "Enerji Açığı")
         If None, direction is inferred from MCP vs SMP.
+
+        Accepted equivalently as the keyword ``system_direction``, or as the raw
+        EPIAS ``systemStatus`` label from the ``mcp-smp-imb`` call (the Turkish
+        strings above). ``sd_sign`` is the parameter name and takes precedence
+        if both are supplied; ``system_direction`` is kept because it is the
+        name used by the ``sd_sign`` column's documentation and by callers
+        written against earlier docs. Values are normalized with
+        :func:`normalize_system_direction`.
     **kwargs
         Additional keyword arguments (unused, for compatibility).
 

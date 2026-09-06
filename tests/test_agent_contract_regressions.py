@@ -593,3 +593,39 @@ def test_wrapper_accepts_skip_flags_in_kwargs(monkeypatch):
         "2026-07-01", "2026-07-01", eptr=_ProductionClient(), skip_uevm=True
     )
     assert received.get("skip_uevm") is True, "caller's flag must be forwarded"
+
+
+def test_sd_sign_remains_supported_alongside_system_direction():
+    """system_direction was added as an alias, not a replacement: sd_sign is
+    still the declared parameter and every legacy call style keeps working."""
+    import inspect
+
+    from eptr2.util.costs import (
+        calculate_unit_imbalance_price_2026 as p26,
+        calculate_unit_price_and_costs_by_contract as bc,
+    )
+
+    ## still the declared parameter, not renamed
+    assert "sd_sign" in inspect.signature(p26).parameters
+    assert "system_direction" not in inspect.signature(p26).parameters
+
+    prices = dict(mcp=4000, smp=4000)
+    legacy = p26(**prices, sd_sign=-1)
+    assert legacy["neg_imb_price"] == pytest.approx(4240.0)
+
+    ## keyword, positional, and both spellings agree
+    positional = p26(4000, 4000, 0.0, None, 150, 100, 0.03, 0.06, 0.05, -1)
+    assert positional == legacy
+    assert p26(**prices, system_direction=-1) == legacy
+    assert p26(**prices, system_direction="Enerji Açığı") == legacy
+
+    ## sd_sign wins if both are given, and neither raises
+    assert p26(**prices, sd_sign=-1, system_direction=1) == legacy
+
+    ## contract-based path accepts the legacy kwarg too
+    assert bc(contract="PH26070101", mcp=4000, smp=4000, sd_sign=-1)[
+        "neg_imb_price"
+    ] == pytest.approx(4240.0)
+
+    ## omitting it is unchanged for existing callers
+    assert p26(**prices)["neg_imb_price"] == pytest.approx(4120.0)
