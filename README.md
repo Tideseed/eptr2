@@ -5,12 +5,6 @@
 [![Documentation](https://img.shields.io/badge/docs-tideseed.github.io%2Feptr2-blue)](https://tideseed.github.io/eptr2/)
 [![AI agents](https://img.shields.io/badge/AI%20agents-MCP%20%7C%20CLI%20%7C%20Skills-8A2BE2)](https://tideseed.github.io/eptr2/ai-integration/mcp-server/)
 
-**!! IMPORTANT: Starting from 1.3.3 there will be some breaking changes due to regulatory changes by EPDK. Overhaul is planned to finish with the next mid release 1.4.0**
-
-**!! CRITICAL: Due to authentication method changes you are strongly recommended to update the eptr2 version to 1.2.4+**
-
-**Note: From 1.3.0 and onwards, eptr2 starts to evolve to be an AI oriented tool. You can use it as an MCP server, directly use them in your LLMs and AI agents to write your code for you.**
-
 # eptr2
 
 `eptr2` (**EP**IAS **Tr**ansparency **2**.0) is a Python client for the [EPIAS Transparency Platform v2.0](https://seffaflik.epias.com.tr/home) API, covering **231 services** of the Turkish electricity and natural gas markets — prices (PTF/SMF), consumption, generation, production plans, market operations and imbalance costs.

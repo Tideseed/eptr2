@@ -281,13 +281,14 @@ class TestCreateTemplateIdDf:
         """Test that template has expected columns."""
         df = create_template_id_df()
 
+        ## These are the columns calculate_portfolio_costs reads from the id
+        ## frame (plant_name via plant_name_col, the three ids, and source).
         expected_columns = [
+            "plant_name",
             "org_id",
             "uevcb_id",
             "rt_id",
             "uevm_id",
-            "uevcb_name",
-            "rt_shortname",
             "source",
         ]
 
@@ -302,7 +303,11 @@ class TestCreateTemplateIdDf:
     def test_create_template_export_to_excel(self, tmp_path):
         """Test that template can be exported to Excel."""
         export_path = tmp_path / "template.xlsx"
-        df = create_template_id_df(export_to_excel=True, export_path=str(export_path))
+        df = create_template_id_df(
+            export_to_excel=True,
+            export_dir=str(tmp_path),
+            export_file_name="template.xlsx",
+        )
 
         assert export_path.exists()
         # Read back and verify

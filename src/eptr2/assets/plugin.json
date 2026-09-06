@@ -1,7 +1,7 @@
 {
   "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
   "name": "eptr2",
-  "description": "Turkish electricity market data from the EPIAS Transparency Platform: 7 agent skills for prices, consumption, generation, imbalance costs and market operations, plus an MCP server with 17 tools covering 231 API endpoints.",
+  "description": "Turkish electricity market data from the EPIAS Transparency Platform: 7 agent skills for prices, consumption, generation, imbalance costs and market operations, plus an MCP server with 18 tools covering 231 API endpoints.",
   "author": {
     "name": "Tideseed",
     "email": "info@tideseed.com",

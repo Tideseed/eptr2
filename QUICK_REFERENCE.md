@@ -186,7 +186,7 @@ eptr2-mcp-server
 
 ### Available Tools (via MCP)
 
-17 tools: 6 price/consumption/generation calls, 3 discovery tools
+18 tools: 6 price/consumption/generation calls, 3 discovery tools
 (`get_available_eptr2_calls`, `describe_eptr2_call`, `search_eptr2_calls`),
 the generic `call_eptr2_api`, 5 composite/market tools, and 2 pure cost
 calculators (`calculate_imbalance_prices_and_costs`,
