@@ -1,3 +1,4 @@
+from eptr2.main import DEFAULT_COMPOSITE_BACKOFF, DEFAULT_COMPOSITE_RETRIES, DEFAULT_COMPOSITE_TIMEOUT
 import logging
 from eptr2 import EPTR2
 import pandas as pd
@@ -29,7 +30,7 @@ def get_hourly_consumption_and_forecast_data(
         "load-plan",
         start_date=start_date,
         end_date=end_date,
-        request_kwargs={"timeout": 5},
+        request_kwargs={"timeout": DEFAULT_COMPOSITE_TIMEOUT},
     )
 
     df = lp_df[["date", "lep"]].rename(columns={"lep": "load_plan", "date": "dt"})
@@ -38,7 +39,7 @@ def get_hourly_consumption_and_forecast_data(
         logger.info("Loading UECM...")
 
     uecm_df: pd.DataFrame = eptr.call(
-        "uecm", start_date=start_date, end_date=end_date, request_kwargs={"timeout": 5}
+        "uecm", start_date=start_date, end_date=end_date, request_kwargs={"timeout": DEFAULT_COMPOSITE_TIMEOUT}
     )
 
     if not uecm_df.empty:
@@ -59,7 +60,7 @@ def get_hourly_consumption_and_forecast_data(
         "rt-cons",
         start_date=start_date,
         end_date=end_date,
-        request_kwargs={"timeout": 5},
+        request_kwargs={"timeout": DEFAULT_COMPOSITE_TIMEOUT},
     )
 
     df = df.merge(

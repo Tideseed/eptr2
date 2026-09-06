@@ -1,3 +1,4 @@
+from eptr2.main import DEFAULT_COMPOSITE_BACKOFF, DEFAULT_COMPOSITE_RETRIES, DEFAULT_COMPOSITE_TIMEOUT
 import logging
 from eptr2 import EPTR2
 from eptr2.util.time import datetime_to_contract
@@ -29,7 +30,7 @@ def get_ancillary_reserve_data(
             k,
             start_date=start_date,
             end_date=end_date,
-            request_kwargs={"timeout": 5},
+            request_kwargs={"timeout": DEFAULT_COMPOSITE_TIMEOUT},
         )
 
         try:

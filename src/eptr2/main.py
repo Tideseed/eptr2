@@ -559,6 +559,18 @@ def tgt_account_id(
 ## EPTR2(connect_timeout=..., read_timeout=...).
 DEFAULT_CONNECT_TIMEOUT = 10.0
 DEFAULT_READ_TIMEOUT = 60.0
+## Composite helpers issue many requests in a loop, so they bound each request
+## a little tighter than the client-wide read timeout. These budgets exist to
+## ride out transient slowness rather than to fail fast: too tight and an
+## ordinary slow response aborts a whole multi-call job.
+DEFAULT_COMPOSITE_TIMEOUT = 15.0
+## Some endpoints routinely return large payloads and need a longer budget
+## than the ordinary per-request one (the intraday log is the clearest case).
+DEFAULT_COMPOSITE_TIMEOUT_LONG = 30.0
+DEFAULT_COMPOSITE_RETRIES = 4
+DEFAULT_COMPOSITE_BACKOFF = 3.0
+
+
 ## Authentication was already bounded at 10s before default timeouts
 ## existed; keep that unless the client configures its own.
 DEFAULT_LOGIN_TIMEOUT = 10.0

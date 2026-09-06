@@ -1,3 +1,4 @@
+from eptr2.main import DEFAULT_COMPOSITE_BACKOFF, DEFAULT_COMPOSITE_RETRIES, DEFAULT_COMPOSITE_TIMEOUT
 import logging
 from eptr2 import EPTR2
 import pandas as pd
@@ -12,7 +13,7 @@ def get_bpm_range(
     start_date: str,
     end_date: str,
     eptr: EPTR2 | None = None,
-    max_lives: int = 2,
+    max_lives: int = DEFAULT_COMPOSITE_RETRIES,
     verbose: bool = False,
     strict: bool = True,
     include_contract_symbol: bool = True,
@@ -62,7 +63,7 @@ def get_bpm_range(
             df = eptr.call(
                 "bpm-orders-w-avg",
                 date=date_str,
-                request_kwargs={"timeout": 5},
+                request_kwargs={"timeout": DEFAULT_COMPOSITE_TIMEOUT},
                 retry_attempts=max_lives,
                 retry_backoff=1,
                 retry_backoff_max=5,
@@ -94,7 +95,7 @@ def get_bpm_range(
 def get_bpm_period(
     period: str,
     eptr: EPTR2 | None = None,
-    max_lives: int = 2,
+    max_lives: int = DEFAULT_COMPOSITE_RETRIES,
     verbose: bool = False,
     strict: bool = True,
     include_contract_symbol: bool = True,

@@ -36,12 +36,12 @@
     },
     "get_bpm_period": {
       "module": "eptr2.composite.bpm",
-      "signature": "(period: str, eptr: eptr2.main.EPTR2 | None = None, max_lives: int = 2, verbose: bool = False, strict: bool = True, include_contract_symbol: bool = True, **kwargs) -> pandas.DataFrame",
+      "signature": "(period: str, eptr: eptr2.main.EPTR2 | None = None, max_lives: int = 4, verbose: bool = False, strict: bool = True, include_contract_symbol: bool = True, **kwargs) -> pandas.DataFrame",
       "summary": "This function is a wrapper for `get_bpm_range` that retrieves BPM data for a specific month, regardless of the day."
     },
     "get_bpm_range": {
       "module": "eptr2.composite.bpm",
-      "signature": "(start_date: str, end_date: str, eptr: eptr2.main.EPTR2 | None = None, max_lives: int = 2, verbose: bool = False, strict: bool = True, include_contract_symbol: bool = True, **kwargs) -> pandas.DataFrame",
+      "signature": "(start_date: str, end_date: str, eptr: eptr2.main.EPTR2 | None = None, max_lives: int = 4, verbose: bool = False, strict: bool = True, include_contract_symbol: bool = True, **kwargs) -> pandas.DataFrame",
       "summary": "This function retrieves BPM (Balancing Power Market) weighted average data for multiple days between the specified start and end dates."
     },
     "get_dabi_idm_data": {

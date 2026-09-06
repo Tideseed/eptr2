@@ -1,3 +1,4 @@
+from eptr2.main import DEFAULT_COMPOSITE_TIMEOUT_LONG
 from eptr2 import EPTR2
 import pandas as pd
 from datetime import datetime, timedelta
@@ -63,6 +64,11 @@ def idm_log_longer(
                 "idm-log",
                 start_date=period_start_date,
                 end_date=period_end_date,
+                ## The intraday log returns every order for the period, so it
+                ## needs a longer budget than an ordinary composite request.
+                request_kwargs={
+                    "timeout": kwargs.get("timeout", DEFAULT_COMPOSITE_TIMEOUT_LONG)
+                },
                 retry_attempts=trials,
                 retry_backoff=cooldown,
                 retry_backoff_max=cooldown,

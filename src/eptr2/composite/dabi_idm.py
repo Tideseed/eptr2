@@ -1,3 +1,4 @@
+from eptr2.main import DEFAULT_COMPOSITE_BACKOFF, DEFAULT_COMPOSITE_RETRIES, DEFAULT_COMPOSITE_TIMEOUT
 import logging
 from eptr2 import EPTR2
 import pandas as pd
@@ -19,7 +20,7 @@ def process_idm_data(
     It fetches day ahead and bilateral matches, and merges them with IDM data.
     """
     retry_kwargs = {
-        "retry_attempts": kwargs.get("lives", 2),
+        "retry_attempts": kwargs.get("lives", DEFAULT_COMPOSITE_RETRIES),
         "retry_backoff": kwargs.get("retry_backoff", 0),
         "retry_backoff_max": kwargs.get(
             "retry_backoff_max", kwargs.get("retry_backoff", 0)
@@ -31,7 +32,7 @@ def process_idm_data(
         start_date=get_previous_day(start_date),
         end_date=end_date,
         org_id=org_id,
-        request_kwargs={"timeout": 5},
+        request_kwargs={"timeout": DEFAULT_COMPOSITE_TIMEOUT},
         **retry_kwargs,
     )
 
@@ -78,7 +79,7 @@ def get_day_ahead_and_bilateral_matches(
         logger.info("Getting day ahead matches...")
 
     retry_kwargs = {
-        "retry_attempts": kwargs.get("lives", 2),
+        "retry_attempts": kwargs.get("lives", DEFAULT_COMPOSITE_RETRIES),
         "retry_backoff": kwargs.get("retry_backoff", 0),
         "retry_backoff_max": kwargs.get(
             "retry_backoff_max", kwargs.get("retry_backoff", 0)
@@ -91,7 +92,7 @@ def get_day_ahead_and_bilateral_matches(
         start_date=start_date,
         end_date=end_date,
         org_id=org_id,
-        request_kwargs={"timeout": 5},
+        request_kwargs={"timeout": DEFAULT_COMPOSITE_TIMEOUT},
         **retry_kwargs,
     )
 
@@ -110,7 +111,7 @@ def get_day_ahead_and_bilateral_matches(
             start_date=start_date,
             end_date=end_date,
             org_id=org_id,
-            request_kwargs={"timeout": 5},
+            request_kwargs={"timeout": DEFAULT_COMPOSITE_TIMEOUT},
             **retry_kwargs,
         )
 
@@ -266,7 +267,7 @@ def get_day_ahead_detail_info(
                     item,
                     start_date=start_date,
                     end_date=end_date,
-                    request_kwargs={"timeout": kwargs.get("timeout", 5)},
+                    request_kwargs={"timeout": kwargs.get("timeout", DEFAULT_COMPOSITE_TIMEOUT)},
                     retry_attempts=kwargs.get("lives", lives),
                     retry_backoff=kwargs.get("retry_backoff", 0),
                     retry_backoff_max=kwargs.get("retry_backoff_max", 0),

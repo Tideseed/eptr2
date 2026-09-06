@@ -1,3 +1,4 @@
+from eptr2.main import DEFAULT_COMPOSITE_BACKOFF, DEFAULT_COMPOSITE_RETRIES, DEFAULT_COMPOSITE_TIMEOUT
 from eptr2 import EPTR2
 from datetime import datetime, timedelta
 import pandas as pd
@@ -86,7 +87,7 @@ def get_uevcb_ids(org_df: pd.DataFrame, period: str, **kwargs):
     main_df = pd.DataFrame()
     c = 1
     chunk_size = kwargs.get("chunk_size", 950)
-    max_lives = kwargs.get("max_lives", 3)
+    max_lives = kwargs.get("max_lives", DEFAULT_COMPOSITE_RETRIES)
     verbose = kwargs.get("verbose", False)
     retry_backoff = kwargs.get("retry_backoff", 2)
     retry_backoff_max = kwargs.get("retry_backoff_max", retry_backoff)
@@ -105,7 +106,7 @@ def get_uevcb_ids(org_df: pd.DataFrame, period: str, **kwargs):
                 "uevcb-list-bulk",
                 start_date=the_date,
                 org_ids=org_ids_chunk,
-                request_kwargs={"timeout": 5},
+                request_kwargs={"timeout": DEFAULT_COMPOSITE_TIMEOUT},
                 retry_attempts=max_lives,
                 retry_backoff=retry_backoff,
                 retry_backoff_max=retry_backoff_max,

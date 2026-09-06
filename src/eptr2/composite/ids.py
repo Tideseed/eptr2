@@ -1,3 +1,4 @@
+from eptr2.main import DEFAULT_COMPOSITE_BACKOFF, DEFAULT_COMPOSITE_RETRIES, DEFAULT_COMPOSITE_TIMEOUT
 from eptr2 import EPTR2
 from eptr2.composite.periodic_orgs import get_generation_org_and_uevcb_wrapper
 import os
@@ -24,7 +25,7 @@ def get_all_important_ids(
 
     d = {}
 
-    max_lives = kwargs.get("max_lives", 3)
+    max_lives = kwargs.get("max_lives", DEFAULT_COMPOSITE_RETRIES)
     retry_kwargs = {
         "retry_attempts": max_lives,
         "retry_backoff": kwargs.get("retry_backoff", 0),
@@ -40,7 +41,7 @@ def get_all_important_ids(
     d["dam_clearing_org_list"] = eptr.call(
         "dam-clearing-org-list",
         period=the_date,
-        request_kwargs={"timeout": kwargs.get("timeout", 10)},
+        request_kwargs={"timeout": kwargs.get("timeout", DEFAULT_COMPOSITE_TIMEOUT)},
         **retry_kwargs,
     )
 
@@ -51,7 +52,7 @@ def get_all_important_ids(
         "imb-org-list",
         start_date=the_date,
         end_date=the_date,
-        request_kwargs={"timeout": kwargs.get("timeout", 10)},
+        request_kwargs={"timeout": kwargs.get("timeout", DEFAULT_COMPOSITE_TIMEOUT)},
         **retry_kwargs,
     )
 
@@ -66,7 +67,7 @@ def get_all_important_ids(
         logger.info("Fetching power plant list")
 
     d["pp_list"] = eptr.call(
-        "pp-list", request_kwargs={"timeout": kwargs.get("timeout", 10)}, **retry_kwargs
+        "pp-list", request_kwargs={"timeout": kwargs.get("timeout", DEFAULT_COMPOSITE_TIMEOUT)}, **retry_kwargs
     )
 
     if verbose:

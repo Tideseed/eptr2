@@ -1,3 +1,4 @@
+from eptr2.main import DEFAULT_COMPOSITE_BACKOFF, DEFAULT_COMPOSITE_RETRIES, DEFAULT_COMPOSITE_TIMEOUT
 import logging
 from eptr2 import EPTR2
 from eptr2.util.costs import (
@@ -44,7 +45,7 @@ def get_hourly_price_and_cost_data(
         eptr = EPTR2(dotenv_path=kwargs.get("dotenv_path", ".env"))
 
     retry_kwargs = {
-        "retry_attempts": kwargs.get("max_lives", 2),
+        "retry_attempts": kwargs.get("max_lives", DEFAULT_COMPOSITE_RETRIES),
         "retry_backoff": kwargs.get("retry_backoff", 0),
         "retry_backoff_max": kwargs.get("retry_backoff_max", 0),
         "retry_jitter": 0.0,
@@ -205,7 +206,7 @@ def get_hourly_imbalance_data(
         eptr = EPTR2(dotenv_path=kwargs.get("dotenv_path", ".env"))
 
     retry_kwargs = {
-        "retry_attempts": kwargs.get("max_lives", 2),
+        "retry_attempts": kwargs.get("max_lives", DEFAULT_COMPOSITE_RETRIES),
         "retry_backoff": kwargs.get("retry_backoff", 0),
         "retry_backoff_max": kwargs.get("retry_backoff_max", 0),
         "retry_jitter": 0.0,

@@ -1,3 +1,9 @@
+from eptr2.main import (
+    DEFAULT_COMPOSITE_BACKOFF,
+    DEFAULT_COMPOSITE_RETRIES,
+    DEFAULT_COMPOSITE_TIMEOUT,
+    DEFAULT_COMPOSITE_TIMEOUT_LONG,
+)
 import logging
 from eptr2 import EPTR2
 import pandas as pd
@@ -35,9 +41,9 @@ def get_hourly_production_data(
     if eptr is None:
         eptr = EPTR2(dotenv_path=kwargs.get("dotenv_path", ".env"))
 
-    max_trials = kwargs.get("max_trials", 2)
-    timeout = kwargs.get("timeout", 5)
-    sleep_interval = kwargs.get("sleep_interval", 3)
+    max_trials = kwargs.get("max_trials", DEFAULT_COMPOSITE_RETRIES)
+    timeout = kwargs.get("timeout", DEFAULT_COMPOSITE_TIMEOUT)
+    sleep_interval = kwargs.get("sleep_interval", DEFAULT_COMPOSITE_BACKOFF)
     retry_kwargs = {
         "retry_attempts": max_trials,
         "retry_backoff": sleep_interval,
@@ -174,12 +180,12 @@ def get_hourly_production_plan_data(
     if eptr is None:
         eptr = EPTR2(dotenv_path=kwargs.get("dotenv_path", ".env"))
 
-    max_trials = kwargs.get("max_trials", 2)
-    timeout = kwargs.get("timeout", 5)
+    max_trials = kwargs.get("max_trials", DEFAULT_COMPOSITE_RETRIES)
+    timeout = kwargs.get("timeout", DEFAULT_COMPOSITE_TIMEOUT)
     retry_kwargs = {
         "retry_attempts": max_trials,
-        "retry_backoff": kwargs.get("sleep_interval", 3),
-        "retry_backoff_max": kwargs.get("sleep_interval", 3),
+        "retry_backoff": kwargs.get("sleep_interval", DEFAULT_COMPOSITE_BACKOFF),
+        "retry_backoff_max": kwargs.get("sleep_interval", DEFAULT_COMPOSITE_BACKOFF),
         "retry_jitter": 0.0,
     }
 
@@ -430,7 +436,11 @@ def get_kgup_bulk_range(
                 "dpp-bulk",
                 date=date_str,
                 uevcb_ids=uevcb_ids,
-                request_kwargs={"timeout": 5},
+                ## Bulk payloads scale with the number of ids requested, so they get the
+                ## longer budget rather than the ordinary per-request one.
+                request_kwargs={
+                    "timeout": kwargs.get("timeout", DEFAULT_COMPOSITE_TIMEOUT_LONG)
+                },
             )
             if df.empty:
                 logger.info("No data found for %s. Skipping...", date_str)
@@ -517,7 +527,11 @@ def get_dpp_bulk_range(
                 "rt-gen-bulk",
                 date=date_str,
                 pp_ids=pp_ids,
-                request_kwargs={"timeout": 10},
+                ## Bulk payloads scale with the number of ids requested, so they get the
+                ## longer budget rather than the ordinary per-request one.
+                request_kwargs={
+                    "timeout": kwargs.get("timeout", DEFAULT_COMPOSITE_TIMEOUT_LONG)
+                },
             )
             if df.empty:
                 logger.info("No data found for %s. Skipping...", date_str)
