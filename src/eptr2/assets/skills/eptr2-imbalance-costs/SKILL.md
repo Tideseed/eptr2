@@ -40,6 +40,22 @@ print(df[['date', 'mcp', 'smp', 'pos_imb_cost', 'neg_imb_cost', 'kupst_cost']])
 | Enerji Fazlası | Energy Surplus | System is long, down-regulation | +1 |
 | Dengede | Balanced | System is balanced | 0 |
 
+**Always pass the direction when MCP equals SMP.** The cost functions infer
+direction from MCP vs SMP, but equal prices are ambiguous and fall back to
+"balanced", which understates the negative imbalance price. Pass it explicitly
+(`system_direction` or `sd_sign`; the raw `systemStatus` label is accepted):
+
+```python
+from eptr2.util.costs import calculate_unit_price_and_costs_by_contract
+
+# Deficit hour where MCP == SMP == 4000: negative price is 4240, not 4120
+calculate_unit_price_and_costs_by_contract(
+    contract="PH26070101", mcp=4000, smp=4000, system_direction="Enerji Açığı"
+)
+```
+
+Get `systemStatus` for the hour from the `mcp-smp-imb` call.
+
 ### Imbalance Types
 
 | Type | Turkish | When Applied |

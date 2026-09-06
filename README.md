@@ -70,7 +70,7 @@ All 231 services follow the same pattern — discover them with `eptr.get_availa
 `eptr2` ships provider-agnostic tooling for AI assistants and agents:
 
 - **CLI** — `eptr2 list / search / describe / call` for shell-driven agents (data on stdout, JSON or CSV)
-- **MCP server** — 17 tools for any Model Context Protocol client (`eptr2-mcp-server`)
+- **MCP server** — 18 tools for any Model Context Protocol client (`eptr2-mcp-server`)
 - **Agent skills** — 7 bundled skills in the open Agent Skills (SKILL.md) format: `eptr2 install-skills`
 - **Agent Plugin** — skills + MCP server packaged in the portable [agent-plugins.org](https://agent-plugins.org) format: `eptr2 plugin-path`
 - **Machine-readable schema** — all 231 endpoints with parameters, auto-generated: `eptr2 schema --stdout`

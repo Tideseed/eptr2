@@ -283,21 +283,35 @@ def calculate_portfolio_costs(
         sub_df["imb_qty"] = sub_df["actual"] - sub_df["forecast"]
         sub_df["da_imb_qty"] = sub_df["actual"] - sub_df["da_forecast"]
         for pfx in ["", "da_"]:
+            plant_source = row.get("source", "other")
             if use_latest_regulation:
-                tol = get_kupst_tolerance(
-                    source=row.get("source", "other"), regulation_period="current"
+                ## Explicit scenario: price every hour under the current regulation.
+                fixed_tol = get_kupst_tolerance(
+                    source=plant_source, regulation_period="current"
                 )
+                tol_by_contract = None
             else:
-                tol = get_kupst_tolerance_by_contract(
-                    contract=sub_df["contract"].iloc[0],
-                    source=row.get("source", "other"),
-                )
+                ## KUPST tolerance depends on the regulation period, which is derived
+                ## from each contract. Resolving it once from the first row applied
+                ## the wrong tolerance to every other period whenever a range crossed
+                ## a regulation boundary (e.g. 2025-12-31 -> 2026-01-01).
+                fixed_tol = None
+                tol_by_contract = {
+                    contract: get_kupst_tolerance_by_contract(
+                        contract=contract, source=plant_source
+                    )
+                    for contract in sub_df["contract"].unique()
+                }
 
             sub_df[f"{pfx}kupsm"] = sub_df.apply(
                 lambda subrow: calculate_kupsm(
                     actual=subrow["actual"],
                     forecast=subrow[f"{pfx}forecast"],
-                    tol=tol,
+                    tol=(
+                        fixed_tol
+                        if fixed_tol is not None
+                        else tol_by_contract[subrow["contract"]]
+                    ),
                 ),
                 axis=1,
             )

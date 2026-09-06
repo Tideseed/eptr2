@@ -134,7 +134,7 @@ eptr2 mcp-config --client claude-desktop   # or: vscode, claude-code, cursor, ge
 
 ## Available Tools
 
-The MCP server exposes 17 tools:
+The MCP server exposes 18 tools:
 
 ### 1. get_market_clearing_price
 Get day-ahead market clearing prices (MCP/PTF).
@@ -232,22 +232,34 @@ Balancing Power Market data: YAL/YAT instructions with SMP.
 - `start_date`, `end_date` (required): YYYY-MM-DD
 
 ### 15. get_bulk_production_plans
-Bulk per-plant production plans ('dpp' or 'kgup').
+Bulk per-plant production PLANS (KGÜP/DPP — planned generation, not realized).
 
 **Parameters:**
 - `start_date`, `end_date` (required): YYYY-MM-DD
-- `plant_ids` (required): Powerplant ids for 'dpp' (see 'pp-list'), UEVCB ids for 'kgup' (see 'uevcb-list-bulk')
-- `plan_type` (optional): 'dpp' (default) or 'kgup'
+- `uevcb_ids` (required): UEVCB (production unit) ids — see 'uevcb-list-bulk'.
+  Not interchangeable with powerplant ids.
 
-### 16. calculate_imbalance_prices_and_costs
+### 16. get_bulk_actual_generation
+Bulk per-plant REALIZED (real-time) generation — metered output, not a plan.
+
+**Parameters:**
+- `start_date`, `end_date` (required): YYYY-MM-DD
+- `pp_ids` (required): Powerplant ids — see 'pp-list'.
+  Not interchangeable with UEVCB ids.
+
+### 17. calculate_imbalance_prices_and_costs
 Pure calculation of unit imbalance prices/costs for one hour. No credentials needed.
 
 **Parameters:**
 - `contract` (required): Hourly contract code 'PHYYMMDDhh'
 - `mcp_price`, `smp_price` (required): Prices in TL/MWh
 - `include_kupst` (optional): Include unit KUPST cost (default true)
+- `system_direction` (required when `mcp_price == smp_price`): -1 deficit
+  ('Enerji Açığı'), 1 surplus ('Enerji Fazlası') or 0 balanced. Equal prices do
+  not determine direction, and assuming balanced understates the negative
+  imbalance price. The 'systemStatus' field of 'mcp-smp-imb' provides it.
 
-### 17. calculate_kupst_deviation_cost
+### 18. calculate_kupst_deviation_cost
 Pure calculation of the KUPST production-plan deviation cost for one hour. No credentials needed.
 
 **Parameters:**

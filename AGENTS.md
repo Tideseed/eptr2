@@ -130,7 +130,8 @@ from eptr2.composite import (
     get_hourly_price_and_cost_data,
     get_dabi_idm_data,     # DAM + bilateral + intraday volumes
     get_bpm_range,         # Balancing market (YAL/YAT + SMP)
-    get_dpp_bulk_range,    # Bulk per-plant production plans
+    get_kgup_bulk_range,   # Bulk per-plant production PLANS (KGÜP, by UEVCB id)
+    get_rt_gen_bulk_range, # Bulk per-plant REALIZED generation (by powerplant id)
 )
 
 df = get_hourly_consumption_and_forecast_data(
@@ -219,11 +220,13 @@ Data (credentials required):
 12. `get_price_and_cost_data` - Composite pricing data
 13. `get_market_operations_summary` - DAM + bilateral + intraday volumes
 14. `get_balancing_market_data` - Balancing market (YAL/YAT + SMP)
-15. `get_bulk_production_plans` - Bulk per-plant production plans (dpp/kgup)
+15. `get_bulk_production_plans` - Bulk per-plant production plans (KGÜP, by UEVCB id)
+16. `get_bulk_actual_generation` - Bulk per-plant realized generation (by powerplant id)
 
 Calculations (pure, no credentials needed):
-16. `calculate_imbalance_prices_and_costs` - Unit imbalance prices/costs per hour
-17. `calculate_kupst_deviation_cost` - Production plan deviation (KUPST) cost
+17. `calculate_imbalance_prices_and_costs` - Unit imbalance prices/costs per hour
+    (pass `system_direction` when MCP == SMP; it cannot be inferred from equal prices)
+18. `calculate_kupst_deviation_cost` - Production plan deviation (KUPST) cost
 
 Plus resources `eptr2://schema` and `eptr2://help/{call_key}`.
 

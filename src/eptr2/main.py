@@ -1,5 +1,6 @@
 from typing import Any
 import logging
+import warnings
 import urllib3
 import re
 import os
@@ -322,6 +323,25 @@ class EPTR2:
         optional_body_params = get_optional_parameters(key)
         all_params = required_body_params + optional_body_params
 
+        ## Unrecognized parameters used to be dropped silently, which could
+        ## change the meaning of a request rather than fail it: a misspelled
+        ## filter (e.g. `ppID` instead of `pp_id`) turned a filtered query into
+        ## an unfiltered one that still returned a plausible-looking result.
+        unknown_params = [
+            k
+            for k in call_body_raw
+            if k not in all_params and k not in RESERVED_CALL_OPTIONS
+        ]
+        if unknown_params:
+            warnings.warn(
+                f"Ignoring parameter(s) {sorted(unknown_params)} that call '{key}' "
+                f"does not accept. Accepted parameters: {sorted(all_params)}. "
+                "The request is sent WITHOUT them, so any filtering they were "
+                "meant to apply will not take effect.",
+                UserWarning,
+                stacklevel=2,
+            )
+
         call_body = {
             k: preprocess_parameter(k, v)
             for k, v in call_body_raw.items()  ## If there is a call_body parameter in kwargsi, use it, else use kwargs
@@ -391,6 +411,34 @@ class EPTR2:
             return df
 
         return res
+
+
+## Options accepted by EPTR2.call / transparency_call that are NOT endpoint
+## parameters. Anything else that is not an endpoint parameter is very likely a
+## caller mistake, so it is reported instead of being dropped in silence.
+RESERVED_CALL_OPTIONS = frozenset(
+    {
+        "call_body",
+        "credentials_file_path",
+        "custom_aliases",
+        "force_renew_tgt",
+        "get_raw_response",
+        "is_test",
+        "map_param_labels",
+        "new_login_method",
+        "postprocess",
+        "query_parameters",
+        "request_kwargs",
+        "root_phrase",
+        "secure",
+        "just_call_phrase",
+        "skip_tgt_update",
+        "ssl_verify",
+        "tgt",
+        "tgt_d",
+        "tgt_path",
+    }
+)
 
 
 def transparency_call(

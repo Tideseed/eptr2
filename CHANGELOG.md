@@ -23,9 +23,9 @@ A general-purpose command line interface for humans and shell-driven AI agents: 
 
 The skills and MCP server ship together as an [Agent Plugin](https://agent-plugins.org) (v1 spec: `plugin.json` + `mcp.json` + `skills/`), with the packaged `eptr2/assets/` directory as the plugin root. New CLI commands: `eptr2 plugin-path` and `eptr2 install-plugin --dest PATH`. The manifest and MCP config are validated against the spec's constraints in CI.
 
-### MCP server expanded to 17 tools
+### MCP server expanded to 18 tools
 
-New tools: `describe_eptr2_call`, `search_eptr2_calls` (discovery, no credentials), `get_market_operations_summary`, `get_balancing_market_data`, `get_bulk_production_plans`, `calculate_imbalance_prices_and_costs`, `calculate_kupst_deviation_cost` (pure calculations). Plus MCP resources `eptr2://schema` and `eptr2://help/{call_key}`, and an `analyze_market_prices` prompt. Fixed composite tools passing the client positionally (broken since the composite refactor).
+New tools: `describe_eptr2_call`, `search_eptr2_calls` (discovery, no credentials), `get_market_operations_summary`, `get_balancing_market_data`, `get_bulk_production_plans`, `get_bulk_actual_generation`, `calculate_imbalance_prices_and_costs`, `calculate_kupst_deviation_cost` (pure calculations). Plus MCP resources `eptr2://schema` and `eptr2://help/{call_key}`, and an `analyze_market_prices` prompt. Fixed composite tools passing the client positionally (broken since the composite refactor).
 
 ### Ceiling price defaults now resolve dynamically
 
@@ -40,6 +40,42 @@ since 2026-04-04 — raised `ValueError: MCP ... is above ceiling price 3400.0`.
 references in docstrings, examples and tests were updated to 4500 as well. Pass
 `ceil_price` explicitly for historical hours, or use the `*_by_contract` helpers, which
 already resolve floor and ceiling from the contract date.
+
+### Agent-first evaluation fixes
+
+An agent-first review (`helpdocs/astra_evaluation`) found correctness and
+execution-contract defects on the agent-facing paths. Fixed in this release:
+
+- **System direction is no longer silently dropped.** The imbalance functions
+  documented a `system_direction` parameter but only accepted `sd_sign`, so the
+  documented spelling was swallowed by `**kwargs` and every such call fell back
+  to "balanced" prices. `system_direction` is now honoured, alongside the raw
+  EPIAS `systemStatus` labels ("Enerji Açığı"/"Enerji Fazlası"/"Dengede"). For a
+  live deficit hour with MCP == SMP == 4000, the negative imbalance price is
+  4240 TL/MWh (matching the API), not 4120. The MCP tool now takes
+  `system_direction` and refuses to guess when MCP equals SMP.
+- **Production plans no longer return realized generation.** The MCP
+  `get_bulk_production_plans` tool defaulted to `get_dpp_bulk_range`, which -
+  despite its name - calls `rt-gen-bulk` (realizations). The tool now returns
+  actual plans (`dpp-bulk`, by UEVCB id) and a new `get_bulk_actual_generation`
+  tool returns realizations (`rt-gen-bulk`, by powerplant id). The two id
+  namespaces are documented as non-interchangeable. New composite
+  `get_rt_gen_bulk_range` is the correctly named entry point for real-time bulk
+  generation; `get_dpp_bulk_range` remains as a compatibility alias.
+- **Portfolio costs resolve KUPST tolerance per contract.** The tolerance was
+  taken from the first row and applied to the whole period, so a range crossing
+  the 2026 regulation boundary used the wrong tolerance for every later hour.
+- **Diagnostics no longer go to stdout.** The library logged to stdout, which
+  corrupted the CLI's data stream and risked breaking MCP stdio framing. Logging
+  now goes to stderr.
+- **Unknown parameters warn instead of vanishing.** `EPTR2.call` silently
+  dropped unrecognized keys, so a misspelled filter (`ppID` for `pp_id`) turned a
+  filtered query into an unfiltered one. Such keys now raise a `UserWarning`
+  naming the accepted parameters; the request behaviour is unchanged.
+- **MCP discovery works without credentials.** `create_mcp_server` no longer
+  constructs an authenticated client eagerly, so the server starts and
+  list/search/describe/calculation tools work with no credentials.
+- CI push checks now cover `dev-**` branches, and the MCP tool count is 18.
 
 ### Documentation overhaul
 

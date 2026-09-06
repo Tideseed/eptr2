@@ -69,7 +69,7 @@ asyncio.run(run_mcp_server(
 
 ## Available MCP Tools
 
-The MCP server exposes 17 tools:
+The MCP server exposes 18 tools:
 
 ### Price Tools
 
@@ -91,7 +91,8 @@ The MCP server exposes 17 tools:
 | Tool | Description |
 |------|-------------|
 | `get_real_time_generation` | Generation by resource type |
-| `get_bulk_production_plans` | Bulk per-plant production plans (dpp/kgup) |
+| `get_bulk_production_plans` | Bulk per-plant production plans (KGÜP, by UEVCB id) |
+| `get_bulk_actual_generation` | Bulk per-plant realized generation (by powerplant id) |
 
 ### Market Operations Tools
 

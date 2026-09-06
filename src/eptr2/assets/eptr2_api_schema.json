@@ -132,7 +132,12 @@
     "get_reference_imbalance_costs": {
       "module": "eptr2.composite.price_and_cost",
       "signature": "(start_date: str, end_date: str, eptr: eptr2.main.EPTR2 | None = None)",
-      "summary": "Get reference imbalance cost for a given period. Reference imbalance means if the"
+      "summary": "Get reference imbalance cost for a given period. Reference imbalance cost means the average of positive imbalance and negative imbalance costs. Imbalance costs are calculated as the difference from PTF/MCP, always positive values."
+    },
+    "get_rt_gen_bulk_range": {
+      "module": "eptr2.composite.production",
+      "signature": "(start_date: str, end_date: str, pp_ids: list, eptr: eptr2.main.EPTR2 | None = None, **kwargs) -> pandas.DataFrame",
+      "summary": "Get bulk REALIZED (real-time) generation for multiple power plants over a date range."
     },
     "get_uevcb_ids": {
       "module": "eptr2.composite.periodic_orgs",

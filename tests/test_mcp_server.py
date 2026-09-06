@@ -130,7 +130,13 @@ def test_composite_tools_pass_client_as_keyword(monkeypatch):
 
 
 @pytest.mark.skipif(not mcp_server.MCP_AVAILABLE, reason="fastmcp is not installed")
-def test_bulk_production_plans_dispatch(monkeypatch):
+def test_bulk_tools_pass_client_and_id_namespace(monkeypatch):
+    """Plans and realizations are separate tools with separate id namespaces.
+
+    Endpoint-level semantics (which API key each tool actually hits) are
+    covered in tests/test_agent_contract_regressions.py, which drives the real
+    composites against a recording client instead of faking them out.
+    """
     import eptr2.composite as composite
 
     fake = _FakeClient()
@@ -138,27 +144,22 @@ def test_bulk_production_plans_dispatch(monkeypatch):
 
     received = {}
 
-    def fake_dpp(start_date, end_date, pp_ids, eptr=None, **kwargs):
-        received["dpp"] = (start_date, end_date, pp_ids, eptr)
-        return {"ok": True}
-
     def fake_kgup(start_date, end_date, uevcb_ids, eptr=None, **kwargs):
-        received["kgup"] = (start_date, end_date, uevcb_ids, eptr)
+        received["plans"] = (start_date, end_date, uevcb_ids, eptr)
         return {"ok": True}
 
-    monkeypatch.setattr(composite, "get_dpp_bulk_range", fake_dpp)
+    def fake_rt_gen(start_date, end_date, pp_ids, eptr=None, **kwargs):
+        received["actuals"] = (start_date, end_date, pp_ids, eptr)
+        return {"ok": True}
+
     monkeypatch.setattr(composite, "get_kgup_bulk_range", fake_kgup)
+    monkeypatch.setattr(composite, "get_rt_gen_bulk_range", fake_rt_gen)
 
-    mcp_server.get_bulk_production_plans("2024-01-01", "2024-01-02", [1, 2])
-    assert received["dpp"] == ("2024-01-01", "2024-01-02", [1, 2], fake)
+    mcp_server.get_bulk_production_plans("2024-01-01", "2024-01-02", [3204384])
+    assert received["plans"] == ("2024-01-01", "2024-01-02", [3204384], fake)
 
-    mcp_server.get_bulk_production_plans(
-        "2024-01-01", "2024-01-02", [3], plan_type="kgup"
-    )
-    assert received["kgup"] == ("2024-01-01", "2024-01-02", [3], fake)
-
-    with pytest.raises(ValueError, match="plan_type"):
-        mcp_server.get_bulk_production_plans("2024-01-01", "2024-01-02", [1], plan_type="x")
+    mcp_server.get_bulk_actual_generation("2024-01-01", "2024-01-02", [641])
+    assert received["actuals"] == ("2024-01-01", "2024-01-02", [641], fake)
 
 
 @pytest.mark.skipif(not mcp_server.MCP_AVAILABLE, reason="fastmcp is not installed")
@@ -202,7 +203,7 @@ def test_server_surface_counts():
     import asyncio
 
     tools = asyncio.run(mcp_server.mcp.list_tools())
-    assert len(tools) == 17
+    assert len(tools) == 18
 
     resources = asyncio.run(mcp_server.mcp.list_resources())
     templates = asyncio.run(mcp_server.mcp.list_resource_templates())

@@ -28,15 +28,24 @@ except ImportError:
     mcp = None
 
 
-# Global EPTR2 client instance (lazy-loaded)
+# Global EPTR2 client instance (lazy-loaded) and its configuration.
+# The client is created on first authenticated use, never at import or server
+# startup, so discovery/search/describe/calculation tools remain usable without
+# credentials.
 _eptr_client: Optional[EPTR2] = None
+_client_config: dict[str, Any] = {
+    "use_dotenv": True,
+    "recycle_tgt": True,
+    "dotenv_path": ".env",
+    "tgt_path": ".",
+}
 
 
 def _get_eptr_client() -> EPTR2:
-    """Get or create the EPTR2 client instance."""
+    """Get or create the EPTR2 client instance (credentials required)."""
     global _eptr_client
     if _eptr_client is None:
-        _eptr_client = EPTR2(use_dotenv=True, recycle_tgt=True)
+        _eptr_client = EPTR2(**_client_config)
     return _eptr_client
 
 
@@ -57,13 +66,17 @@ def create_mcp_server(
             "FastMCP is not installed. Install it with: pip install fastmcp"
         )
 
-    global _eptr_client
-    _eptr_client = EPTR2(
-        use_dotenv=use_dotenv,
-        recycle_tgt=recycle_tgt,
-        dotenv_path=dotenv_path,
-        tgt_path=tgt_path,
-    )
+    ## Store configuration only. Creating the client here would make the whole
+    ## server (including credential-free discovery tools) fail to start without
+    ## credentials.
+    global _eptr_client, _client_config
+    _client_config = {
+        "use_dotenv": use_dotenv,
+        "recycle_tgt": recycle_tgt,
+        "dotenv_path": dotenv_path,
+        "tgt_path": tgt_path,
+    }
+    _eptr_client = None
     return mcp
 
 
@@ -140,10 +153,19 @@ if MCP_AVAILABLE:
 
     @mcp.tool()
     def get_available_eptr2_calls() -> str:
-        """List all 231 available API calls in the eptr2 library."""
-        client = _get_eptr_client()
-        calls = client.get_available_calls(include_aliases=True)
-        return json.dumps(calls, indent=2)
+        """List all 231 available API calls in the eptr2 library.
+        Requires no credentials."""
+        from eptr2.agentic.discovery import list_calls
+        from eptr2.mapping.path import get_alias_map
+
+        return json.dumps(
+            {
+                "keys": sorted(list_calls()),
+                "default_aliases": dict(sorted(get_alias_map().items())),
+            },
+            indent=2,
+            ensure_ascii=False,
+        )
 
     @mcp.tool()
     def describe_eptr2_call(call_key: str) -> str:
@@ -250,33 +272,48 @@ if MCP_AVAILABLE:
     def get_bulk_production_plans(
         start_date: str,
         end_date: str,
-        plant_ids: list[int],
-        plan_type: str = "dpp",
+        uevcb_ids: list[int],
     ) -> str:
-        """Get bulk per-plant production plans for a date range. plan_type is
-        'dpp' (Final Daily Production Plan) with plant_ids as powerplant ids
-        (see the 'pp-list' call), or 'kgup' (Daily Production Plan / KGÜP)
-        with plant_ids as UEVCB ids (see the 'uevcb-list-bulk' call). Use
-        call_eptr2_api with those list endpoints to find the ids first."""
-        client = _get_eptr_client()
-        from eptr2.composite import get_dpp_bulk_range, get_kgup_bulk_range
+        """Get bulk per-plant PRODUCTION PLANS (KGÜP/DPP - forecast) for a date
+        range. This is planned generation, NOT realized generation; use
+        get_bulk_actual_generation for realizations.
 
-        if plan_type == "dpp":
-            result = get_dpp_bulk_range(
-                start_date=start_date,
-                end_date=end_date,
-                pp_ids=plant_ids,
-                eptr=client,
-            )
-        elif plan_type == "kgup":
-            result = get_kgup_bulk_range(
-                start_date=start_date,
-                end_date=end_date,
-                uevcb_ids=plant_ids,
-                eptr=client,
-            )
-        else:
-            raise ValueError("plan_type must be 'dpp' or 'kgup'")
+        uevcb_ids are UEVCB (production unit) ids, NOT powerplant ids - the two
+        are different namespaces and are not interchangeable. Find them with the
+        'uevcb-list-bulk' call via call_eptr2_api."""
+        client = _get_eptr_client()
+        from eptr2.composite import get_kgup_bulk_range
+
+        result = get_kgup_bulk_range(
+            start_date=start_date,
+            end_date=end_date,
+            uevcb_ids=uevcb_ids,
+            eptr=client,
+        )
+        return _format_result(result)
+
+    @mcp.tool()
+    def get_bulk_actual_generation(
+        start_date: str,
+        end_date: str,
+        pp_ids: list[int],
+    ) -> str:
+        """Get bulk per-plant REALIZED (actual, real-time) generation for a date
+        range. This is metered generation, NOT a plan or forecast; use
+        get_bulk_production_plans for planned generation.
+
+        pp_ids are powerplant ids, NOT UEVCB ids - the two are different
+        namespaces and are not interchangeable. Find them with the 'pp-list'
+        call via call_eptr2_api."""
+        client = _get_eptr_client()
+        from eptr2.composite import get_rt_gen_bulk_range
+
+        result = get_rt_gen_bulk_range(
+            start_date=start_date,
+            end_date=end_date,
+            pp_ids=pp_ids,
+            eptr=client,
+        )
         return _format_result(result)
 
     @mcp.tool()
@@ -285,20 +322,51 @@ if MCP_AVAILABLE:
         mcp_price: float,
         smp_price: float,
         include_kupst: bool = True,
+        system_direction: Optional[str] = None,
     ) -> str:
         """Calculate unit imbalance prices and costs (and optionally unit KUPST
         cost) for one hour. Pure calculation, no API call. contract is the
         hourly contract code 'PHYYMMDDhh' (e.g. 'PH26010100' = 2026-01-01
         hour 00); the applicable regulation period is derived from it.
-        mcp_price/smp_price are MCP (PTF) and SMP (SMF) in TL/MWh. Returns
-        pos/neg imbalance prices and costs per MWh."""
+        mcp_price/smp_price are MCP (PTF) and SMP (SMF) in TL/MWh.
+
+        system_direction is the system imbalance direction for the hour: -1
+        (deficit / 'Enerji Açığı'), 1 (surplus / 'Enerji Fazlası') or 0
+        (balanced). The EPIAS 'systemStatus' label from the 'mcp-smp-imb'
+        endpoint is accepted directly. It is REQUIRED when mcp_price equals
+        smp_price, because the direction cannot be inferred from equal prices
+        and assuming a balanced system understates the negative imbalance
+        price. Otherwise it is optional and inferred from MCP vs SMP.
+
+        Returns pos/neg imbalance prices and costs per MWh."""
         from eptr2.util.costs import calculate_unit_price_and_costs_by_contract
+
+        if system_direction is None and float(mcp_price) == float(smp_price):
+            return json.dumps(
+                {
+                    "error": (
+                        "system_direction is required when mcp_price equals "
+                        "smp_price: the system imbalance direction cannot be "
+                        "inferred from equal prices, and assuming a balanced "
+                        "system understates the negative imbalance price. "
+                        "Pass -1 (deficit / 'Enerji Açığı'), 1 (surplus / "
+                        "'Enerji Fazlası') or 0 (balanced). The 'systemStatus' "
+                        "field of the 'mcp-smp-imb' endpoint provides it."
+                    ),
+                    "contract": contract,
+                    "mcp_price": mcp_price,
+                    "smp_price": smp_price,
+                },
+                indent=2,
+                ensure_ascii=False,
+            )
 
         result = calculate_unit_price_and_costs_by_contract(
             contract=contract,
             mcp=mcp_price,
             smp=smp_price,
             include_kupst=include_kupst,
+            system_direction=system_direction,
         )
         return _format_result(result)
 

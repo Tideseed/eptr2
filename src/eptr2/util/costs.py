@@ -772,6 +772,53 @@ def calculate_unit_imbalance_price(
     return d
 
 
+SYSTEM_DIRECTION_LABELS = {
+    ## EPIAS `systemStatus` values as returned by the mcp-smp-imb endpoint
+    "enerji açığı": -1,  ## system is short (deficit)
+    "enerji aciği": -1,
+    "enerji fazlası": 1,  ## system is long (surplus)
+    "enerji fazlasi": 1,
+    "dengede": 0,
+    "deficit": -1,
+    "surplus": 1,
+    "balanced": 0,
+}
+
+
+def normalize_system_direction(value):
+    """
+    Normalize a system imbalance direction to -1, 0, 1 or None.
+
+    Accepts the integer form (-1/0/1), the EPIAS ``systemStatus`` labels
+    (e.g. "Enerji Açığı"), and their English equivalents. Returns None when
+    ``value`` is None, meaning the direction should be inferred from prices.
+
+    Raises
+    ------
+    ValueError
+        If the value cannot be interpreted as a system direction.
+    """
+    if value is None:
+        return None
+
+    if isinstance(value, str):
+        key = value.strip().lower()
+        if key in SYSTEM_DIRECTION_LABELS:
+            return SYSTEM_DIRECTION_LABELS[key]
+        try:
+            return int(key)
+        except ValueError:
+            raise ValueError(
+                f"Unrecognized system direction {value!r}. Use -1/0/1 or one of: "
+                + ", ".join(sorted(SYSTEM_DIRECTION_LABELS))
+            )
+
+    try:
+        return int(value)
+    except (TypeError, ValueError):
+        raise ValueError("system_direction must be convertible to int if not None")
+
+
 def calculate_unit_imbalance_price_2026(
     mcp: float,
     smp: float,
@@ -882,12 +929,19 @@ def calculate_unit_imbalance_price_2026(
         if smp > ceil_price:
             raise ValueError(f"SMP {smp} is above ceiling price {ceil_price}")
 
-    if sd_sign is not None:
-        try:
-            sd_sign = int(sd_sign)
-        except (TypeError, ValueError):
-            raise ValueError("system_direction must be convertible to int if not None")
+    ## Accept the documented `system_direction` spelling (and the raw EPIAS
+    ## `systemStatus` label) as aliases for sd_sign. Previously these were
+    ## swallowed by **kwargs, silently producing balanced-system prices.
+    if sd_sign is None:
+        sd_sign = normalize_system_direction(
+            kwargs.pop("system_direction", None)
+            if "system_direction" in kwargs
+            else kwargs.pop("systemStatus", None)
+        )
+    else:
+        sd_sign = normalize_system_direction(sd_sign)
 
+    if sd_sign is not None:
         if sd_sign not in [1, 0, -1]:
             raise ValueError("system_direction must be 1, 0, -1 or None")
 

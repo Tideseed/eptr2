@@ -521,3 +521,39 @@ def get_dpp_bulk_range(
             logger.warning("Contract information could not be added. Error: %s", e)
 
     return main_df
+
+
+def get_rt_gen_bulk_range(
+    start_date: str,
+    end_date: str,
+    pp_ids: list,
+    eptr: EPTR2 | None = None,
+    **kwargs,
+) -> pd.DataFrame:
+    """
+    Get bulk REALIZED (real-time) generation for multiple power plants over a date range.
+
+    This is the correctly named entry point for the ``rt-gen-bulk`` endpoint.
+    ``get_dpp_bulk_range`` is a legacy alias of this function: despite its name it
+    has always returned real-time generation (realizations), not production plans.
+    For production plans (KGÜP/DPP) use :func:`get_kgup_bulk_range`, which calls
+    ``dpp-bulk`` and takes UEVCB ids.
+
+    start_date: str
+        The start date in "YYYY-MM-DD" format.
+    end_date: str
+        The end date in "YYYY-MM-DD" format.
+    pp_ids: list
+        List of powerplant IDs (not UEVCB ids) to fetch data for.
+
+    Returns:
+    pd.DataFrame
+        A DataFrame containing realized generation for the given plants.
+    """
+    return get_dpp_bulk_range(
+        start_date=start_date,
+        end_date=end_date,
+        pp_ids=pp_ids,
+        eptr=eptr,
+        **kwargs,
+    )

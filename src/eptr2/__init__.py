@@ -16,17 +16,21 @@ from eptr2.main import (
 
 eptr2_logger = logging.getLogger(__name__)
 if not eptr2_logger.handlers:
-    stdout_handler = logging.StreamHandler(sys.stdout)
-    stdout_handler.setFormatter(logging.Formatter("%(message)s"))
-    eptr2_logger.addHandler(stdout_handler)
+    ### Diagnostics go to stderr, never stdout. The `eptr2` CLI contract is that
+    ### stdout carries only result data (so it can be piped/parsed), and the MCP
+    ### stdio transport reserves stdout for protocol frames while allowing
+    ### diagnostics on stderr. Writing log records to stdout corrupts both.
+    stderr_handler = logging.StreamHandler(sys.stderr)
+    stderr_handler.setFormatter(logging.Formatter("%(message)s"))
+    eptr2_logger.addHandler(stderr_handler)
 eptr2_logger.setLevel(logging.INFO)
 eptr2_logger.propagate = False
 
-### NOTE: In order to integrate eptr2 logging with the user's logging configuration, we set propagate to True and do not add any handlers to the eptr2 logger. This way, log messages from eptr2 will be handled by the user's logging configuration. If the user has not configured logging, they will not see any log messages from eptr2. If they have configured logging, they will see log messages according to their configuration.
-# import logging
-# eptr2_logger = logging.getLogger("eptr2")
-# eptr2_logger.handlers.clear()
-# eptr2_logger.propagate = True
+### To route eptr2 logs through your own logging configuration instead, clear
+### these handlers and re-enable propagation in your application:
+#     eptr2_logger = logging.getLogger("eptr2")
+#     eptr2_logger.handlers.clear()
+#     eptr2_logger.propagate = True
 
 
 __all__ = [

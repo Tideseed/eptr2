@@ -1,0 +1,326 @@
+"""Regression tests for agent-facing contract and correctness fixes.
+
+These cover defects found by the agent-first evaluation (helpdocs/astra_evaluation):
+F01 bulk plan/realization semantics, F02 portfolio tolerance across regulation
+boundaries, F04 stdout purity, F07 credential-free MCP discovery, and F12 system
+direction handling. All run offline with no credentials.
+"""
+
+import logging
+import subprocess
+import sys
+import tempfile
+import warnings
+from types import SimpleNamespace
+from unittest.mock import patch
+
+import pandas as pd
+import pytest
+
+from eptr2.util.costs import (
+    calculate_kupsm,
+    calculate_unit_price_and_costs_by_contract,
+    get_kupst_tolerance_by_contract,
+    normalize_system_direction,
+)
+
+mcp_server = pytest.importorskip("eptr2.mcp.server")
+pytestmark = pytest.mark.skipif(
+    not mcp_server.MCP_AVAILABLE, reason="fastmcp is not installed"
+)
+
+
+# --- F12: system direction -------------------------------------------------
+
+
+class TestSystemDirection:
+    """Direction must be honoured under its documented name, not silently
+    swallowed by **kwargs (which produced balanced-system prices)."""
+
+    def test_normalize_accepts_ints_labels_and_none(self):
+        assert normalize_system_direction(None) is None
+        assert normalize_system_direction(-1) == -1
+        assert normalize_system_direction("Enerji Açığı") == -1
+        assert normalize_system_direction("Enerji Fazlası") == 1
+        assert normalize_system_direction("dengede") == 0
+        with pytest.raises(ValueError):
+            normalize_system_direction("not a direction")
+
+    @pytest.mark.parametrize(
+        "kwargs",
+        [{"sd_sign": -1}, {"system_direction": -1}, {"system_direction": "Enerji Açığı"}],
+    )
+    def test_deficit_hour_matches_api(self, kwargs):
+        """Live-observed 2026-07-01 01:00: MCP==SMP==4000, systemStatus deficit.
+        The API reported a negative imbalance price of 4240 TL/MWh."""
+        result = calculate_unit_price_and_costs_by_contract(
+            contract="PH26070101", mcp=4000, smp=4000, **kwargs
+        )
+        assert result["neg_imb_price"] == pytest.approx(4240.0, abs=0.01)
+
+    def test_equal_prices_without_direction_still_infers_balanced(self):
+        """Unchanged library behaviour: ambiguous input infers a balanced system."""
+        result = calculate_unit_price_and_costs_by_contract(
+            contract="PH26070101", mcp=4000, smp=4000
+        )
+        assert result["neg_imb_price"] == pytest.approx(4120.0, abs=0.01)
+
+    def test_mcp_tool_requires_direction_when_prices_equal(self):
+        import json
+
+        out = json.loads(
+            mcp_server.calculate_imbalance_prices_and_costs(
+                contract="PH26070101", mcp_price=4000, smp_price=4000
+            )
+        )
+        assert "system_direction is required" in out["error"]
+
+        ok = json.loads(
+            mcp_server.calculate_imbalance_prices_and_costs(
+                contract="PH26070101",
+                mcp_price=4000,
+                smp_price=4000,
+                system_direction="Enerji Açığı",
+            )
+        )
+        assert ok["neg_imb_price"] == pytest.approx(4240.0, abs=0.01)
+
+    def test_mcp_tool_infers_when_prices_differ(self):
+        import json
+
+        out = json.loads(
+            mcp_server.calculate_imbalance_prices_and_costs(
+                contract="PH26070101", mcp_price=4000, smp_price=4200
+            )
+        )
+        assert "error" not in out
+
+
+# --- F01: plans vs realizations --------------------------------------------
+
+
+class _RecordingClient:
+    """Fake client recording the endpoint key and id namespace actually used."""
+
+    def __init__(self):
+        self.calls = []
+
+    def call(self, call_key, **params):
+        self.calls.append((call_key, params))
+        ## Include both column spellings so either bulk path can post-process.
+        return pd.DataFrame(
+            {
+                "date": ["2026-01-01T00:00:00+03:00"],
+                "hour": ["00:00"],
+                "time": ["00:00"],
+                "toplam": [1.0],
+            }
+        )
+
+
+class TestBulkPlanVersusRealization:
+    """The production-plan tool must not return realized generation."""
+
+    def test_production_plans_tool_calls_plan_endpoint_with_uevcb_ids(self, monkeypatch):
+        fake = _RecordingClient()
+        monkeypatch.setattr(mcp_server, "_get_eptr_client", lambda: fake)
+
+        mcp_server.get_bulk_production_plans("2026-01-01", "2026-01-01", [3204384])
+
+        key, params = fake.calls[-1]
+        assert key == "dpp-bulk", "production plans must use the plan endpoint"
+        assert params["uevcb_ids"] == [3204384]
+        assert "pp_ids" not in params
+
+    def test_actual_generation_tool_calls_realtime_endpoint_with_pp_ids(
+        self, monkeypatch
+    ):
+        fake = _RecordingClient()
+        monkeypatch.setattr(mcp_server, "_get_eptr_client", lambda: fake)
+
+        mcp_server.get_bulk_actual_generation("2026-01-01", "2026-01-01", [641])
+
+        key, params = fake.calls[-1]
+        assert key == "rt-gen-bulk", "actual generation must use the realtime endpoint"
+        assert params["pp_ids"] == [641]
+        assert "uevcb_ids" not in params
+
+    def test_two_tools_use_different_endpoints(self, monkeypatch):
+        fake = _RecordingClient()
+        monkeypatch.setattr(mcp_server, "_get_eptr_client", lambda: fake)
+        mcp_server.get_bulk_production_plans("2026-01-01", "2026-01-01", [1])
+        mcp_server.get_bulk_actual_generation("2026-01-01", "2026-01-01", [1])
+        assert {k for k, _ in fake.calls} == {"dpp-bulk", "rt-gen-bulk"}
+
+    def test_correctly_named_alias_matches_legacy_helper(self):
+        from eptr2.composite import get_dpp_bulk_range, get_rt_gen_bulk_range
+
+        assert callable(get_rt_gen_bulk_range)
+        assert callable(get_dpp_bulk_range)
+
+
+# --- F02: tolerance across regulation boundaries ---------------------------
+
+
+def test_portfolio_tolerance_resolved_per_contract():
+    """A range crossing the 2026 boundary must use each contract's tolerance."""
+    import eptr2.composite.plant_costs as pc
+
+    contracts = ["PH25123123", "PH26010100"]
+    data = pd.DataFrame(
+        {
+            "contract": contracts,
+            "total_rt": [80.0, 80.0],
+            "toplam_kgup_v1": [100.0, 100.0],
+            "toplam_kgup": [100.0, 100.0],
+        }
+    )
+    ids = pd.DataFrame(
+        [dict(plant_name="FAKE", uevcb_id=1, rt_id=1, source="wind")]
+    )
+    cost_cols = [
+        "sd_sign",
+        "unit_pos_imb_cost",
+        "unit_neg_imb_cost",
+        "unit_kupst_cost",
+        "mcp",
+        "smp",
+        "pos_imb_price",
+        "neg_imb_price",
+    ]
+    costs = pd.DataFrame(
+        {"contract": contracts, **{k: [1.0, 1.0] for k in cost_cols}}
+    )
+
+    with tempfile.TemporaryDirectory() as directory, patch.object(
+        pc, "wrapper_hourly_production_plan_and_realized", return_value=data
+    ):
+        output = pc.calculate_portfolio_costs(
+            "2025-12-31", "2026-01-01", ids, cost_df=costs,
+            verbose=False, export_dir=directory,
+        )
+
+    expected = [
+        calculate_kupsm(
+            actual=80, forecast=100, tol=get_kupst_tolerance_by_contract(c, "wind")
+        )
+        for c in contracts
+    ]
+    assert output["costs_detail"]["kupsm"].tolist() == expected
+    assert expected == [3.0, 5.0], "fixture guards the pre-2026/2026 tolerance change"
+
+
+# --- F04: stdout purity ----------------------------------------------------
+
+
+def test_library_logging_does_not_target_stdout():
+    logger = logging.getLogger("eptr2")
+    assert logger.handlers, "eptr2 configures a default handler"
+    assert not any(
+        getattr(h, "stream", None) is sys.stdout for h in logger.handlers
+    ), "diagnostics on stdout corrupt CLI data and MCP stdio frames"
+
+
+def test_cli_keeps_stdout_clean_on_credential_failure(tmp_path):
+    """Without credentials the CLI must fail with empty stdout, not warnings."""
+    env = {
+        "PATH": "/usr/bin:/bin",
+        "HOME": str(tmp_path),
+        "PYTHONPATH": str(__import__("pathlib").Path(__file__).resolve().parents[1] / "src"),
+    }
+    proc = subprocess.run(
+        [sys.executable, "-m", "eptr2", "call", "mcp",
+         "--start-date", "2026-01-01", "--end-date", "2026-01-01"],
+        capture_output=True, text=True, cwd=str(tmp_path), env=env,
+    )
+    assert proc.returncode != 0
+    assert proc.stdout == "", f"stdout must stay clean, got: {proc.stdout!r}"
+    assert proc.stderr.strip(), "diagnostics belong on stderr"
+
+
+# --- F07: discovery without credentials ------------------------------------
+
+
+def test_mcp_server_starts_and_discovers_without_credentials(monkeypatch, tmp_path):
+    """create_mcp_server must not construct an authenticated client."""
+    import json
+
+    monkeypatch.delenv("EPTR_USERNAME", raising=False)
+    monkeypatch.delenv("EPTR_PASSWORD", raising=False)
+    monkeypatch.setattr(mcp_server, "_eptr_client", None)
+    monkeypatch.chdir(tmp_path)  # no .env here
+
+    mcp_server.create_mcp_server()
+    assert mcp_server._eptr_client is None, "client must stay lazy until a data call"
+
+    keys = json.loads(mcp_server.get_available_eptr2_calls())["keys"]
+    assert len(keys) >= 231
+    assert json.loads(mcp_server.describe_eptr2_call("ptf"))["key"] == "mcp"
+
+
+def test_data_tool_still_requires_credentials(monkeypatch, tmp_path):
+    monkeypatch.delenv("EPTR_USERNAME", raising=False)
+    monkeypatch.delenv("EPTR_PASSWORD", raising=False)
+    monkeypatch.setattr(mcp_server, "_eptr_client", None)
+    monkeypatch.chdir(tmp_path)
+    with pytest.raises(Exception):
+        mcp_server.get_market_clearing_price("2026-01-01", "2026-01-01")
+
+
+# --- F03: unknown parameters must not be dropped in silence ----------------
+
+
+def _offline_client():
+    """Minimal EPTR2 instance that never touches the network or credentials."""
+    from eptr2 import EPTR2
+    from eptr2.mapping import get_path_map
+
+    obj = EPTR2.__new__(EPTR2)
+    obj.check_renew_tgt = lambda **kw: None
+    obj.custom_aliases = {}
+    obj.path_map_keys = get_path_map(just_call_keys=True)
+    obj.root_phrase = "https://example.invalid"
+    obj.ssl_verify = True
+    obj.is_test = False
+    obj.tgt = "TGT-FAKE"
+    obj.tgt_exp = 9999999999
+    obj.recycle_tgt = False
+    obj.postprocess = False
+    obj.get_raw_response = False
+    return obj
+
+
+def test_unknown_parameter_warns_and_names_the_right_one():
+    """A misspelled filter silently became an unfiltered request."""
+    from types import SimpleNamespace
+
+    fake_response = SimpleNamespace(data=b'{"items": []}', status=200)
+    with patch("eptr2.main.transparency_call", return_value=fake_response) as sent:
+        with pytest.warns(UserWarning, match="does not accept") as record:
+            _offline_client().call(
+                "rt-gen", start_date="2025-01-01", end_date="2025-01-01", ppID=641
+            )
+
+    message = str(record[0].message)
+    assert "ppID" in message
+    assert "pp_id" in message, "the message should point at the accepted spelling"
+    ## Behaviour is unchanged: the request still goes out without the bad key.
+    assert "ppID" not in sent.call_args.kwargs["call_body"]
+
+
+def test_reserved_options_do_not_warn():
+    """Transport/behaviour options are not endpoint parameters and are fine."""
+    from types import SimpleNamespace
+
+    fake_response = SimpleNamespace(data=b'{"items": []}', status=200)
+    with patch("eptr2.main.transparency_call", return_value=fake_response):
+        with warnings.catch_warnings(record=True) as caught:
+            warnings.simplefilter("always")
+            _offline_client().call(
+                "rt-gen",
+                start_date="2025-01-01",
+                end_date="2025-01-01",
+                request_kwargs={"timeout": 5},
+                map_param_labels=True,
+            )
+    assert [w for w in caught if "does not accept" in str(w.message)] == []

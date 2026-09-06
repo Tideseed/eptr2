@@ -3,7 +3,7 @@
 eptr2 ships as a portable [Agent Plugin](https://agent-plugins.org) — the vendor-neutral packaging standard for agent capabilities. The plugin bundles the two component types of the v1 specification:
 
 - **Skills** — the 7 eptr2 agent skills (`SKILL.md` format)
-- **MCP server** — the `eptr2-mcp-server` stdio server with 17 tools
+- **MCP server** — the `eptr2-mcp-server` stdio server with 18 tools
 
 ## Layout
 
@@ -51,5 +51,5 @@ The plugin is validated in CI: the manifest is checked against the Agent Plugins
 ## Next Steps
 
 - [Agent Skills](agent-skills.md) — what each bundled skill covers
-- [MCP Server](mcp-server.md) — the 17 tools in detail
+- [MCP Server](mcp-server.md) — the 18 tools in detail
 - [MCP Client Setup](mcp-clients.md) — configuring clients without plugin support
