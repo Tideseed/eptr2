@@ -9,82 +9,201 @@
 
 # eptr2
 
-`eptr2` (**EP**IAS **Tr**ansparency **2**.0) is a Python client for the [EPIAS Transparency Platform v2.0](https://seffaflik.epias.com.tr/home) API, covering 231 services of the Turkish electricity and natural gas markets. It is an unofficial package by [Robokami](https://robokami.com) / [Tideseed](https://tideseed.com) with Apache License 2.0.
+`eptr2` (**EP**IAS **Tr**ansparency **2**.0) is a Python client for the [EPIAS Transparency Platform v2.0](https://seffaflik.epias.com.tr/home) API, covering **231 services** of the Turkish electricity and natural gas markets — prices (PTF/SMF), consumption, generation, production plans, market operations and imbalance costs.
 
-📖 **Full documentation: <https://tideseed.github.io/eptr2/>**
+It is an unofficial package by [Robokami](https://robokami.com) / [Tideseed](https://tideseed.com), Apache License 2.0.
 
-+ Live demo: <https://eptr2demo.streamlit.app/> (or run `eptr2demo` locally after installing)
+📖 **Full documentation: <https://tideseed.github.io/eptr2/>** · 🇹🇷 **[Türkçe bölüm aşağıda](#türkçe)** · 🔴 Live demo: <https://eptr2demo.streamlit.app/>
 
-## Installation
+---
 
-Recommended (includes pandas, MCP server support and other extras):
+## Getting Started
+
+**1. Get credentials.** [Register with the EPIAS Transparency Platform](https://kayit.epias.com.tr/epias-transparency-platform-registration-form). Your username is the registration e-mail. The platform has an English version too.
+
+**2. Install.**
 
 ```bash
 pip install "eptr2[allextras]"
 ```
 
-Minimal install (thin client only): `pip install eptr2`. Both work with `uv pip install` as well.
+`[allextras]` adds pandas (DataFrame output) and MCP server support. For a thin client with almost no dependencies, `pip install eptr2` also works. Everything works with `uv pip install` as well.
 
-### Development Versions
+**3. Store your credentials** in a `.env` file next to your script:
 
-Get the latest pre-release from PyPI (pip skips `.devN` versions unless `--pre` is given):
-
-```bash
-pip install --pre "eptr2[allextras]"
+```
+EPTR_USERNAME=your.email@example.com
+EPTR_PASSWORD=yourpassword
 ```
 
-Or install straight from GitHub — a specific dev branch or the default branch:
-
-```bash
-pip install "eptr2[allextras] @ git+https://github.com/Tideseed/eptr2.git@dev-1.3.9"
-```
-
-```bash
-pip install "eptr2[allextras] @ git+https://github.com/Tideseed/eptr2.git"
-```
-
-Pin a released version with `eptr2==1.3.8` if you need to stay off dev builds.
-
-## Quickstart
-
-[Register](https://kayit.epias.com.tr/epias-transparency-platform-registration-form) with the EPIAS Transparency Platform, then:
+**4. Make your first call.**
 
 ```python
 from eptr2 import EPTR2
 
-eptr = EPTR2(username="YOUR_USERNAME", password="YOUR_PASSWORD")
-res = eptr.call("mcp", start_date="2024-07-29", end_date="2024-07-29")
+eptr = EPTR2(use_dotenv=True, recycle_tgt=True)
+
+# Market Clearing Price (MCP / PTF) for a single day
+df = eptr.call("mcp", start_date="2026-07-01", end_date="2026-07-01")
+print(df)
 ```
 
-Or keep credentials in a `.env` file (`EPTR_USERNAME=...` / `EPTR_PASSWORD=...`) and reuse authentication tickets:
+`recycle_tgt=True` caches the authentication ticket, so repeated runs do not log in again.
+
+You can also pass credentials directly — handy for notebooks:
 
 ```python
-eptr = EPTR2(use_dotenv=True, recycle_tgt=True)
-df = eptr.call("mcp", start_date="2025-08-01", end_date="2025-08-31")
+eptr = EPTR2(username="your.email@example.com", password="yourpassword")
 ```
 
-All 231 services follow the same pattern — discover them with `eptr.get_available_calls()` or `eptr2 search <keyword>` from the shell. See the docs for [installation](https://tideseed.github.io/eptr2/getting-started/installation/), [authentication](https://tideseed.github.io/eptr2/getting-started/authentication/) and [basic usage](https://tideseed.github.io/eptr2/user-guide/basic-usage/).
+**5. Or skip Python entirely** and use the command line:
 
-## AI Agents & Tooling
+```bash
+eptr2 call mcp --start-date 2026-07-01 --end-date 2026-07-01 --format csv
+```
 
-`eptr2` ships provider-agnostic tooling for AI assistants and agents:
+## Usage
 
-- **CLI** — `eptr2 list / search / describe / call` for shell-driven agents (data on stdout, JSON or CSV)
-- **MCP server** — 18 tools for any Model Context Protocol client (`eptr2-mcp-server`)
-- **Agent skills** — 7 bundled skills in the open Agent Skills (SKILL.md) format: `eptr2 install-skills`
-- **Agent Plugin** — skills + MCP server packaged in the portable [agent-plugins.org](https://agent-plugins.org) format: `eptr2 plugin-path`
-- **Machine-readable schema** — all 231 endpoints with parameters, auto-generated: `eptr2 schema --stdout`
+### One call pattern for all 231 services
+
+Every service is reached with the same `call` method and an endpoint key:
+
+```python
+eptr.call("mcp",         start_date="2026-07-01", end_date="2026-07-01")  # PTF
+eptr.call("smp",         start_date="2026-07-01", end_date="2026-07-01")  # SMF
+eptr.call("rt-cons",     start_date="2026-07-01", end_date="2026-07-01")  # Real-time consumption
+eptr.call("rt-gen",      start_date="2026-07-01", end_date="2026-07-01")  # Generation by source
+eptr.call("mcp-smp-imb", start_date="2026-07-01", end_date="2026-07-01")  # Imbalance prices
+```
+
+Turkish aliases work too: `ptf` → `mcp`, `smf` → `smp`.
+
+### Finding the right service
+
+You do **not** need credentials to explore the API:
+
+```bash
+eptr2 list                     # all 231 keys grouped by category
+eptr2 search dengesizlik       # keyword search, Turkish or English
+eptr2 describe mcp             # parameters, method, path, description
+```
+
+```python
+from eptr2.agentic import search_calls, describe_call
+
+describe_call("uevm")          # required/optional parameters and meaning
+```
+
+### Typed convenience wrappers
+
+If you prefer autocomplete and type hints over string keys:
+
+```python
+from eptr2.calls import get_mcp, get_smp, get_rt_gen
+
+df = get_mcp(start_date="2026-07-01", end_date="2026-07-01", eptr=eptr)
+```
+
+### Composite functions
+
+Ready-made combinations of several calls, cleaned and merged:
+
+```python
+from eptr2.composite import (
+    get_hourly_price_and_cost_data,        # MCP + SMP + WAP + imbalance/KUPST costs
+    get_hourly_consumption_and_forecast_data,
+    get_dabi_idm_data,                     # day-ahead + bilateral + intraday volumes
+    get_bpm_range,                         # balancing market (YAL/YAT) with SMP
+    get_kgup_bulk_range,                   # bulk production PLANS (by UEVCB id)
+    get_rt_gen_bulk_range,                 # bulk REALIZED generation (by powerplant id)
+)
+
+df = get_hourly_price_and_cost_data(
+    start_date="2026-07-01", end_date="2026-07-31", eptr=eptr
+)
+```
+
+Note the argument order: dates first, the client as the `eptr` keyword.
+
+### Imbalance and KÜPST cost calculations
+
+Pure functions — no API call, no credentials. The regulation period (pre-2026 / 2026) and the price floor/ceiling are derived from the contract code:
+
+```python
+from eptr2.util.costs import calculate_unit_price_and_costs_by_contract
+
+calculate_unit_price_and_costs_by_contract(
+    contract="PH26070101",          # PHYYMMDDhh
+    mcp=4000, smp=4000,
+    system_direction="Enerji Açığı", # required when MCP == SMP
+)
+```
+
+⚠️ When MCP equals SMP the system direction cannot be inferred from prices, and assuming a balanced system **understates the negative imbalance price**. Pass `system_direction` (or `sd_sign`) explicitly; the `systemStatus` field of `mcp-smp-imb` gives it.
+
+### Options for unattended / production use
+
+```python
+eptr = EPTR2(
+    use_dotenv=True,
+    recycle_tgt=True,
+    strict_params=True,     # raise on unknown parameters instead of warning
+    connect_timeout=10.0,   # seconds (per operation, not a total deadline)
+    read_timeout=60.0,
+)
+```
+
+`strict_params` matters more than it looks: an unknown parameter is dropped from the request, so a misspelled filter (`ppID` instead of `pp_id`) silently turns a filtered query into an unfiltered one. By default eptr2 warns and names the correct parameter; `strict_params=True` makes it an error.
+
+---
+
+## Using eptr2 with AI Agents
+
+`eptr2` ships provider-agnostic tooling — nothing is tied to one model vendor. There are three ways to use it, depending on what your agent is.
+
+### 1. Chat assistants — connect the MCP server
+
+Gives any [Model Context Protocol](https://modelcontextprotocol.io) client (VS Code agent mode, Claude Desktop/Code, Cursor, …) **18 tools**: prices, consumption, generation, market operations, credential-free discovery, and pure imbalance/KÜPST calculators.
 
 ```bash
 pip install "eptr2[allextras]"
-eptr2 describe mcp                                          # discover (no credentials)
-eptr2 call mcp --start-date 2024-07-29 --end-date 2024-07-29 --format csv
-eptr2 mcp-config --client vscode                            # MCP config for your client
+eptr2 mcp-config --client vscode     # or claude-desktop, claude-code, cursor, generic
 ```
 
-See [AGENTS.md](AGENTS.md) and the AI integration docs: [MCP server](https://tideseed.github.io/eptr2/ai-integration/mcp-server/) · [MCP client setup](https://tideseed.github.io/eptr2/ai-integration/mcp-clients/) · [agent skills](https://tideseed.github.io/eptr2/ai-integration/agent-skills/) · [Agent Plugin](https://tideseed.github.io/eptr2/ai-integration/agent-plugin/) · [CLI](https://tideseed.github.io/eptr2/ai-integration/cli/).
+Paste the printed snippet into your client's MCP configuration, fill in your credentials, and ask questions in plain language:
 
-**Teaching an agent this library:** point it at [AGENTS.md](AGENTS.md) (many tools, including VS Code and Claude Code, read it automatically in this repo). Outside the repo, `eptr2 schema --stdout` emits a machine-readable description of every endpoint, and `eptr2 describe <key>` / `eptr2 search <keyword>` answer parameter questions without credentials — AGENTS.md has the full learning path.
+> "What was the market clearing price in Turkey yesterday, and how did it compare with SMP?"
+
+### 2. Coding agents — let them write eptr2 code for you
+
+Point the agent at **[AGENTS.md](AGENTS.md)**, the canonical agent guide (VS Code and Claude Code read it automatically inside this repo). Away from the repo, the agent can learn the whole API on its own, without credentials:
+
+```bash
+eptr2 schema --stdout        # machine-readable description of all 231 endpoints
+eptr2 describe rt-gen        # exact parameters for one endpoint
+eptr2 search üretim          # find endpoints by keyword
+```
+
+Install the 7 bundled skills (prices, consumption, generation, imbalance costs, market operations, API discovery, typed wrappers) into any SKILL.md-compatible runtime:
+
+```bash
+eptr2 install-skills                 # into ./.claude/skills
+eptr2 install-skills --dest user     # into ~/.claude/skills
+```
+
+The skills and MCP server are also packaged together as a portable [Agent Plugin](https://agent-plugins.org): `eptr2 plugin-path`.
+
+### 3. Shell-driven agents — use the CLI
+
+Data goes to stdout (JSON or CSV), diagnostics to stderr, nonzero exit codes on failure, so output pipes cleanly:
+
+```bash
+eptr2 call mcp --start-date 2026-07-01 --end-date 2026-07-01 --format json | jq '.[0]'
+```
+
+📚 Details: [MCP server](https://tideseed.github.io/eptr2/ai-integration/mcp-server/) · [MCP client setup](https://tideseed.github.io/eptr2/ai-integration/mcp-clients/) · [agent skills](https://tideseed.github.io/eptr2/ai-integration/agent-skills/) · [Agent Plugin](https://tideseed.github.io/eptr2/ai-integration/agent-plugin/) · [CLI](https://tideseed.github.io/eptr2/ai-integration/cli/)
+
+---
 
 ## Going Further
 
@@ -93,14 +212,121 @@ See [AGENTS.md](AGENTS.md) and the AI integration docs: [MCP server](https://tid
 | All 231 API calls, categories and parameters | [Available API Calls](https://tideseed.github.io/eptr2/user-guide/api-calls/) |
 | Typed `get_*` wrapper functions (`eptr2.calls`) | [Convenience Wrappers](https://tideseed.github.io/eptr2/user-guide/convenience-wrappers/) |
 | Aliases, bulk calls, DataFrames | [Basic Usage](https://tideseed.github.io/eptr2/user-guide/basic-usage/) · [DataFrames](https://tideseed.github.io/eptr2/user-guide/dataframes/) |
-| Composite functions (consumption, prices/costs, production, IDM, BPM, plant costs) | [Composite Functions](https://tideseed.github.io/eptr2/user-guide/composite-functions/) |
+| Composite functions | [Composite Functions](https://tideseed.github.io/eptr2/user-guide/composite-functions/) |
 | Imbalance / KÜPST cost calculations | [Utilities API](https://tideseed.github.io/eptr2/api/util/) |
-| Streamlit demo and calculator tutorials | [Tutorials](https://tideseed.github.io/eptr2/tutorials/demo-app/) |
-| Turkish market abbreviations (PTF, SMF, KGÜP, ...) | [Abbreviations](https://tideseed.github.io/eptr2/reference/abbreviations/) |
+| Turkish market abbreviations (PTF, SMF, KGÜP, …) | [Abbreviations](https://tideseed.github.io/eptr2/reference/abbreviations/) |
 | Release history | [Changelog](https://tideseed.github.io/eptr2/reference/changelog/) |
 
-## About
+### Development versions
 
-🇬🇧 `eptr2` is a thin wrapper around the EPIAS Transparency Platform v2.0 API. Free and permissible use for commercial applications with Apache License 2.0 ([details](https://www.tldrlegal.com/license/apache-license-2-0-apache-2-0)).
+```bash
+pip install --pre "eptr2[allextras]"                                          # latest pre-release
+pip install "eptr2[allextras] @ git+https://github.com/Tideseed/eptr2.git"    # straight from GitHub
+```
 
-🇹🇷 `eptr2`, [Robokami](https://robokami.com) tarafından [EPİAŞ Şeffaflık Platformu 2.0](https://seffaflik.epias.com.tr/home) API'si üzerine geliştirilmiş bir Python paketidir. Apache License 2.0 ile lisanslanmıştır; 231 veri servisine erişim sağlar. Detaylı dokümantasyon: <https://tideseed.github.io/eptr2/>
+Pin a released version with `eptr2==1.3.8` if you need to stay off dev builds.
+
+---
+
+## Türkçe
+
+`eptr2` (**EP**İAŞ **Tr**ansparency **2**.0), [EPİAŞ Şeffaflık Platformu 2.0](https://seffaflik.epias.com.tr/home) API'si üzerine geliştirilmiş bir Python paketidir. Türkiye elektrik ve doğal gaz piyasalarına ait **231 veri servisine** tek bir yapıyla erişim sağlar: PTF/SMF fiyatları, tüketim, üretim, üretim planları (KGÜP/KUDÜP), piyasa işlemleri (GÖP, GİP, DGP, İA) ve dengesizlik maliyetleri.
+
+[Robokami](https://robokami.com) / [Tideseed](https://tideseed.com) tarafından geliştirilen resmi olmayan bir pakettir. Apache License 2.0 ile lisanslanmıştır; ticari kullanım dahil geniş ölçüde serbesttir.
+
+### Kurulum ve ilk adımlar
+
+**1. Kayıt.** [EPİAŞ Şeffaflık Platformu'na kayıt olun](https://kayit.epias.com.tr/epias-transparency-platform-registration-form). Kullanıcı adınız kayıt e-postanızdır.
+
+**2. Kurulum.**
+
+```bash
+pip install "eptr2[allextras]"
+```
+
+`[allextras]` seçeneği pandas (DataFrame çıktısı) ve MCP sunucu desteğini de kurar. Sadece temel istemci için `pip install eptr2` yeterlidir.
+
+**3. Kimlik bilgileri.** Betiğinizin yanına bir `.env` dosyası oluşturun:
+
+```
+EPTR_USERNAME=eposta@ornek.com
+EPTR_PASSWORD=sifreniz
+```
+
+**4. İlk çağrı.**
+
+```python
+from eptr2 import EPTR2
+
+eptr = EPTR2(use_dotenv=True, recycle_tgt=True)
+
+# Piyasa Takas Fiyatı (PTF)
+df = eptr.call("ptf", start_date="2026-07-01", end_date="2026-07-01")
+print(df)
+```
+
+`recycle_tgt=True` giriş biletini (TGT) saklar; her çalıştırmada yeniden giriş yapılmaz.
+
+### Kullanım
+
+Tüm servisler aynı desenle çağrılır. Türkçe kısaltmalar takma ad olarak kullanılabilir (`ptf` → `mcp`, `smf` → `smp`):
+
+```python
+eptr.call("ptf",         start_date="2026-07-01", end_date="2026-07-01")  # Piyasa Takas Fiyatı
+eptr.call("smf",         start_date="2026-07-01", end_date="2026-07-01")  # Sistem Marjinal Fiyatı
+eptr.call("rt-cons",     start_date="2026-07-01", end_date="2026-07-01")  # Gerçek zamanlı tüketim
+eptr.call("rt-gen",      start_date="2026-07-01", end_date="2026-07-01")  # Kaynak bazlı üretim
+eptr.call("mcp-smp-imb", start_date="2026-07-01", end_date="2026-07-01")  # Dengesizlik fiyatları
+```
+
+Hangi servisin ne olduğunu **kimlik bilgisi gerekmeden** keşfedebilirsiniz:
+
+```bash
+eptr2 list                 # 231 servisin tamamı, kategorilere göre
+eptr2 search dengesizlik   # Türkçe veya İngilizce anahtar kelime araması
+eptr2 describe uevm        # parametreler, yöntem, açıklama
+```
+
+Birden fazla çağrıyı birleştiren hazır fonksiyonlar (composite) da mevcuttur:
+
+```python
+from eptr2.composite import get_hourly_price_and_cost_data
+
+# PTF, SMF, AOF ve dengesizlik/KÜPST maliyetleri tek tabloda
+df = get_hourly_price_and_cost_data(
+    start_date="2026-07-01", end_date="2026-07-31", eptr=eptr
+)
+```
+
+### Dengesizlik ve KÜPST maliyetleri
+
+API çağrısı gerektirmeyen saf hesaplama fonksiyonlarıdır. Mevzuat dönemi (2026 öncesi / 2026) ve taban-tavan fiyatlar sözleşme kodundan otomatik belirlenir:
+
+```python
+from eptr2.util.costs import calculate_unit_price_and_costs_by_contract
+
+calculate_unit_price_and_costs_by_contract(
+    contract="PH26070101",           # PHYYAAGGss formatında saatlik sözleşme
+    mcp=4000, smp=4000,
+    system_direction="Enerji Açığı",  # PTF == SMF ise zorunlu
+)
+```
+
+⚠️ **Önemli:** PTF ile SMF eşit olduğunda sistem yönü fiyatlardan anlaşılamaz. Bu durumda sistemin dengede olduğu varsayılırsa **negatif dengesizlik fiyatı olduğundan düşük hesaplanır**. `system_direction` değerini (`Enerji Açığı` / `Enerji Fazlası` / `Dengede`) mutlaka belirtin; bu bilgi `mcp-smp-imb` çağrısındaki `systemStatus` alanından alınabilir.
+
+### Yapay zeka ajanlarıyla kullanım
+
+`eptr2`, herhangi bir yapay zeka sağlayıcısına bağlı olmayan araçlar sunar:
+
+- **MCP sunucusu** — VS Code, Claude, Cursor gibi istemcilere 18 araç kazandırır. Yapılandırma çıktısı için: `eptr2 mcp-config --client vscode`
+- **Ajan becerileri (skills)** — fiyat analizi, tüketim, üretim, dengesizlik maliyetleri, piyasa işlemleri ve API keşfi için 7 hazır beceri: `eptr2 install-skills`
+- **[AGENTS.md](AGENTS.md)** — kod yazan ajanlar için başvuru rehberi
+- **Makine tarafından okunabilir şema** — 231 servisin tamamı parametreleriyle: `eptr2 schema --stdout`
+
+Böylece bir yapay zeka asistanına doğrudan "geçen ayın PTF ortalamasını hesapla" ya da "rüzgar santralim için dengesizlik maliyetini çıkar" diyebilir, ajanın sizin için doğru çağrıları yazmasını sağlayabilirsiniz.
+
+### Dokümantasyon
+
+Ayrıntılı ve güncel dokümantasyon: **<https://tideseed.github.io/eptr2/>**
+
+Canlı demo: <https://eptr2demo.streamlit.app/>
