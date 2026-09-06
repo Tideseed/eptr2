@@ -116,11 +116,12 @@ streaming API, and sensitive headers forwarded across origins on proxied
 low-level redirects); both are fixed in 2.7.0. `urllib3` is one of only two
 mandatory runtime dependencies, so this is the one that reaches every install.
 
-Also refreshed `uv.lock`, clearing 74 advisories across 15 packages (the rest
-were optional extras or docs/dev-only tooling). The refresh pulled major
-upgrades — fastmcp 3.3 -> 4.0 and pandas 2.3 -> 3.0 — with the full offline
-suite, MCP tool surface, generated schema, CLI and strict docs build all
-verified against them.
+Also updated `uv.lock` for the 15 affected packages, clearing all 74
+advisories (the rest were optional extras or docs/dev-only tooling). The
+upgrade is deliberately scoped to packages with advisories: pandas and fastmcp
+have none and are left on 2.x and 3.x respectively, since the composite test
+suite that exercises pandas most heavily is credential-gated and does not run
+in the offline suite.
 
 ### Documentation overhaul
 
