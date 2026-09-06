@@ -515,3 +515,81 @@ def test_ticket_cache_is_scoped_to_service_environment(tmp_path):
     assert client(recycle_tgt=True).tgt == "TGT-PROD"
     assert client(recycle_tgt=True, is_test=True).tgt is None
     assert client(recycle_tgt=True, root_phrase="https://other.example.com").tgt is None
+
+
+# --- production composite: skip-flag derivation and kwargs collision --------
+
+
+class _ProductionClient:
+    """Fake client returning a minimal frame both production sources accept."""
+
+    def __init__(self):
+        self.keys = []
+
+    def call(self, call_key, **params):
+        self.keys.append(call_key)
+        return pd.DataFrame(
+            {"date": ["2026-07-01T00:00:00+03:00"], "hour": ["00:00"], "toplam": [1.0]}
+        )
+
+
+def test_production_without_plant_ids_fetches_system_totals():
+    """A missing plant id means 'no filter', not 'skip': asking for total
+    production used to raise 'Both skip_rt and skip_uevm cannot be True'."""
+    from eptr2.composite.production import get_hourly_production_data
+
+    fake = _ProductionClient()
+    df = get_hourly_production_data("2026-07-01", "2026-07-01", eptr=fake)
+
+    assert set(fake.keys) == {"rt-gen", "uevm"}, "both sources should be queried"
+    assert isinstance(df, pd.DataFrame)
+
+
+def test_production_with_one_plant_id_skips_the_other_source():
+    """Plant-level and system-wide figures must not be merged into one frame."""
+    from eptr2.composite.production import get_hourly_production_data
+
+    fake = _ProductionClient()
+    get_hourly_production_data("2026-07-01", "2026-07-01", eptr=fake, rt_pp_id=641)
+    assert fake.keys == ["rt-gen"]
+
+    fake = _ProductionClient()
+    get_hourly_production_data("2026-07-01", "2026-07-01", eptr=fake, uevm_pp_id=142)
+    assert fake.keys == ["uevm"]
+
+
+def test_explicit_skip_flags_still_win():
+    from eptr2.composite.production import get_hourly_production_data
+
+    fake = _ProductionClient()
+    get_hourly_production_data("2026-07-01", "2026-07-01", eptr=fake, skip_rt=True)
+    assert fake.keys == ["uevm"]
+
+    with pytest.raises(ValueError, match="cannot be True"):
+        get_hourly_production_data(
+            "2026-07-01", "2026-07-01", eptr=_ProductionClient(),
+            skip_rt=True, skip_uevm=True,
+        )
+
+
+def test_wrapper_accepts_skip_flags_in_kwargs(monkeypatch):
+    """The wrapper passed skip_uevm= explicitly *and* forwarded **kwargs, so a
+    caller supplying it hit 'got multiple values for keyword argument'."""
+    import eptr2.composite.production as prod
+
+    received = {}
+
+    def fake_plan(*args, **kwargs):
+        return pd.DataFrame({"dt": ["2026-07-01T00:00:00+03:00"], "contract": ["PH26070100"]})
+
+    def fake_realized(*args, **kwargs):
+        received.update(kwargs)
+        return pd.DataFrame({"dt": ["2026-07-01T00:00:00+03:00"], "contract": ["PH26070100"]})
+
+    monkeypatch.setattr(prod, "get_hourly_production_plan_data", fake_plan)
+    monkeypatch.setattr(prod, "get_hourly_production_data", fake_realized)
+
+    prod.wrapper_hourly_production_plan_and_realized(
+        "2026-07-01", "2026-07-01", eptr=_ProductionClient(), skip_uevm=True
+    )
+    assert received.get("skip_uevm") is True, "caller's flag must be forwarded"

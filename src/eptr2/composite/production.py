@@ -45,9 +45,14 @@ def get_hourly_production_data(
         "retry_jitter": 0.0,
     }
 
-    if rt_pp_id is None:
+    ## A missing plant id means "no plant filter", not "skip this source":
+    ## rt-gen and uevm both return system-wide totals without one. Only skip
+    ## the other source when exactly one plant is requested, so plant-level and
+    ## system-wide figures are never merged into the same frame. Explicit
+    ## skip_rt / skip_uevm always win.
+    if rt_pp_id is None and uevm_pp_id is not None:
         skip_rt = True
-    if uevm_pp_id is None:
+    if uevm_pp_id is None and rt_pp_id is not None:
         skip_uevm = True
 
     #### SANITY CHECKS ####
@@ -319,6 +324,12 @@ def wrapper_hourly_production_plan_and_realized(
     if eptr is None:
         eptr = EPTR2(dotenv_path=kwargs.get("dotenv_path", ".env"))
 
+    skip_flags = {
+        name: kwargs.pop(name)
+        for name in ("skip_rt", "skip_uevm")
+        if name in kwargs
+    }
+
     if verbose:
         logger.info("Loading production plan data...")
 
@@ -336,15 +347,19 @@ def wrapper_hourly_production_plan_and_realized(
     if verbose:
         logger.info("Loading production realizations data...")
 
+    ## Forward caller-supplied skip flags instead of hard-coding one here:
+    ## passing skip_uevm= alongside **kwargs raised "got multiple values for
+    ## keyword argument 'skip_uevm'" whenever a caller supplied it. The
+    ## id-based defaults live in get_hourly_production_data.
     realized_df = get_hourly_production_data(
         start_date=start_date,
         end_date=end_date,
         eptr=eptr,
         rt_pp_id=rt_pp_id,
         uevm_pp_id=uevm_pp_id,
-        skip_uevm=uevm_pp_id is None,
         verbose=verbose,
         include_contract_symbol=include_contract_symbol,
+        **skip_flags,
         **kwargs,
     )
 
