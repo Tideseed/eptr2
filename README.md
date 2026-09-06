@@ -1,5 +1,9 @@
-![PyPI - Version](https://img.shields.io/pypi/v/eptr2) ![PyPI - Downloads](https://img.shields.io/pypi/dm/eptr2) ![PyPI - Python Version](https://img.shields.io/python/required-version-toml?tomlFilePath=https%3A%2F%2Fraw.githubusercontent.com%2Ftideseed%2Feptr2%2Fmain%2Fpyproject.toml
-) ![PyPI - License](https://img.shields.io/pypi/l/eptr2)
+[![PyPI - Version](https://img.shields.io/pypi/v/eptr2)](https://pypi.org/project/eptr2/)
+[![PyPI - Downloads](https://img.shields.io/pypi/dm/eptr2)](https://pypi.org/project/eptr2/)
+[![PyPI - Python Version](https://img.shields.io/python/required-version-toml?tomlFilePath=https%3A%2F%2Fraw.githubusercontent.com%2Ftideseed%2Feptr2%2Fmain%2Fpyproject.toml)](https://pypi.org/project/eptr2/)
+[![PyPI - License](https://img.shields.io/pypi/l/eptr2)](https://github.com/Tideseed/eptr2/blob/main/LICENSE)
+[![Documentation](https://img.shields.io/badge/docs-tideseed.github.io%2Feptr2-blue)](https://tideseed.github.io/eptr2/)
+[![AI agents](https://img.shields.io/badge/AI%20agents-MCP%20%7C%20CLI%20%7C%20Skills-8A2BE2)](https://tideseed.github.io/eptr2/ai-integration/mcp-server/)
 
 **!! IMPORTANT: Starting from 1.3.3 there will be some breaking changes due to regulatory changes by EPDK. Overhaul is planned to finish with the next mid release 1.4.0**
 
