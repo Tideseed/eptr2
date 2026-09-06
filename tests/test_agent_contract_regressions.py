@@ -458,3 +458,23 @@ def test_empty_production_plans_return_empty_frame_not_crash():
     assert isinstance(out, pd.DataFrame)
     assert out.empty
     assert "dt" in out.columns
+
+
+def test_optional_settings_survive_partially_constructed_clients():
+    """EPTR2.__getattr__ returns a callable for any missing attribute, so
+    getattr(self, name, default) silently yields a method instead of the
+    default. Optional settings must be read via __dict__."""
+    import urllib3
+
+    client = _offline_client()
+    for attr in ("strict_params", "connect_timeout", "read_timeout", "tgt_profile"):
+        client.__dict__.pop(attr, None)
+
+    with patch("urllib3.PoolManager.request") as request:
+        request.return_value = SimpleNamespace(data=b'{"items": []}', status=200)
+        client.call("rt-gen", start_date="2025-01-01", end_date="2025-01-01")
+        timeout = request.call_args.kwargs["timeout"]
+
+    assert isinstance(timeout, urllib3.Timeout)
+    assert isinstance(timeout.connect_timeout, float)
+    assert isinstance(timeout.read_timeout, float)

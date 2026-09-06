@@ -130,6 +130,9 @@ class EPTR2:
 
     ## Ref: https://stackoverflow.com/a/62303969/3608936
     def __getattr__(self, __name: str) -> Any:
+        ## NOTE: this returns a callable for ANY missing attribute, so
+        ## getattr(self, name, default) never yields the default. Read
+        ## optional instance settings via self.__dict__.get(...) instead.
         def method(*args, **kwargs):
             key_raw = __name
             key = re.sub("_", "-", key_raw)
@@ -184,7 +187,9 @@ class EPTR2:
 
         ## Tickets written before account scoping have no account id. They are
         ## ignored rather than trusted, since their owner cannot be verified.
-        expected = tgt_account_id(self.username, getattr(self, "tgt_profile", None))
+        expected = tgt_account_id(
+            self.username, self.__dict__.get("tgt_profile")
+        )
         if cached.get("account_id") != expected:
             logger.info(
                 "Ticket cache at %s belongs to a different account/profile; "
@@ -226,8 +231,8 @@ class EPTR2:
             body=body_str,
             **apply_default_timeout(
                 kwargs.get("request_kwargs"),
-                connect_timeout=getattr(self, "connect_timeout", None),
-                read_timeout=getattr(self, "read_timeout", None),
+                connect_timeout=self.__dict__.get("connect_timeout"),
+                read_timeout=self.__dict__.get("read_timeout"),
             ),
         )
         if res.status not in [200, 201]:
@@ -278,7 +283,7 @@ class EPTR2:
         if self.recycle_tgt:
             record = dict(tgt_d)
             record["account_id"] = tgt_account_id(
-                self.username, getattr(self, "tgt_profile", None)
+                self.username, self.__dict__.get("tgt_profile")
             )
             path = self.tgt_file_path()
             ## Write privately and replace atomically so a crash cannot leave a
@@ -426,7 +431,7 @@ class EPTR2:
             )
 
             strict_params = kwargs.get(
-                "strict_params", getattr(self, "strict_params", False)
+                "strict_params", self.__dict__.get("strict_params", False)
             )
             if strict_params:
                 raise ValueError(detail)
@@ -479,10 +484,12 @@ class EPTR2:
             call_body["page"] = {"number": 1, "size": 24}
 
         kwargs.setdefault(
-            "connect_timeout", getattr(self, "connect_timeout", DEFAULT_CONNECT_TIMEOUT)
+            "connect_timeout",
+            self.__dict__.get("connect_timeout", DEFAULT_CONNECT_TIMEOUT),
         )
         kwargs.setdefault(
-            "read_timeout", getattr(self, "read_timeout", DEFAULT_READ_TIMEOUT)
+            "read_timeout",
+            self.__dict__.get("read_timeout", DEFAULT_READ_TIMEOUT),
         )
 
         res = transparency_call(
