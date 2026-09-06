@@ -1,6 +1,8 @@
 # Demo App
 
-eptr2 includes a built-in Streamlit demo app for exploring Turkish electricity market data interactively.
+The Streamlit demo app lets you explore Turkish electricity market data
+interactively. It lives in the separate `eptr2-tutorials` package, so the core
+`eptr2` install stays lightweight (no Streamlit dependency).
 
 ## Online Demo
 
@@ -8,40 +10,34 @@ Visit the live demo at: **<https://eptr2demo.streamlit.app/>**
 
 ## Running Locally
 
-### Prerequisites
-
-Install eptr2 with all extras:
-
-```bash
-pip install "eptr2[allextras]"
-```
-
-### Command Line
-
-Run the demo app from the terminal:
+The apps ship in the `tutorials/` directory of the
+[eptr2 repository](https://github.com/Tideseed/eptr2), as their own
+`eptr2-tutorials` project:
 
 ```bash
-eptr2demo
+git clone https://github.com/Tideseed/eptr2.git
+cd eptr2/tutorials
+uv run eptr2demo
 ```
 
-### Programmatic
+Or install it and use the console scripts:
 
-```python
-from eptr2.tutorials import run_demo_app
+```bash
+cd eptr2/tutorials
+pip install -e .
 
-run_demo_app(
-    username="your.email@example.com",
-    password="yourpassword"
-)
+eptr2demo        # composite multi-page app
+eptr2-demo       # single-page data explorer
+eptr2-calc       # imbalance / KÜPST calculator
 ```
 
-Or with `.env` file credentials:
+Credentials are read from `EPTR_USERNAME` / `EPTR_PASSWORD` in your environment
+or a `.env` file, exactly as for the library itself.
 
-```python
-from eptr2.tutorials import run_demo_app
-
-run_demo_app()  # Will use EPTR_USERNAME and EPTR_PASSWORD from .env
-```
+!!! note
+    Earlier versions exposed these apps as `eptr2.tutorials` inside the main
+    package. They were moved out so that installing `eptr2` does not pull in
+    Streamlit; `from eptr2.tutorials import run_demo_app` no longer works.
 
 ## Features
 
@@ -76,12 +72,10 @@ The demo app provides:
 
 ### Custom Port
 
-```python
-from eptr2.tutorials import run_demo_app
+The apps are ordinary Streamlit apps, so pass Streamlit's own flags:
 
-run_demo_app(
-    port=8502  # Default is 8501
-)
+```bash
+streamlit run eptr2_tutorials/composite/Ana_Sayfa.py --server.port 8502
 ```
 
 ### Custom Theme

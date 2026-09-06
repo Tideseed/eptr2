@@ -4,32 +4,45 @@ The calculator tutorial app helps you estimate imbalance and KÜPST (deviation) 
 
 ## Running the Calculator
 
-### Prerequisites
-
-Install eptr2 with all extras:
+The calculator ships in the separate `eptr2-tutorials` project (in the
+`tutorials/` directory of the [eptr2 repository](https://github.com/Tideseed/eptr2)),
+so that installing `eptr2` itself does not pull in Streamlit:
 
 ```bash
-pip install "eptr2[allextras]"
+git clone https://github.com/Tideseed/eptr2.git
+cd eptr2/tutorials
+uv run eptr2-calc
 ```
 
-### Launch
+Or install it first:
 
-```python
-from eptr2.tutorials import run_calc_app
-
-run_calc_app(
-    username="your.email@example.com",
-    password="yourpassword"
-)
+```bash
+cd eptr2/tutorials
+pip install -e .
+eptr2-calc
 ```
 
-Or with `.env` credentials:
+Credentials come from `EPTR_USERNAME` / `EPTR_PASSWORD` in your environment or a
+`.env` file.
 
-```python
-from eptr2.tutorials import run_calc_app
+!!! note
+    `from eptr2.tutorials import run_calc_app` no longer works: the tutorial
+    apps were moved out of the main package.
 
-run_calc_app()  # Uses EPTR_USERNAME and EPTR_PASSWORD
-```
+!!! tip "Calculating costs in your own code"
+    You do not need the app to compute these numbers. The cost utilities are
+    plain functions that need no API call:
+
+    ```python
+    from eptr2.util.costs import calculate_unit_price_and_costs_by_contract
+
+    calculate_unit_price_and_costs_by_contract(
+        contract="PH26070101", mcp=4000, smp=4000,
+        system_direction="Enerji Açığı",  # required when MCP == SMP
+    )
+    ```
+
+    See the [Utilities API](../api/util.md) for the full set.
 
 ## Features
 
@@ -122,10 +135,8 @@ print(f"Cost for 100 MWh deficit at 14:00: {cost:,.2f} TL")
 
 ### Custom Port
 
-```python
-from eptr2.tutorials import run_calc_app
-
-run_calc_app(port=8503)
+```bash
+streamlit run eptr2_tutorials/calc.py --server.port 8503
 ```
 
 ## See Also

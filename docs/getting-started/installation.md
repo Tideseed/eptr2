@@ -45,8 +45,8 @@ For a lightweight installation with only core dependencies:
 | Extra | Description | Includes |
 |-------|-------------|----------|
 | `dataframe` | DataFrame support | pandas |
-| `mcp` | AI agent integration | pandas, fastmcp |
-| `allextras` | All features | pandas, streamlit, fastmcp, openpyxl, xlsxwriter |
+| `mcp` | AI agent integration | pandas, fastmcp, xlsxwriter |
+| `allextras` | All features | pandas, fastmcp, openpyxl, xlsxwriter |
 | `dev` | Development tools | pytest |
 
 Install specific extras:
