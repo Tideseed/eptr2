@@ -3,164 +3,32 @@
 All notable changes are published via GitHub Releases.
 
 - Repository: [Tideseed/eptr2](https://github.com/Tideseed/eptr2)
-- Auto-generated: 2026-05-24 07:49 UTC
-
-## Unreleased (v1.3.9) — Agentic Enhancements
-
-Draft notes for the upcoming release; this section is replaced by the GitHub Release sync once v1.3.9 is published.
-
-### New `eptr2` CLI
-
-A general-purpose command line interface for humans and shell-driven AI agents: `eptr2 list / categories / search / describe / call / schema / install-skills / mcp-config / mcp-server / version`. Data goes to stdout (JSON or CSV), diagnostics to stderr. Also available as `python -m eptr2`.
-
-### Agentic assets now ship in the package
-
-- 7 agent skills (provider-agnostic Agent Skills / SKILL.md format) are bundled under `eptr2/assets/skills/` and installable anywhere with `eptr2 install-skills`.
-- The machine-readable API schema ships in the package and is auto-generated from the library's own metadata (`eptr2 schema`), covering all 231 endpoints with parameters, plus composite functions and cost utilities. It can no longer drift from the code (`eptr2 schema --check`).
-- New `eptr2.agentic` module: `list_calls`, `search_calls`, `describe_call`, `build_schema`, `install_skills`.
-
-### Portable Agent Plugin
-
-The skills and MCP server ship together as an [Agent Plugin](https://agent-plugins.org) (v1 spec: `plugin.json` + `mcp.json` + `skills/`), with the packaged `eptr2/assets/` directory as the plugin root. New CLI commands: `eptr2 plugin-path` and `eptr2 install-plugin --dest PATH`. The manifest and MCP config are validated against the spec's constraints in CI.
-
-### MCP server expanded to 18 tools
-
-New tools: `describe_eptr2_call`, `search_eptr2_calls` (discovery, no credentials), `get_market_operations_summary`, `get_balancing_market_data`, `get_bulk_production_plans`, `get_bulk_actual_generation`, `calculate_imbalance_prices_and_costs`, `calculate_kupst_deviation_cost` (pure calculations). Plus MCP resources `eptr2://schema` and `eptr2://help/{call_key}`, and an `analyze_market_prices` prompt. Fixed composite tools passing the client positionally (broken since the composite refactor).
-
-### Ceiling price defaults now resolve dynamically
-
-The `ceil_price` parameter of the 2026-regulation cost functions
-(`calculate_unit_imbalance_price_2026`, `calculate_unit_imbalance_cost_2026` and the two
-deprecated forwarders) now defaults to `None`, resolving the ceiling in force at call time
-from `eptr2.util.time.contract_to_floor_ceil_prices` instead of a hardcoded literal.
-
-This fixes a real bug: the previous hardcoded `3400.0` default was the 2025-04-05 ceiling,
-so in strict mode any price above it — legitimate under the 4500 TL/MWh ceiling in force
-since 2026-04-04 — raised `ValueError: MCP ... is above ceiling price 3400.0`. Stale 3400
-references in docstrings, examples and tests were updated to 4500 as well. Pass
-`ceil_price` explicitly for historical hours, or use the `*_by_contract` helpers, which
-already resolve floor and ceiling from the contract date.
-
-### Agent-first evaluation fixes
-
-An agent-first review (`helpdocs/astra_evaluation`) found correctness and
-execution-contract defects on the agent-facing paths. Fixed in this release:
-
-- **System direction is no longer silently dropped.** The imbalance functions
-  documented a `system_direction` parameter but only accepted `sd_sign`, so the
-  documented spelling was swallowed by `**kwargs` and every such call fell back
-  to "balanced" prices. `system_direction` is now honoured, alongside the raw
-  EPIAS `systemStatus` labels ("Enerji Açığı"/"Enerji Fazlası"/"Dengede"). For a
-  live deficit hour with MCP == SMP == 4000, the negative imbalance price is
-  4240 TL/MWh (matching the API), not 4120. The MCP tool now takes
-  `system_direction` and refuses to guess when MCP equals SMP.
-- **Production plans no longer return realized generation.** The MCP
-  `get_bulk_production_plans` tool defaulted to `get_dpp_bulk_range`, which -
-  despite its name - calls `rt-gen-bulk` (realizations). The tool now returns
-  actual plans (`dpp-bulk`, by UEVCB id) and a new `get_bulk_actual_generation`
-  tool returns realizations (`rt-gen-bulk`, by powerplant id). The two id
-  namespaces are documented as non-interchangeable. New composite
-  `get_rt_gen_bulk_range` is the correctly named entry point for real-time bulk
-  generation; `get_dpp_bulk_range` remains as a compatibility alias.
-- **Portfolio costs resolve KUPST tolerance per contract.** The tolerance was
-  taken from the first row and applied to the whole period, so a range crossing
-  the 2026 regulation boundary used the wrong tolerance for every later hour.
-- **Diagnostics no longer go to stdout.** The library logged to stdout, which
-  corrupted the CLI's data stream and risked breaking MCP stdio framing. Logging
-  now goes to stderr.
-- **Unknown parameters warn instead of vanishing.** `EPTR2.call` silently
-  dropped unrecognized keys, so a misspelled filter (`ppID` for `pp_id`) turned a
-  filtered query into an unfiltered one. Such keys now raise a `UserWarning`
-  naming the accepted parameters; the request behaviour is unchanged.
-- **MCP discovery works without credentials.** `create_mcp_server` no longer
-  constructs an authenticated client eagerly, so the server starts and
-  list/search/describe/calculation tools work with no credentials.
-- CI push checks now cover `dev-**` branches, and the MCP tool count is 18.
-
-### Bounded execution, scoped tickets and optional strict parameters
-
-Follow-up to the agent-first evaluation, for unattended/agent use:
-
-- **Default timeouts.** Generic calls previously had no timeout at all, so a
-  stalled connection could hang a job indefinitely. Requests now default to a
-  10s connect / 60s read timeout, configurable with
-  `EPTR2(connect_timeout=..., read_timeout=...)` and still overridable per call
-  via `request_kwargs={"timeout": ...}`. These are per-operation limits, not a
-  total wall-clock deadline.
-- **`strict_params` (default `False`).** Unknown call parameters warn by
-  default (naming the correct spelling, e.g. `ppID` -> `pp_id`). Set
-  `strict_params=True` per call or on the `EPTR2` object to raise instead.
-  Recommended for unattended agents; the default keeps existing code working.
-- **Authentication tickets are scoped to the account.** The cache is now tagged
-  with a hash of the username (never the password), so a different account
-  sharing a working directory no longer reuses someone else's session.
-  `recycle_tgt=False` now performs no disk reads or writes at all, an explicitly
-  supplied `tgt_d` is always honoured, and a corrupt cache is treated as a miss.
-  Files are written privately (0600) and replaced atomically. `tgt_profile`
-  separates several credential sets in one directory; the usual single-account
-  case needs no configuration.
-- **Schema stays reachable without pandas.** pandas remains an optional extra.
-  Schema *generation* needs the pandas-based composite helpers and now raises a
-  clear `SchemaGenerationUnavailable` explaining what to install, while
-  `eptr2 schema --stdout`, the `eptr2://schema` MCP resource, and the new
-  `load_bundled_schema()` fall back to the copy shipped inside the package.
-- **No data is no longer a crash.** `get_hourly_production_plan_data` raised
-  `AttributeError` when every source returned empty; it now returns an empty
-  DataFrame with stable columns.
-
-### Security: dependency refresh
-
-Raised the `urllib3` floor to `>=2.7.0`. Two HIGH-severity advisories affect the
-previous floor of 2.6.3 (decompression-bomb safeguards bypassed in parts of the
-streaming API, and sensitive headers forwarded across origins on proxied
-low-level redirects); both are fixed in 2.7.0. `urllib3` is one of only two
-mandatory runtime dependencies, so this is the one that reaches every install.
-
-Also updated `uv.lock` for the 15 affected packages, clearing all 74
-advisories (the rest were optional extras or docs/dev-only tooling). The
-upgrade is deliberately scoped to packages with advisories: pandas and fastmcp
-have none and are left on 2.x and 3.x respectively, since the composite test
-suite that exercises pandas most heavily is credential-gated and does not run
-in the offline suite.
-
-### Provider-neutral skills, agent input validation and Python 3.11
-
-- **Skills moved to `.agents/skills`.** The repository mirror and the default
-  install location are now provider-neutral; `--client claude` still installs
-  to `.claude/skills`, and `--dest PATH` targets any other runtime. Existing
-  installations are left untouched. Vendor-specific tool allowlists were
-  removed from the packaged skills, and every skill was rewritten far tighter.
-  Skill examples were corrected against real signatures (composite argument
-  order, exported wrapper names, price fields, generation totals,
-  contract-aware costs) and are now checked by executable offline tests.
-- **Agent-facing input validation.** New `eptr2.agentic.validation`
-  (`validate_call`, `validate_call_key`, `validate_date_value`,
-  `validate_params`, `EptrValidationError`) is wired into the CLI and MCP
-  server, so invalid call keys, malformed dates and unknown parameters are
-  rejected before any authentication or network work. `strict_params` now
-  defaults to True on those agent surfaces (`--no-strict-params` opts out);
-  the library default stays False for compatibility.
-- **Minimum Python is now 3.11** (was 3.10).
-- **Ticket cache is scoped to the service environment** as well as the
-  account, so the production and `-prp` test platforms no longer share a
-  cached ticket for the same username.
-
-### New call: `page-update-date`
-
-`eptr.call("page-update-date", menu_id=102)` (POST
-`electricity-service/v1/menu/get-page-update-date`) returns the last update
-date of a Transparency Platform page for the given menu id — 102 is the PTF
-page; ids come from the `menu` call. Also available as the typed wrapper
-`get_page_update_date(102)`, via the CLI
-(`eptr2 call page-update-date -p menu_id=102`), and through the MCP
-`call_eptr2_api` tool. Verified live: returns `{"updateTime": "...", "menuId": 102}`.
-Total callable services: 232.
-
-### Documentation overhaul
-
-Provider-agnostic agent docs: `AGENTS.md` is the single canonical agent-instruction file. New generic MCP client setup page (VS Code agent mode, Claude Desktop/Code, Cursor) and a CLI page in the docs site. Removed stale artifacts (`PR_DESCRIPTION.md`, `AI_AGENT_INTEGRATION_SUMMARY.md`, `CHANGELOG_MCP.md`, `mcp-config.json`, `CLAUDE_SETUP.md`); fixed UEVM descriptions and endpoint counts.
+- Auto-generated: 2026-09-06 15:21 UTC
 
 ## Releases
+
+### [v1.3.9 - Major Agentic Updates and Improvements (Penultimate Release)](https://github.com/Tideseed/eptr2/releases/tag/v1.3.9) - 2026-09-06
+
+- Tag: `v1.3.9`
+
+This release is the planned penultimate release before a very stable `1.4.0`. It is full of features and agentic capabilities
+
+- Python minimum version requirement increased to `3.11` as support for `3.10` will be dropped soon.
+- A new CLI 
+  ```bash
+  eptr2 list                          # all 232 call keys by category
+  eptr2 search dengesizlik            # keyword search, Turkish or English
+  eptr2 describe mcp                  # parameters, method, path, description
+  eptr2 call mcp --start-date 2026-07-01 --end-date 2026-07-01 --format csv
+  eptr2 schema --stdout               # machine-readable schema of every endpoint
+  eptr2 install-skills                # bundled agent skills -> ./.agents/skills
+  eptr2 mcp-config --client vscode    # ready-to-paste MCP client config
+  ```
+- Made agent documents provider agnostic (Claude -> Agents)
+- New functions to help agents at `eptr2.agentic`
+- Many function improvements, standardizations and fixes. A few peripheral new calls.
+- Documentation updates
+- Major update of tests
 
 ### [v1.3.8 - Convenience Wrappers, Bulk Generation Composite Function and Fixes](https://github.com/Tideseed/eptr2/releases/tag/v1.3.8) - 2026-05-24
 
