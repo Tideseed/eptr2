@@ -37,6 +37,26 @@ COST_UTILITY_NAMES = [
 ]
 
 
+class SchemaGenerationUnavailable(RuntimeError):
+    """Raised when the schema cannot be generated in this installation."""
+
+
+def bundled_schema_path():
+    """Path of the schema JSON shipped inside the package."""
+    from importlib.resources import files
+
+    return Path(str(files("eptr2.assets") / "eptr2_api_schema.json"))
+
+
+def load_bundled_schema() -> str:
+    """Read the packaged schema JSON.
+
+    Works in minimal installs (no pandas), where the schema cannot be
+    regenerated from the composite helpers but is still shipped as an asset.
+    """
+    return bundled_schema_path().read_text(encoding="utf-8")
+
+
 def _function_entry(func, module_name: str) -> dict:
     doc = inspect.getdoc(func)
     summary = doc.strip().split("\n")[0] if doc else None
@@ -74,7 +94,16 @@ def _endpoint_entries() -> dict:
 
 
 def _composite_entries() -> dict:
-    import eptr2.composite as composite
+    try:
+        import eptr2.composite as composite
+    except ImportError as exc:  # pragma: no cover - depends on install extras
+        ## Composite helpers are pandas-based, and pandas is an optional extra.
+        raise SchemaGenerationUnavailable(
+            "Generating the schema requires the composite helpers, which need "
+            "pandas. Install it with: pip install \"eptr2[dataframe]\" (or "
+            "[allextras]). The schema shipped with the package is already "
+            "available without pandas via load_bundled_schema()."
+        ) from exc
 
     entries = {}
     for name in dir(composite):

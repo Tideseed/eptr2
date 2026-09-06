@@ -17,6 +17,8 @@ from eptr2.agentic.schema import (
     schema_json,
     write_schema,
     check_schema,
+    load_bundled_schema,
+    SchemaGenerationUnavailable,
 )
 from eptr2.agentic.skills import (
     list_bundled_skills,
@@ -36,6 +38,8 @@ __all__ = [
     "schema_json",
     "write_schema",
     "check_schema",
+    "load_bundled_schema",
+    "SchemaGenerationUnavailable",
     "list_bundled_skills",
     "install_skills",
     "resolve_dest",

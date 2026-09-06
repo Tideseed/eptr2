@@ -161,7 +161,13 @@ def _cmd_schema(args) -> int:
     from eptr2.agentic import schema as schema_mod
 
     if args.stdout:
-        sys.stdout.write(schema_mod.schema_json())
+        try:
+            sys.stdout.write(schema_mod.schema_json())
+        except schema_mod.SchemaGenerationUnavailable:
+            ## Minimal install: serve the schema shipped with the package so
+            ## discovery still works without pandas.
+            _err("pandas not installed; serving the schema bundled with the package.")
+            sys.stdout.write(schema_mod.load_bundled_schema())
         return 0
 
     if args.check:

@@ -77,6 +77,37 @@ execution-contract defects on the agent-facing paths. Fixed in this release:
   list/search/describe/calculation tools work with no credentials.
 - CI push checks now cover `dev-**` branches, and the MCP tool count is 18.
 
+### Bounded execution, scoped tickets and optional strict parameters
+
+Follow-up to the agent-first evaluation, for unattended/agent use:
+
+- **Default timeouts.** Generic calls previously had no timeout at all, so a
+  stalled connection could hang a job indefinitely. Requests now default to a
+  10s connect / 60s read timeout, configurable with
+  `EPTR2(connect_timeout=..., read_timeout=...)` and still overridable per call
+  via `request_kwargs={"timeout": ...}`. These are per-operation limits, not a
+  total wall-clock deadline.
+- **`strict_params` (default `False`).** Unknown call parameters warn by
+  default (naming the correct spelling, e.g. `ppID` -> `pp_id`). Set
+  `strict_params=True` per call or on the `EPTR2` object to raise instead.
+  Recommended for unattended agents; the default keeps existing code working.
+- **Authentication tickets are scoped to the account.** The cache is now tagged
+  with a hash of the username (never the password), so a different account
+  sharing a working directory no longer reuses someone else's session.
+  `recycle_tgt=False` now performs no disk reads or writes at all, an explicitly
+  supplied `tgt_d` is always honoured, and a corrupt cache is treated as a miss.
+  Files are written privately (0600) and replaced atomically. `tgt_profile`
+  separates several credential sets in one directory; the usual single-account
+  case needs no configuration.
+- **Schema stays reachable without pandas.** pandas remains an optional extra.
+  Schema *generation* needs the pandas-based composite helpers and now raises a
+  clear `SchemaGenerationUnavailable` explaining what to install, while
+  `eptr2 schema --stdout`, the `eptr2://schema` MCP resource, and the new
+  `load_bundled_schema()` fall back to the copy shipped inside the package.
+- **No data is no longer a crash.** `get_hourly_production_plan_data` raised
+  `AttributeError` when every source returned empty; it now returns an empty
+  DataFrame with stable columns.
+
 ### Documentation overhaul
 
 Provider-agnostic agent docs: `AGENTS.md` is the single canonical agent-instruction file. New generic MCP client setup page (VS Code agent mode, Claude Desktop/Code, Cursor) and a CLI page in the docs site. Removed stale artifacts (`PR_DESCRIPTION.md`, `AI_AGENT_INTEGRATION_SUMMARY.md`, `CHANGELOG_MCP.md`, `mcp-config.json`, `CLAUDE_SETUP.md`); fixed UEVM descriptions and endpoint counts.

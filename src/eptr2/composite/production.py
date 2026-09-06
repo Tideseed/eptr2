@@ -270,6 +270,16 @@ def get_hourly_production_plan_data(
                     eval(f"{_}_df"), on=["date", "time"], how="outer"
                 )
 
+    ## Every source was skipped or returned nothing. Return a stable empty
+    ## frame instead of raising AttributeError on None further down: no data
+    ## for a period is an ordinary outcome, not a programming error.
+    if merged_df is None or merged_df.empty:
+        logger.warning(
+            "No production plan data available for %s - %s.", start_date, end_date
+        )
+        columns = ["dt", "time"] + (["contract"] if include_contract_symbol else [])
+        return pd.DataFrame(columns=columns)
+
     ### Column reordering and contract addition
     if include_contract_symbol:
         try:

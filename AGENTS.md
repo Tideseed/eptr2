@@ -45,6 +45,31 @@ eptr = EPTR2(use_dotenv=True, recycle_tgt=True)
 result = eptr.call("mcp", start_date="2024-07-29", end_date="2024-07-29")
 ```
 
+## Client Options Worth Knowing (for unattended use)
+
+```python
+eptr = EPTR2(
+    use_dotenv=True,
+    recycle_tgt=True,
+    strict_params=True,     # raise on unknown parameters instead of warning
+    connect_timeout=10.0,   # seconds; per-operation, not a total deadline
+    read_timeout=60.0,
+    tgt_profile="prod",     # separate cached tickets per credential set
+)
+```
+
+- **`strict_params`** (default `False`): unknown parameters are dropped from the
+  request, which can silently widen a query — a misspelled `ppID` instead of
+  `pp_id` turns a filtered request into an unfiltered one. By default this
+  raises a warning naming the correct parameter; set `strict_params=True`
+  (per client or per call) to make it an error instead. **Recommended for
+  unattended agents.**
+- **Timeouts** default to 10s connect / 60s read so a job cannot hang forever.
+  Override per call with `request_kwargs={"timeout": ...}`.
+- **`tgt_profile`** separates cached authentication tickets when several
+  credential sets share a working directory. Tickets are already scoped to the
+  account, so the usual single-credential case needs no profile.
+
 ## Command-Line Interface
 
 The `eptr2` CLI is designed for shell-driven agents: data goes to stdout, diagnostics to stderr, nonzero exit codes on error.

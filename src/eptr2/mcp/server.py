@@ -407,9 +407,13 @@ if MCP_AVAILABLE:
         mime_type="application/json",
     )
     def schema_resource() -> str:
-        from eptr2.agentic.schema import schema_json
+        from eptr2.agentic import schema as schema_mod
 
-        return schema_json()
+        try:
+            return schema_mod.schema_json()
+        except schema_mod.SchemaGenerationUnavailable:
+            ## Minimal install without pandas: serve the bundled schema.
+            return schema_mod.load_bundled_schema()
 
     @mcp.resource(
         "eptr2://help/{call_key}",

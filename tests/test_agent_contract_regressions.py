@@ -287,6 +287,7 @@ def _offline_client():
     obj.recycle_tgt = False
     obj.postprocess = False
     obj.get_raw_response = False
+    obj.strict_params = False
     return obj
 
 
@@ -324,3 +325,136 @@ def test_reserved_options_do_not_warn():
                 map_param_labels=True,
             )
     assert [w for w in caught if "does not accept" in str(w.message)] == []
+
+
+# --- F03 strict mode / F05 timeouts / F06 ticket scoping / F09 / F10 --------
+
+
+def test_strict_params_raises_and_suggests(monkeypatch):
+    from types import SimpleNamespace
+
+    fake_response = SimpleNamespace(data=b'{"items": []}', status=200)
+    client = _offline_client()
+    client.strict_params = False
+
+    with patch("eptr2.main.transparency_call", return_value=fake_response):
+        ## per-call opt-in
+        with pytest.raises(ValueError, match="does not accept"):
+            client.call(
+                "rt-gen", start_date="2025-01-01", end_date="2025-01-01",
+                ppID=641, strict_params=True,
+            )
+        ## client-level opt-in
+        client.strict_params = True
+        with pytest.raises(ValueError) as exc:
+            client.call(
+                "rt-gen", start_date="2025-01-01", end_date="2025-01-01", ppID=641
+            )
+    assert "pp_id" in str(exc.value), "should suggest the correct spelling"
+
+
+def test_default_timeout_is_bounded_and_overridable():
+    import urllib3
+
+    client = _offline_client()
+    client.strict_params = False
+    client.connect_timeout = 10.0
+    client.read_timeout = 60.0
+
+    with patch("urllib3.PoolManager.request") as request:
+        request.return_value = SimpleNamespace(data=b'{"items": []}', status=200)
+        client.call("rt-gen", start_date="2025-01-01", end_date="2025-01-01")
+        timeout = request.call_args.kwargs["timeout"]
+        assert isinstance(timeout, urllib3.Timeout)
+        assert timeout.connect_timeout == 10.0
+        assert timeout.read_timeout == 60.0
+
+        ## an explicit timeout always wins
+        client.call(
+            "rt-gen", start_date="2025-01-01", end_date="2025-01-01",
+            request_kwargs={"timeout": 3},
+        )
+        assert request.call_args.kwargs["timeout"] == 3
+
+
+class TestTicketCacheScoping:
+    """Cached tickets are per account/profile and only touched when recycling."""
+
+    @staticmethod
+    def _client(tmp_path, user, **kwargs):
+        from eptr2 import EPTR2
+
+        with patch.object(EPTR2, "check_renew_tgt", lambda self, **kw: None):
+            return EPTR2(
+                username=user, password="pw", use_dotenv=False,
+                tgt_path=str(tmp_path), **kwargs,
+            )
+
+    def _seed(self, tmp_path, user="alice@example.com", **kwargs):
+        client = self._client(tmp_path, user, recycle_tgt=True, **kwargs)
+        client.tgt = "TGT-ALICE"
+        client.tgt_exp = 9e9
+        client.tgt_exp_0 = 9e9
+        client.export_tgt_info()
+        return client
+
+    def test_same_account_reuses_ticket(self, tmp_path):
+        self._seed(tmp_path)
+        assert self._client(tmp_path, "alice@example.com", recycle_tgt=True).tgt == "TGT-ALICE"
+
+    def test_other_account_does_not_reuse_ticket(self, tmp_path):
+        self._seed(tmp_path)
+        assert self._client(tmp_path, "bob@example.com", recycle_tgt=True).tgt is None
+
+    def test_recycling_disabled_does_not_read_cache(self, tmp_path):
+        self._seed(tmp_path)
+        assert self._client(tmp_path, "alice@example.com", recycle_tgt=False).tgt is None
+
+    def test_explicit_ticket_is_honoured_without_recycling(self, tmp_path):
+        client = self._client(
+            tmp_path, "bob@example.com", recycle_tgt=False,
+            tgt_d={"tgt": "EXPLICIT", "tgt_exp": 9e9, "tgt_exp_0": 9e9},
+        )
+        assert client.tgt == "EXPLICIT"
+
+    def test_profiles_are_separate(self, tmp_path):
+        self._seed(tmp_path)
+        other = self._client(
+            tmp_path, "alice@example.com", recycle_tgt=True, tgt_profile="second"
+        )
+        assert other.tgt is None
+
+    def test_cache_is_private_and_holds_no_password(self, tmp_path):
+        import stat
+
+        self._seed(tmp_path)
+        path = tmp_path / ".eptr2-tgt"
+        assert stat.S_IMODE(path.stat().st_mode) == 0o600
+        assert "pw" not in path.read_text(encoding="utf-8")
+
+    def test_corrupt_cache_is_a_miss(self, tmp_path):
+        self._seed(tmp_path)
+        (tmp_path / ".eptr2-tgt").write_text("{not json", encoding="utf-8")
+        assert self._client(tmp_path, "alice@example.com", recycle_tgt=True).tgt is None
+
+
+def test_bundled_schema_available_without_pandas():
+    """Minimal installs cannot regenerate the schema but must still read it."""
+    import json
+
+    from eptr2.agentic import load_bundled_schema
+
+    schema = json.loads(load_bundled_schema())
+    assert schema["endpoint_count"] >= 231
+
+
+def test_empty_production_plans_return_empty_frame_not_crash():
+    from types import SimpleNamespace as NS
+
+    from eptr2.composite.production import get_hourly_production_plan_data
+
+    fake = NS(call=lambda *a, **kw: pd.DataFrame())
+    out = get_hourly_production_plan_data("2025-01-01", "2025-01-01", eptr=fake)
+    assert isinstance(out, pd.DataFrame)
+    assert out.empty
+    assert "dt" in out.columns

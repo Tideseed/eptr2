@@ -1,4 +1,6 @@
 from typing import Any
+import difflib
+import hashlib
 import logging
 import warnings
 import urllib3
@@ -50,6 +52,12 @@ class EPTR2:
         self.ssl_verify = kwargs.get("ssl_verify", True)
         self.check_postprocess(postprocess=kwargs.get("postprocess", True))
         self.get_raw_response = kwargs.get("get_raw_response", False)
+        ### When True, unknown call parameters raise instead of only warning.
+        ### Recommended for unattended/agent use; kept False for compatibility.
+        self.strict_params = kwargs.get("strict_params", False)
+        ### Bounded execution policy (per-operation, not a total deadline).
+        self.connect_timeout = kwargs.get("connect_timeout", DEFAULT_CONNECT_TIMEOUT)
+        self.read_timeout = kwargs.get("read_timeout", DEFAULT_READ_TIMEOUT)
 
         ### Credentials and Login
         self.username = username
@@ -75,6 +83,9 @@ class EPTR2:
         ### Options to recycle tgt
         self.recycle_tgt = recycle_tgt
         self.tgt_dir_path = kwargs.get("tgt_path", ".")
+        ### Separates cached tickets when several credential sets share a
+        ### directory. The usual single-credential case needs no profile.
+        self.tgt_profile = kwargs.get("tgt_profile", None)
 
         input_tgt_d = kwargs.get("tgt_d", None)
         self.import_tgt_info(input_tgt_d)
@@ -134,14 +145,17 @@ class EPTR2:
 
         return method
 
+    def tgt_file_path(self) -> str:
+        """Path of the ticket cache for this client's account/profile."""
+        return os.path.join(self.tgt_dir_path, ".eptr2-tgt")
+
     def import_tgt_info(self, tgt_d=None):
-        if tgt_d is None or self.recycle_tgt:
-            tgt_file_path = os.path.join(self.tgt_dir_path, ".eptr2-tgt")
-            if os.path.exists(tgt_file_path):
-                with open(tgt_file_path, "r") as f:
-                    tgt_d = json.load(f)
-        else:
-            tgt_d = None
+        ## An explicitly supplied ticket always wins and is never overwritten by
+        ## the cache. Otherwise the cache is consulted ONLY when recycling is on:
+        ## recycle_tgt=False previously still read from disk, so a client could
+        ## silently reuse another account's session.
+        if tgt_d is None and self.recycle_tgt:
+            tgt_d = self.read_tgt_cache()
 
         if tgt_d is None:
             self.tgt = None
@@ -151,6 +165,34 @@ class EPTR2:
             self.tgt = tgt_d["tgt"]
             self.tgt_exp = tgt_d["tgt_exp"]
             self.tgt_exp_0 = tgt_d["tgt_exp_0"]
+
+    def read_tgt_cache(self):
+        """Read this account's cached ticket, or None on miss/mismatch/corruption."""
+        path = self.tgt_file_path()
+        if not os.path.exists(path):
+            return None
+        try:
+            with open(path, "r") as f:
+                cached = json.load(f)
+        except (json.JSONDecodeError, OSError):
+            ## A malformed or unreadable cache is a miss, not a failure.
+            logger.warning("Ignoring unreadable ticket cache at %s.", path)
+            return None
+
+        if not isinstance(cached, dict) or "tgt" not in cached:
+            return None
+
+        ## Tickets written before account scoping have no account id. They are
+        ## ignored rather than trusted, since their owner cannot be verified.
+        expected = tgt_account_id(self.username, getattr(self, "tgt_profile", None))
+        if cached.get("account_id") != expected:
+            logger.info(
+                "Ticket cache at %s belongs to a different account/profile; "
+                "requesting a new ticket.",
+                path,
+            )
+            return None
+        return cached
 
     def check_renew_tgt(self, **kwargs):
         force_renew_tgt = kwargs.get("force_renew_tgt", False)
@@ -182,7 +224,11 @@ class EPTR2:
                 "Accept": "text/plain",
             },
             body=body_str,
-            **kwargs.get("request_kwargs", {"timeout": 10}),
+            **apply_default_timeout(
+                kwargs.get("request_kwargs"),
+                connect_timeout=getattr(self, "connect_timeout", None),
+                read_timeout=getattr(self, "read_timeout", None),
+            ),
         )
         if res.status not in [200, 201]:
             raise Exception(
@@ -230,9 +276,25 @@ class EPTR2:
         }
 
         if self.recycle_tgt:
-            tgt_file_path = os.path.join(self.tgt_dir_path, ".eptr2-tgt")
-            with open(tgt_file_path, "w") as f:
-                json.dump(tgt_d, f)
+            record = dict(tgt_d)
+            record["account_id"] = tgt_account_id(
+                self.username, getattr(self, "tgt_profile", None)
+            )
+            path = self.tgt_file_path()
+            ## Write privately and replace atomically so a crash cannot leave a
+            ## half-written ticket, and other users cannot read the session.
+            tmp_path = f"{path}.{os.getpid()}.tmp"
+            try:
+                fd = os.open(tmp_path, os.O_WRONLY | os.O_CREAT | os.O_TRUNC, 0o600)
+                with os.fdopen(fd, "w") as f:
+                    json.dump(record, f)
+                os.replace(tmp_path, path)
+            except OSError as exc:
+                logger.warning("Could not write ticket cache to %s: %s", path, exc)
+                try:
+                    os.unlink(tmp_path)
+                except OSError:
+                    pass
 
         return tgt_d
 
@@ -333,11 +395,47 @@ class EPTR2:
             if k not in all_params and k not in RESERVED_CALL_OPTIONS
         ]
         if unknown_params:
+            ## Match case- and underscore-insensitively so the common
+            ## camelCase/snake_case mix-ups (ppID -> pp_id) are suggested.
+            def _norm(name):
+                return name.replace("_", "").lower()
+
+            normalized = {_norm(p): p for p in all_params}
+            suggestions = {}
+            for bad_key in unknown_params:
+                exact = normalized.get(_norm(bad_key))
+                if exact:
+                    suggestions[bad_key] = [exact]
+                    continue
+                close = difflib.get_close_matches(
+                    _norm(bad_key), list(normalized), n=2, cutoff=0.6
+                )
+                if close:
+                    suggestions[bad_key] = [normalized[c] for c in close]
+            hint = (
+                " Did you mean: "
+                + "; ".join(f"{k} -> {', '.join(v)}" for k, v in suggestions.items())
+                + "."
+                if suggestions
+                else ""
+            )
+            detail = (
+                f"Call '{key}' does not accept parameter(s) "
+                f"{sorted(unknown_params)}. Accepted parameters: "
+                f"{sorted(all_params)}.{hint}"
+            )
+
+            strict_params = kwargs.get(
+                "strict_params", getattr(self, "strict_params", False)
+            )
+            if strict_params:
+                raise ValueError(detail)
+
             warnings.warn(
-                f"Ignoring parameter(s) {sorted(unknown_params)} that call '{key}' "
-                f"does not accept. Accepted parameters: {sorted(all_params)}. "
-                "The request is sent WITHOUT them, so any filtering they were "
-                "meant to apply will not take effect.",
+                detail
+                + " The request is sent WITHOUT them, so any filtering they were"
+                + " meant to apply will not take effect. Pass strict_params=True"
+                + " (per call or on EPTR2) to raise instead.",
                 UserWarning,
                 stacklevel=2,
             )
@@ -380,6 +478,13 @@ class EPTR2:
         if key in ["bpm-orders-w-avg"]:
             call_body["page"] = {"number": 1, "size": 24}
 
+        kwargs.setdefault(
+            "connect_timeout", getattr(self, "connect_timeout", DEFAULT_CONNECT_TIMEOUT)
+        )
+        kwargs.setdefault(
+            "read_timeout", getattr(self, "read_timeout", DEFAULT_READ_TIMEOUT)
+        )
+
         res = transparency_call(
             call_path=call_path,
             call_method=call_method,
@@ -413,12 +518,51 @@ class EPTR2:
         return res
 
 
+def tgt_account_id(username: str | None, profile: str | None = None) -> str:
+    """Stable, non-reversible identifier for a cached ticket's owner.
+
+    Only the username is hashed; passwords never take part in cache identity.
+    ``profile`` separates several credential sets sharing a directory; the
+    common single-credential case leaves it at the default.
+    """
+    raw = f"{profile or 'default'}:{username or ''}"
+    return hashlib.sha256(raw.encode("utf-8")).hexdigest()[:16]
+
+
+## Default bounded execution policy. Without these, urllib3 waits indefinitely,
+## so an unattended agent job could hang forever on a stalled connection.
+## Override per call with request_kwargs={"timeout": ...} or per client with
+## EPTR2(connect_timeout=..., read_timeout=...).
+DEFAULT_CONNECT_TIMEOUT = 10.0
+DEFAULT_READ_TIMEOUT = 60.0
+
+
+def apply_default_timeout(
+    request_kwargs: dict | None,
+    connect_timeout: float | None = None,
+    read_timeout: float | None = None,
+) -> dict:
+    """Return request kwargs with a bounded timeout, honouring an explicit one.
+
+    Note that connect and read timeouts are per-operation limits, not a total
+    wall-clock deadline for the request.
+    """
+    out = dict(request_kwargs or {})
+    if "timeout" not in out:
+        out["timeout"] = urllib3.Timeout(
+            connect=DEFAULT_CONNECT_TIMEOUT if connect_timeout is None else connect_timeout,
+            read=DEFAULT_READ_TIMEOUT if read_timeout is None else read_timeout,
+        )
+    return out
+
+
 ## Options accepted by EPTR2.call / transparency_call that are NOT endpoint
 ## parameters. Anything else that is not an endpoint parameter is very likely a
 ## caller mistake, so it is reported instead of being dropped in silence.
 RESERVED_CALL_OPTIONS = frozenset(
     {
         "call_body",
+        "connect_timeout",
         "credentials_file_path",
         "custom_aliases",
         "force_renew_tgt",
@@ -428,15 +572,18 @@ RESERVED_CALL_OPTIONS = frozenset(
         "new_login_method",
         "postprocess",
         "query_parameters",
+        "read_timeout",
         "request_kwargs",
         "root_phrase",
         "secure",
         "just_call_phrase",
         "skip_tgt_update",
         "ssl_verify",
+        "strict_params",
         "tgt",
         "tgt_d",
         "tgt_path",
+        "tgt_profile",
     }
 )
 
@@ -501,7 +648,11 @@ def transparency_call(
         TimeoutError,
     )
     retry_on_exceptions = tuple(kwargs.pop("retry_on_exceptions", timeout_exceptions))
-    request_kwargs = kwargs.get("request_kwargs", {})
+    request_kwargs = apply_default_timeout(
+        kwargs.get("request_kwargs"),
+        connect_timeout=kwargs.pop("connect_timeout", None),
+        read_timeout=kwargs.pop("read_timeout", None),
+    )
 
     def _sleep_with_backoff(current_delay: float) -> float:
         jitter_factor = 1 + random.uniform(-retry_jitter, retry_jitter)
