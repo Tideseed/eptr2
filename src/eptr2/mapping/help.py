@@ -1307,8 +1307,8 @@ def get_help_d(key=None):
                 "en": "Page Update Date",
             },
             "desc": {
-                "tr": "Şeffaflık Platformu'nda verilen menü öğesine (menuId) ait sayfanın en son güncellenme tarihini döndürür.",
-                "en": "Returns the last update date of the Transparency Platform page for the given menu item (menuId).",
+                "tr": "Şeffaflık Platformu'nda verilen menü öğesine (menuId) ait sayfanın en son güncellenme tarihini döndürür; örneğin Piyasa Takas Fiyatı (PTF) sayfası için menuId 102. Menü kimlikleri 'menu' çağrısından alınır.",
+                "en": "Returns the last update date of the Transparency Platform page for the given menu item (menuId), e.g. menuId 102 for the Market Clearing Price (PTF) page. Menu ids come from the 'menu' call.",
             },
             "url": "https://seffaflik.epias.com.tr/electricity-service/technical/en/index.html",
         },

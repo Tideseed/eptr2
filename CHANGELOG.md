@@ -147,12 +147,14 @@ in the offline suite.
 
 ### New call: `page-update-date`
 
-`eptr.call("page-update-date", menu_id=<id>)` (POST
+`eptr.call("page-update-date", menu_id=102)` (POST
 `electricity-service/v1/menu/get-page-update-date`) returns the last update
-date of a Transparency Platform page for the given menu id. Also available as
-the typed wrapper `get_page_update_date(menu_id)`, via the CLI
-(`eptr2 call page-update-date -p menu_id=<id>`), and through the MCP
-`call_eptr2_api` tool. Total callable services: 232.
+date of a Transparency Platform page for the given menu id — 102 is the PTF
+page; ids come from the `menu` call. Also available as the typed wrapper
+`get_page_update_date(102)`, via the CLI
+(`eptr2 call page-update-date -p menu_id=102`), and through the MCP
+`call_eptr2_api` tool. Verified live: returns `{"updateTime": "...", "menuId": 102}`.
+Total callable services: 232.
 
 ### Documentation overhaul
 

@@ -98,6 +98,6 @@ def test_page_update_date_call_is_fully_wired():
     assert callable(get_page_update_date)
 
     ## agent-facing validation accepts a numeric id and rejects a missing one
-    validate_call("page-update-date", {"menu_id": 123})
+    validate_call("page-update-date", {"menu_id": 102})
     with pytest.raises(EptrValidationError):
         validate_call("page-update-date", {})

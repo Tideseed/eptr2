@@ -93,10 +93,10 @@ def get_page_update_date(menu_id: str | int, eptr: EPTR2 | None = None, **kwargs
     Category: Genel
 
     EN (Page Update Date):
-        Returns the last update date of the Transparency Platform page for the given menu item (menuId).
+        Returns the last update date of the Transparency Platform page for the given menu item (menuId), e.g. menuId 102 for the Market Clearing Price (PTF) page. Menu ids come from the 'menu' call.
 
     TR (Sayfa Güncelleme Tarihi):
-        Şeffaflık Platformu'nda verilen menü öğesine (menuId) ait sayfanın en son güncellenme tarihini döndürür.
+        Şeffaflık Platformu'nda verilen menü öğesine (menuId) ait sayfanın en son güncellenme tarihini döndürür; örneğin Piyasa Takas Fiyatı (PTF) sayfası için menuId 102. Menü kimlikleri 'menu' çağrısından alınır.
 
     Reference: https://seffaflik.epias.com.tr/electricity-service/technical/en/index.html
     """
