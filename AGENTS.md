@@ -2,7 +2,7 @@
 
 This document is the canonical quick reference for AI agents and assistants working with the eptr2 library. It is provider-agnostic: everything here works with any agent runtime (MCP clients, shell-driven agents, SKILL.md-compatible assistants).
 
-eptr2 is a Python client for Turkish electricity and natural gas market data from the EPIAS Transparency Platform v2.0, with 231 API endpoints.
+eptr2 is a Python client for Turkish electricity and natural gas market data from the EPIAS Transparency Platform v2.0, with 232 API endpoints.
 
 ## How to Learn This Library (Recommended Path)
 
@@ -75,7 +75,7 @@ eptr = EPTR2(
 The `eptr2` CLI is designed for shell-driven agents: data goes to stdout, diagnostics to stderr, nonzero exit codes on error.
 
 ```bash
-eptr2 list                          # All 231 call keys, grouped by category
+eptr2 list                          # All 232 call keys, grouped by category
 eptr2 list --category GÖP           # One category
 eptr2 categories                    # Categories with endpoint counts
 eptr2 search imbalance              # Keyword search (English and Turkish)
@@ -124,7 +124,7 @@ eptr2 install-plugin --dest ~/.your-agent/plugins/eptr2
 
 ## Machine-Readable API Schema
 
-`eptr2_api_schema.json` (repo root; also shipped in the package under `eptr2/assets/`) describes all 231 endpoints — categories, bilingual titles/descriptions, HTTP method, path, required and optional parameters — plus composite functions and cost utilities. It is generated from the library's own metadata with `eptr2 schema`, and checked for freshness against the code in tests.
+`eptr2_api_schema.json` (repo root; also shipped in the package under `eptr2/assets/`) describes all 232 endpoints — categories, bilingual titles/descriptions, HTTP method, path, required and optional parameters — plus composite functions and cost utilities. It is generated from the library's own metadata with `eptr2 schema`, and checked for freshness against the code in tests.
 
 ```python
 from eptr2.agentic import build_schema, list_calls, search_calls, describe_call
@@ -268,7 +268,7 @@ except Exception as e:
 
 ## Key Features
 
-- 231 API endpoints for Turkish electricity and natural gas markets
+- 232 API endpoints for Turkish electricity and natural gas markets
 - Automatic TGT (Ticket Granting Ticket) management
 - Credential management via .env files
 - Composite functions for common data analysis

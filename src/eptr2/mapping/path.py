@@ -977,6 +977,11 @@ def get_path_map(just_call_keys: bool = False):
                 "prev": "electricity-service",
                 "label": "get-page-settings",
             },
+            "page-update-date": {
+                "prefix": "menu",
+                "prev": "electricity-service",
+                "label": "get-page-update-date",
+            },
             ## YEK-G İkili Anlaşma Miktarları Listeleme Servisi
             "yek-g-bilateral-contracts": get_path_template(
                 "yek-g", "bilateral-contract-list"

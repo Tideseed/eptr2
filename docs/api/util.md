@@ -46,7 +46,7 @@ from eptr2.mapping import get_path_map
 
 # Get all path keys
 paths = get_path_map(just_call_keys=True)
-print(len(paths))  # 231
+print(len(paths))  # 232
 ```
 
 #### alias_to_path

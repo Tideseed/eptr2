@@ -21,7 +21,7 @@ pip install eptr2          # CLI included; pandas optional but recommended
 ## Discovery (no credentials needed)
 
 ```bash
-eptr2 list                          # all 231 call keys, grouped by category
+eptr2 list                          # all 232 call keys, grouped by category
 eptr2 list --category GÖP           # one category
 eptr2 list --format json            # machine-readable
 eptr2 categories                    # categories with endpoint counts

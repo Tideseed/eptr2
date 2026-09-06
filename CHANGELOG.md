@@ -145,6 +145,15 @@ in the offline suite.
   account, so the production and `-prp` test platforms no longer share a
   cached ticket for the same username.
 
+### New call: `page-update-date`
+
+`eptr.call("page-update-date", menu_id=<id>)` (POST
+`electricity-service/v1/menu/get-page-update-date`) returns the last update
+date of a Transparency Platform page for the given menu id. Also available as
+the typed wrapper `get_page_update_date(menu_id)`, via the CLI
+(`eptr2 call page-update-date -p menu_id=<id>`), and through the MCP
+`call_eptr2_api` tool. Total callable services: 232.
+
 ### Documentation overhaul
 
 Provider-agnostic agent docs: `AGENTS.md` is the single canonical agent-instruction file. New generic MCP client setup page (VS Code agent mode, Claude Desktop/Code, Cursor) and a CLI page in the docs site. Removed stale artifacts (`PR_DESCRIPTION.md`, `AI_AGENT_INTEGRATION_SUMMARY.md`, `CHANGELOG_MCP.md`, `mcp-config.json`, `CLAUDE_SETUP.md`); fixed UEVM descriptions and endpoint counts.

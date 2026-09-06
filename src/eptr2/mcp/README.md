@@ -179,7 +179,7 @@ Get imbalance prices (positive and negative).
 - `end_date` (required): End date in YYYY-MM-DD format
 
 ### 7. get_available_eptr2_calls
-List all available API calls in the eptr2 library (231 endpoints).
+List all available API calls in the eptr2 library (232 endpoints).
 
 **Parameters:** None
 

@@ -186,6 +186,7 @@ __all__ = [
     "get_ng_wrp",
     "get_nominal_capacity",
     "get_page_settings",
+    "get_page_update_date",
     "get_participant_count_based_upon_license_type",
     "get_percentage_consumption_info",
     "get_pi_bid",

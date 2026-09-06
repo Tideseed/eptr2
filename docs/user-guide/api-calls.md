@@ -1,6 +1,6 @@
 # Available API Calls
 
-eptr2 provides access to 231 API endpoints for Turkish electricity market data. This page lists the most commonly used calls organized by category.
+eptr2 provides access to 232 API endpoints for Turkish electricity market data. This page lists the most commonly used calls organized by category.
 
 !!! tip "Prefer typed wrappers?"
     Every endpoint listed below is also available as a typed top-level function

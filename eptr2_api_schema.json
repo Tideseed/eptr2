@@ -259,7 +259,7 @@
   },
   "date_format": "YYYY-MM-DD (ISO 8601); market timezone is Europe/Istanbul",
   "description": "Machine-readable schema of the eptr2 Python client for the EPIAS Transparency Platform (Turkish electricity and natural gas markets). Generated with `eptr2 schema`; do not edit by hand.",
-  "endpoint_count": 231,
+  "endpoint_count": 232,
   "endpoints": {
     "anc-pf-qty": {
       "call_method": "POST",
@@ -3359,6 +3359,24 @@
         "tr": ""
       },
       "url": null
+    },
+    "page-update-date": {
+      "call_method": "POST",
+      "call_path": "electricity-service/v1/menu/get-page-update-date",
+      "category": "Genel",
+      "desc": {
+        "en": "Returns the last update date of the Transparency Platform page for the given menu item (menuId).",
+        "tr": "Şeffaflık Platformu'nda verilen menü öğesine (menuId) ait sayfanın en son güncellenme tarihini döndürür."
+      },
+      "optional_params": [],
+      "required_params": [
+        "menu_id"
+      ],
+      "title": {
+        "en": "Page Update Date",
+        "tr": "Sayfa Güncelleme Tarihi"
+      },
+      "url": "https://seffaflik.epias.com.tr/electricity-service/technical/en/index.html"
     },
     "participant-count-based-upon-license-type": {
       "call_method": "POST",

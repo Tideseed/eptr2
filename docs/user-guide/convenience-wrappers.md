@@ -88,7 +88,7 @@ from eptr2.calls import get_mcp, get_ptf, get_smp, get_smf
 import eptr2.calls as calls
 
 # Every public name is included in __all__
-print(len(calls.__all__))  # 233 (231 endpoints + 2 aliases)
+print(len(calls.__all__))  # 234 (232 endpoints + 2 aliases)
 
 # Get help for any wrapper
 help(calls.get_mcp)

@@ -8,7 +8,7 @@ The Model Context Protocol (MCP) is a standard for connecting AI assistants to e
 
 - Query real-time electricity prices
 - Fetch consumption and generation data
-- Access all 231 API endpoints
+- Access all 232 API endpoints
 - Perform complex market analysis
 
 ## Quick Start
@@ -112,7 +112,7 @@ The MCP server exposes 18 tools:
 
 | Tool | Description |
 |------|-------------|
-| `get_available_eptr2_calls` | List all 231 API endpoints |
+| `get_available_eptr2_calls` | List all 232 API endpoints |
 | `describe_eptr2_call` | Parameters and metadata for one call key |
 | `search_eptr2_calls` | Keyword search over endpoints (EN/TR) |
 | `call_eptr2_api` | Call any API endpoint by key (`additional_params` supported) |

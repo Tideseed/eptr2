@@ -1300,6 +1300,18 @@ def get_help_d(key=None):
             "url": "https://seffaflik.epias.com.tr/electricity/market-message-system",
         },
         # ## Gün bilgileri
+        "page-update-date": {
+            "category": "Genel",
+            "title": {
+                "tr": "Sayfa Güncelleme Tarihi",
+                "en": "Page Update Date",
+            },
+            "desc": {
+                "tr": "Şeffaflık Platformu'nda verilen menü öğesine (menuId) ait sayfanın en son güncellenme tarihini döndürür.",
+                "en": "Returns the last update date of the Transparency Platform page for the given menu item (menuId).",
+            },
+            "url": "https://seffaflik.epias.com.tr/electricity-service/technical/en/index.html",
+        },
         "date-init": {
             "category": "Genel",
             "title": {

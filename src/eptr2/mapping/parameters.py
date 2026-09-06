@@ -290,6 +290,7 @@ def get_required_parameters(key, return_mapping=False, mapping_only_keys=False):
         "ng-tr-storage-facility-list": [],
         "menu": [],
         "page-settings": ["menu_id"],
+        "page-update-date": ["menu_id"],
         "yek-g-bilateral-contracts": ["start_date", "end_date"],
         "yek-g-redemptions": ["start_date", "end_date"],
         "yek-g-expirations": ["start_date", "end_date"],

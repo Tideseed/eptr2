@@ -203,7 +203,7 @@ Fetches comprehensive price and cost data.
 
 #### get_available_eptr2_calls
 
-Lists all 231 available API endpoints.
+Lists all 232 available API endpoints.
 
 ```json
 {

@@ -205,7 +205,7 @@ def print_tool_details():
         {
             "name": "get_available_eptr2_calls",
             "params": "None",
-            "returns": "List of all 231 available API endpoints",
+            "returns": "List of all 232 available API endpoints",
             "example": "No parameters required",
         },
         {

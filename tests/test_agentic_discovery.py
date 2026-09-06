@@ -1,5 +1,7 @@
 """Offline tests for eptr2.agentic.discovery (no credentials needed)."""
 
+import pytest
+
 from eptr2.agentic import discovery
 from eptr2.mapping.path import get_path_map
 
@@ -74,3 +76,28 @@ def test_format_calls_table():
     assert "DGP" in table
     assert "smp" in table
     assert discovery.format_calls_table({}) == "No matching endpoints found."
+
+
+def test_page_update_date_call_is_fully_wired():
+    """New call: POST menu/get-page-update-date with menu_id -> menuId."""
+    from eptr2.agentic import validate_call, EptrValidationError
+    from eptr2.calls import get_page_update_date
+    from eptr2.mapping.parameters import get_param_label
+
+    d = discovery.describe_call("page-update-date")
+    assert d is not None
+    assert d["call_method"] == "POST"
+    assert d["call_path"] == "electricity-service/v1/menu/get-page-update-date"
+    assert d["required_body_params"] == ["menu_id"]
+    assert get_param_label("menu_id")["label"] == "menuId"
+    assert d["help"]["title"]["en"] == "Page Update Date"
+
+    ## discoverable in both languages, and shipped as a typed wrapper
+    assert "page-update-date" in discovery.search_calls("update date")
+    assert "page-update-date" in discovery.search_calls("güncelleme")
+    assert callable(get_page_update_date)
+
+    ## agent-facing validation accepts a numeric id and rejects a missing one
+    validate_call("page-update-date", {"menu_id": 123})
+    with pytest.raises(EptrValidationError):
+        validate_call("page-update-date", {})

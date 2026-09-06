@@ -10,6 +10,7 @@ __all__ = [
     "get_market_participants_organization_list",
     "get_menu",
     "get_page_settings",
+    "get_page_update_date",
     "get_participant_count_based_upon_license_type",
     "get_province_list",
 ]
@@ -84,6 +85,24 @@ def get_page_settings(menu_id: str | int, eptr: EPTR2 | None = None, **kwargs):
     if eptr is None:
         eptr = EPTR2()
     return eptr.call("page-settings", menu_id=menu_id, **kwargs)
+
+
+def get_page_update_date(menu_id: str | int, eptr: EPTR2 | None = None, **kwargs):
+    """Page Update Date / Sayfa Güncelleme Tarihi
+
+    Category: Genel
+
+    EN (Page Update Date):
+        Returns the last update date of the Transparency Platform page for the given menu item (menuId).
+
+    TR (Sayfa Güncelleme Tarihi):
+        Şeffaflık Platformu'nda verilen menü öğesine (menuId) ait sayfanın en son güncellenme tarihini döndürür.
+
+    Reference: https://seffaflik.epias.com.tr/electricity-service/technical/en/index.html
+    """
+    if eptr is None:
+        eptr = EPTR2()
+    return eptr.call("page-update-date", menu_id=menu_id, **kwargs)
 
 
 def get_participant_count_based_upon_license_type(start_date: str, eptr: EPTR2 | None = None, **kwargs):
