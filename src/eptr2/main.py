@@ -188,7 +188,9 @@ class EPTR2:
         ## Tickets written before account scoping have no account id. They are
         ## ignored rather than trusted, since their owner cannot be verified.
         expected = tgt_account_id(
-            self.username, self.__dict__.get("tgt_profile")
+            self.username,
+            self.__dict__.get("tgt_profile"),
+            environment=self.__dict__.get("root_phrase"),
         )
         if cached.get("account_id") != expected:
             logger.info(
@@ -289,7 +291,9 @@ class EPTR2:
         if self.recycle_tgt:
             record = dict(tgt_d)
             record["account_id"] = tgt_account_id(
-                self.username, self.__dict__.get("tgt_profile")
+                self.username,
+                self.__dict__.get("tgt_profile"),
+                environment=self.__dict__.get("root_phrase"),
             )
             path = self.tgt_file_path()
             ## Write privately and replace atomically so a crash cannot leave a
@@ -531,14 +535,21 @@ class EPTR2:
         return res
 
 
-def tgt_account_id(username: str | None, profile: str | None = None) -> str:
+def tgt_account_id(
+    username: str | None,
+    profile: str | None = None,
+    environment: str | None = None,
+) -> str:
     """Stable, non-reversible identifier for a cached ticket's owner.
 
     Only the username is hashed; passwords never take part in cache identity.
-    ``profile`` separates several credential sets sharing a directory; the
-    common single-credential case leaves it at the default.
+    ``environment`` is the service root (production vs the -prp test platform,
+    or a custom root): a ticket issued by one environment is not valid for
+    another, so it must not be reused across them. ``profile`` separates
+    several credential sets sharing a directory; the common single-credential
+    case leaves it at the default.
     """
-    raw = f"{profile or 'default'}:{username or ''}"
+    raw = f"{profile or 'default'}:{environment or 'default'}:{username or ''}"
     return hashlib.sha256(raw.encode("utf-8")).hexdigest()[:16]
 
 

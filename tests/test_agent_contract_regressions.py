@@ -494,3 +494,24 @@ def test_reserved_options_cover_everything_the_call_path_consumes():
     consumed = set(re.findall(r'kwargs\.(?:pop|get)\("([a-z_]+)"', source))
     missing = sorted(consumed - set(RESERVED_CALL_OPTIONS))
     assert not missing, f"not reserved, will warn spuriously: {missing}"
+
+
+def test_ticket_cache_is_scoped_to_service_environment(tmp_path):
+    """A ticket issued by the -prp test platform is not valid on production,
+    so the same account must not share a cache across environments."""
+    from eptr2 import EPTR2
+
+    def client(**kwargs):
+        with patch.object(EPTR2, "check_renew_tgt", lambda self, **kw: None):
+            return EPTR2(
+                username="alice@example.com", password="pw", use_dotenv=False,
+                tgt_path=str(tmp_path), **kwargs,
+            )
+
+    prod = client(recycle_tgt=True)
+    prod.tgt, prod.tgt_exp, prod.tgt_exp_0 = "TGT-PROD", 9e9, 9e9
+    prod.export_tgt_info()
+
+    assert client(recycle_tgt=True).tgt == "TGT-PROD"
+    assert client(recycle_tgt=True, is_test=True).tgt is None
+    assert client(recycle_tgt=True, root_phrase="https://other.example.com").tgt is None

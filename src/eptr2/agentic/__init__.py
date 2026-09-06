@@ -20,6 +20,13 @@ from eptr2.agentic.schema import (
     load_bundled_schema,
     SchemaGenerationUnavailable,
 )
+from eptr2.agentic.validation import (
+    EptrValidationError,
+    validate_call,
+    validate_call_key,
+    validate_date_value,
+    validate_params,
+)
 from eptr2.agentic.skills import (
     list_bundled_skills,
     install_skills,
@@ -39,6 +46,11 @@ __all__ = [
     "write_schema",
     "check_schema",
     "load_bundled_schema",
+    "EptrValidationError",
+    "validate_call",
+    "validate_call_key",
+    "validate_date_value",
+    "validate_params",
     "SchemaGenerationUnavailable",
     "list_bundled_skills",
     "install_skills",

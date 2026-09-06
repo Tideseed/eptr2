@@ -1,11 +1,5 @@
 # Changelog
 
-## Unreleased — provider-neutral agent skills
-
-- Default project/user skill installations to `.agents/skills`; `--client claude` retains `.claude/skills`, and `--dest PATH` supports other runtimes. Existing installations are left untouched.
-- Move the repository skill mirror to `.agents/skills` and remove vendor-specific tool allowlists from the packaged skills.
-- Correct skill examples for composite signatures, exported wrapper names, price fields, generation totals, and contract-aware costs; add executable offline example checks.
-
 All notable changes are published via GitHub Releases.
 
 - Repository: [Tideseed/eptr2](https://github.com/Tideseed/eptr2)
@@ -128,6 +122,28 @@ upgrade is deliberately scoped to packages with advisories: pandas and fastmcp
 have none and are left on 2.x and 3.x respectively, since the composite test
 suite that exercises pandas most heavily is credential-gated and does not run
 in the offline suite.
+
+### Provider-neutral skills, agent input validation and Python 3.11
+
+- **Skills moved to `.agents/skills`.** The repository mirror and the default
+  install location are now provider-neutral; `--client claude` still installs
+  to `.claude/skills`, and `--dest PATH` targets any other runtime. Existing
+  installations are left untouched. Vendor-specific tool allowlists were
+  removed from the packaged skills, and every skill was rewritten far tighter.
+  Skill examples were corrected against real signatures (composite argument
+  order, exported wrapper names, price fields, generation totals,
+  contract-aware costs) and are now checked by executable offline tests.
+- **Agent-facing input validation.** New `eptr2.agentic.validation`
+  (`validate_call`, `validate_call_key`, `validate_date_value`,
+  `validate_params`, `EptrValidationError`) is wired into the CLI and MCP
+  server, so invalid call keys, malformed dates and unknown parameters are
+  rejected before any authentication or network work. `strict_params` now
+  defaults to True on those agent surfaces (`--no-strict-params` opts out);
+  the library default stays False for compatibility.
+- **Minimum Python is now 3.11** (was 3.10).
+- **Ticket cache is scoped to the service environment** as well as the
+  account, so the production and `-prp` test platforms no longer share a
+  cached ticket for the same username.
 
 ### Documentation overhaul
 

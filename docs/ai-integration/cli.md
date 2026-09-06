@@ -2,6 +2,16 @@
 
 The `eptr2` command-line interface makes the library usable by shell-driven AI agents and humans alike. Data goes to stdout only, diagnostics to stderr, and exit codes are nonzero on error — so output can be piped and parsed safely.
 
+## Exit codes
+
+| Code | Meaning |
+|------|---------|
+| `0` | Success; data (if any) is on stdout |
+| `1` | The request was well-formed but failed — unknown call key, no results, authentication failure, or an API error |
+| `2` | The request was malformed and never sent — invalid parameters, a bad `key=value` pair, or no subcommand |
+
+Code `2` means nothing reached the network, so an agent can retry only after correcting the request; code `1` may be transient.
+
 Installed with the package:
 
 ```bash
