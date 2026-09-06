@@ -47,8 +47,10 @@ The schema covers all endpoints with parameters, plus composite functions and co
 
 ```bash
 eptr2 install-skills --list          # show bundled skills
-eptr2 install-skills                 # install into ./.claude/skills
-eptr2 install-skills --dest user     # install into ~/.claude/skills
+eptr2 install-skills                 # install into ./.agents/skills
+eptr2 install-skills --dest user     # install into ~/.agents/skills
+eptr2 install-skills --client claude  # into ./.claude/skills
+eptr2 install-skills --client claude --dest user  # into ~/.claude/skills
 eptr2 install-skills --dest /path/to/skills --only eptr2-price-analysis
 ```
 

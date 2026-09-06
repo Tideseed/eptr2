@@ -142,7 +142,7 @@ print(f"Total calls: {len(calls['keys'])}")
 
 ### MCP Server Issues
 - Verify FastMCP is installed: `pip install fastmcp`
-- Check Python version (>=3.10 required)
+- Check Python version (>=3.11 required)
 - Ensure credentials are properly configured
 
 ## License

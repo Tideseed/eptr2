@@ -64,7 +64,7 @@ eptr = EPTR2(
   raises a warning naming the correct parameter; set `strict_params=True`
   (per client or per call) to make it an error instead. **Recommended for
   unattended agents.**
-- **Timeouts** default to 10s connect / 60s read so a job cannot hang forever.
+- **Timeouts** default to 10s connect / 60s read to bound connection and read waits; these are not a total job deadline.
   Override per call with `request_kwargs={"timeout": ...}`.
 - **`tgt_profile`** separates cached authentication tickets when several
   credential sets share a working directory. Tickets are already scoped to the
@@ -89,15 +89,17 @@ eptr2 mcp-config --client vscode    # Print MCP client config snippet
 eptr2 mcp-server                    # Run the MCP server (stdio)
 ```
 
-Discovery commands need no credentials; only `call` and `mcp-server` do.
+Discovery and MCP server startup need no credentials; authenticated data calls do.
 
 ## Agent Skills
 
 eptr2 bundles 7 agent skills in the open Agent Skills format (a directory with a `SKILL.md` file). Any SKILL.md-compatible runtime can consume them. They ship inside the pip package and install with:
 
 ```bash
-eptr2 install-skills                 # into ./.claude/skills (project)
-eptr2 install-skills --dest user     # into ~/.claude/skills
+eptr2 install-skills                 # into ./.agents/skills (project)
+eptr2 install-skills --dest user     # into ~/.agents/skills
+eptr2 install-skills --client claude  # into ./.claude/skills
+eptr2 install-skills --client claude --dest user  # into ~/.claude/skills
 eptr2 install-skills --dest PATH     # anywhere your runtime looks for skills
 ```
 
@@ -122,7 +124,7 @@ eptr2 install-plugin --dest ~/.your-agent/plugins/eptr2
 
 ## Machine-Readable API Schema
 
-`eptr2_api_schema.json` (repo root; also shipped in the package under `eptr2/assets/`) describes all 231 endpoints — categories, bilingual titles/descriptions, HTTP method, path, required and optional parameters — plus composite functions and cost utilities. It is generated from the library's own metadata with `eptr2 schema`, so it never drifts from the code.
+`eptr2_api_schema.json` (repo root; also shipped in the package under `eptr2/assets/`) describes all 231 endpoints — categories, bilingual titles/descriptions, HTTP method, path, required and optional parameters — plus composite functions and cost utilities. It is generated from the library's own metadata with `eptr2 schema`, and checked for freshness against the code in tests.
 
 ```python
 from eptr2.agentic import build_schema, list_calls, search_calls, describe_call
@@ -226,7 +228,7 @@ eptr2 mcp-config --client cursor
 eptr2 mcp-config                          # generic mcpServers shape
 ```
 
-### Available MCP Tools (17)
+### Available MCP Tools (18)
 
 Discovery (no credentials needed):
 1. `get_available_eptr2_calls` - List all endpoints

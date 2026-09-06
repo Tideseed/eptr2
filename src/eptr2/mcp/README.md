@@ -341,7 +341,7 @@ To add new tools:
 ### Server won't start
 - Check that `fastmcp` package is installed: `pip install fastmcp`
 - Verify credentials in `.env` file
-- Check Python version (>=3.10 required)
+- Check Python version (>=3.11 required)
 
 ### Authentication errors
 - Verify your EPIAS Transparency Platform credentials

@@ -191,8 +191,10 @@ eptr2 search üretim          # find endpoints by keyword
 Install the 7 bundled skills (prices, consumption, generation, imbalance costs, market operations, API discovery, typed wrappers) into any SKILL.md-compatible runtime:
 
 ```bash
-eptr2 install-skills                 # into ./.claude/skills
-eptr2 install-skills --dest user     # into ~/.claude/skills
+eptr2 install-skills                 # into ./.agents/skills
+eptr2 install-skills --dest user     # into ~/.agents/skills
+eptr2 install-skills --client claude  # into ./.claude/skills
+eptr2 install-skills --client claude --dest user  # into ~/.claude/skills
 ```
 
 The skills and MCP server are also packaged together as a portable [Agent Plugin](https://agent-plugins.org): `eptr2 plugin-path`.

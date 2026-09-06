@@ -2,7 +2,7 @@
 
 ## Requirements
 
-- Python 3.10 or higher
+- Python 3.11 or higher
 - An EPIAS Transparency Platform account ([Register here](https://kayit.epias.com.tr/epias-transparency-platform-registration-form))
 
 ## Installation Options

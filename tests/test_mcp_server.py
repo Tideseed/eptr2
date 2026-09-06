@@ -1,5 +1,7 @@
 """Regression tests for eptr2 MCP server surface and call-key wiring."""
 
+import json
+
 import pytest
 
 from eptr2 import mcp as mcp_module
@@ -46,15 +48,17 @@ def test_call_eptr2_api_merges_additional_params(monkeypatch):
     fake = _FakeClient()
     monkeypatch.setattr(mcp_server, "_get_eptr_client", lambda: fake)
 
+    ## dam-clearing accepts org_id alongside the required dates; the call is
+    ## validated before dispatch, so the fixture must be a real combination.
     mcp_server.call_eptr2_api(
-        "mcp",
+        "dam-clearing",
         start_date="2024-01-01",
         end_date="2024-01-02",
         additional_params={"org_id": 195},
     )
 
     call_key, params = fake.calls[-1]
-    assert call_key == "mcp"
+    assert call_key == "dam-clearing"
     assert params["start_date"] == "2024-01-01"
     assert params["end_date"] == "2024-01-02"
     assert params["org_id"] == 195
@@ -65,14 +69,78 @@ def test_call_eptr2_api_accepts_json_additional_params(monkeypatch):
     fake = _FakeClient()
     monkeypatch.setattr(mcp_server, "_get_eptr_client", lambda: fake)
 
+    ## mms is the endpoint that takes region_id, and it requires both dates.
     mcp_server.call_eptr2_api(
-        "load-plan",
+        "mms",
+        start_date="2024-01-01",
+        end_date="2024-01-02",
         additional_params='{"region_id": 34}',
     )
 
     call_key, params = fake.calls[-1]
-    assert call_key == "load-plan"
+    assert call_key == "mms"
     assert params["region_id"] == 34
+
+
+@pytest.mark.skipif(not mcp_server.MCP_AVAILABLE, reason="fastmcp is not installed")
+def test_call_eptr2_api_reports_unknown_key_as_data(monkeypatch):
+    fake = _FakeClient()
+    monkeypatch.setattr(mcp_server, "_get_eptr_client", lambda: fake)
+
+    out = json.loads(mcp_server.call_eptr2_api("mcp_price", start_date="2024-01-01"))
+    assert out["error"] == "invalid_input"
+    assert "Unknown call key" in out["message"]
+    assert fake.calls == []
+
+
+@pytest.mark.skipif(not mcp_server.MCP_AVAILABLE, reason="fastmcp is not installed")
+def test_call_eptr2_api_reports_bad_date_as_data(monkeypatch):
+    fake = _FakeClient()
+    monkeypatch.setattr(mcp_server, "_get_eptr_client", lambda: fake)
+
+    out = json.loads(
+        mcp_server.call_eptr2_api(
+            "mcp", start_date="06/09/2026", end_date="2026-07-02"
+        )
+    )
+    assert out["error"] == "invalid_input"
+    assert "start_date" in out["message"]
+    assert fake.calls == []
+
+
+@pytest.mark.skipif(not mcp_server.MCP_AVAILABLE, reason="fastmcp is not installed")
+def test_call_eptr2_api_reports_bad_json_as_data(monkeypatch):
+    fake = _FakeClient()
+    monkeypatch.setattr(mcp_server, "_get_eptr_client", lambda: fake)
+
+    out = json.loads(
+        mcp_server.call_eptr2_api(
+            "mcp",
+            start_date="2026-07-01",
+            end_date="2026-07-02",
+            additional_params="{not json",
+        )
+    )
+    assert out["error"] == "invalid_input"
+    assert "not valid JSON" in out["message"]
+    assert fake.calls == []
+
+
+@pytest.mark.skipif(not mcp_server.MCP_AVAILABLE, reason="fastmcp is not installed")
+def test_named_tool_reports_bad_date_as_data(monkeypatch):
+    """A malformed date reaches the agent as data even on the non-generic tools,
+    which reach the API through composite helpers rather than EPTR2.call."""
+    fake = _FakeClient()
+    monkeypatch.setattr(mcp_server, "_get_eptr_client", lambda: fake)
+
+    out = json.loads(
+        mcp_server.get_market_clearing_price(
+            start_date="yesterday", end_date="2026-07-02"
+        )
+    )
+    assert out["error"] == "invalid_input"
+    assert "start_date" in out["message"]
+    assert fake.calls == []
 
 
 @pytest.mark.skipif(not mcp_server.MCP_AVAILABLE, reason="fastmcp is not installed")

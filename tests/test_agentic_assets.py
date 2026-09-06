@@ -9,7 +9,7 @@ from eptr2.agentic import skills as skills_mod
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
 CANONICAL = REPO_ROOT / "src" / "eptr2" / "assets" / "skills"
-REPO_COPY = REPO_ROOT / ".claude" / "skills"
+REPO_COPY = REPO_ROOT / ".agents" / "skills"
 
 
 def _tree(root: Path) -> dict[str, bytes]:
@@ -21,7 +21,7 @@ def _tree(root: Path) -> dict[str, bytes]:
 
 
 def test_skills_in_sync():
-    """Canonical (src/eptr2/assets/skills) and repo (.claude/skills) copies
+    """Canonical (src/eptr2/assets/skills) and repo (.agents/skills) copies
     must be identical. If this fails, edit the canonical copy and run:
     python scripts/sync_agentic_assets.py
     """
@@ -87,9 +87,51 @@ def test_install_skills_subset_and_unknown(tmp_path):
 
 
 def test_resolve_dest():
-    assert skills_mod.resolve_dest("user") == Path.home() / ".claude" / "skills"
-    assert skills_mod.resolve_dest("project") == Path.cwd() / ".claude" / "skills"
+    assert skills_mod.resolve_dest("user") == Path.home() / ".agents" / "skills"
+    assert skills_mod.resolve_dest("project") == Path.cwd() / ".agents" / "skills"
     assert skills_mod.resolve_dest("/x/y") == Path("/x/y")
+
+
+@pytest.mark.parametrize("client,directory", [("generic", ".agents"), ("claude", ".claude")])
+@pytest.mark.parametrize("scope", ["project", "user"])
+def test_install_scoped_skills(tmp_path, monkeypatch, client, directory, scope):
+    project = tmp_path / "project"
+    home = tmp_path / "home"
+    project.mkdir()
+    home.mkdir()
+    monkeypatch.chdir(project)
+    monkeypatch.setattr(Path, "home", lambda: home)
+    root = project if scope == "project" else home
+    installed = skills_mod.install_skills(scope, client=client)
+    assert len(installed) == 7
+    assert all(p.parent == root / directory / "skills" for p in installed)
+    assert not (root / (".claude" if client == "generic" else ".agents")).exists()
+
+
+def test_explicit_skill_path_wins_and_expands_home(tmp_path, monkeypatch):
+    monkeypatch.setenv("HOME", str(tmp_path))
+    assert skills_mod.resolve_dest("~/custom-skills", client="claude") == tmp_path / "custom-skills"
+    dest = tmp_path / "explicit"
+    assert skills_mod.install_skills(dest, client="claude")[0].parent == dest
+    with pytest.raises(ValueError, match="client"):
+        skills_mod.resolve_dest("project", client="unknown")
+
+
+def test_sync_preserves_unrelated_repository_skills(tmp_path, monkeypatch):
+    import importlib.util
+
+    spec = importlib.util.spec_from_file_location("sync_assets", REPO_ROOT / "scripts/sync_agentic_assets.py")
+    sync = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(sync)
+    destination = tmp_path / ".agents/skills"
+    custom = destination / "my-custom-skill/SKILL.md"
+    custom.parent.mkdir(parents=True)
+    custom.write_text("Keep my local instructions")
+    monkeypatch.setattr(sync, "REPO_SKILLS", destination)
+    monkeypatch.setattr(sync, "ROOT_SCHEMA", tmp_path / "schema.json")
+    assert sync.main() == 0
+    assert custom.read_text() == "Keep my local instructions"
+    assert (destination / "eptr2-price-analysis/SKILL.md").read_bytes() == (CANONICAL / "eptr2-price-analysis/SKILL.md").read_bytes()
 
 
 # --- Agent Plugin (https://agent-plugins.org) ---

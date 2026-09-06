@@ -1,0 +1,207 @@
+{
+  "source": "EPIAS live sample retrieved 2026-09-06 for 2026-07-01; first two hourly rows per endpoint; no authentication data",
+  "responses": {
+    "mcp": {
+      "items": [
+        {
+          "date": "2026-07-01T00:00:00+03:00",
+          "hour": "00:00",
+          "price": 4090.67,
+          "priceUsd": 87.87,
+          "priceEur": 77.04
+        },
+        {
+          "date": "2026-07-01T01:00:00+03:00",
+          "hour": "01:00",
+          "price": 4000,
+          "priceUsd": 85.92,
+          "priceEur": 75.34
+        }
+      ]
+    },
+    "smp": {
+      "items": [
+        {
+          "date": "2026-07-01T00:00:00+03:00",
+          "hour": "2026-07-01T00:00:00+03:00",
+          "systemMarginalPrice": 4091
+        },
+        {
+          "date": "2026-07-01T01:00:00+03:00",
+          "hour": "2026-07-01T01:00:00+03:00",
+          "systemMarginalPrice": 4000
+        }
+      ]
+    },
+    "mcp-smp-imb": {
+      "items": [
+        {
+          "date": "2026-07-01T00:00:00+03:00",
+          "time": "2026-07-01T00:00:00+03:00",
+          "ptf": 4090.67,
+          "smf": 4091,
+          "positiveImbalance": 3967.9499,
+          "negativeImbalance": 4336.46,
+          "systemStatus": "Enerji Açığı"
+        },
+        {
+          "date": "2026-07-01T01:00:00+03:00",
+          "time": "2026-07-01T01:00:00+03:00",
+          "ptf": 4000,
+          "smf": 4000,
+          "positiveImbalance": 3880,
+          "negativeImbalance": 4240,
+          "systemStatus": "Enerji Açığı"
+        }
+      ]
+    },
+    "wap": {
+      "items": [
+        {
+          "date": "2026-07-01T00:00:00+03:00",
+          "hour": "00:00",
+          "wap": 3901.78
+        },
+        {
+          "date": "2026-07-01T01:00:00+03:00",
+          "hour": "01:00",
+          "wap": 3986.47
+        }
+      ]
+    },
+    "rt-cons": {
+      "items": [
+        {
+          "date": "2026-07-01T00:00:00+03:00",
+          "time": "00:00",
+          "consumption": 44446.98
+        },
+        {
+          "date": "2026-07-01T01:00:00+03:00",
+          "time": "01:00",
+          "consumption": 42014.59
+        }
+      ]
+    },
+    "load-plan": {
+      "items": [
+        {
+          "date": "2026-07-01T00:00:00+03:00",
+          "time": "00:00",
+          "lep": 42678
+        },
+        {
+          "date": "2026-07-01T01:00:00+03:00",
+          "time": "01:00",
+          "lep": 40585
+        }
+      ]
+    },
+    "uecm": {
+      "items": [
+        {
+          "period": "2026-07-01T00:00:00+03:00",
+          "hour": "2026-07-01T00:00:00+03:00",
+          "swv": 42077.43
+        },
+        {
+          "period": "2026-07-01T01:00:00+03:00",
+          "hour": "2026-07-01T01:00:00+03:00",
+          "swv": 39658.34
+        }
+      ]
+    },
+    "rt-gen": {
+      "items": [
+        {
+          "date": "2026-07-01T00:00:00+03:00",
+          "hour": "00:00",
+          "total": 44339.86,
+          "naturalGas": 4818.13,
+          "dammedHydro": 13759.84,
+          "lignite": 4415.13,
+          "river": 3881.21,
+          "importCoal": 9776.68,
+          "wind": 5430.69,
+          "sun": 1.03,
+          "fueloil": 87.5,
+          "geothermal": 1064.75,
+          "asphaltiteCoal": 187.67,
+          "blackCoal": 302.05,
+          "biomass": 862.65,
+          "naphta": 0,
+          "lng": 0,
+          "importExport": -327.64,
+          "wasteheat": 80.17
+        },
+        {
+          "date": "2026-07-01T01:00:00+03:00",
+          "hour": "01:00",
+          "total": 41908.58,
+          "naturalGas": 4586.16,
+          "dammedHydro": 11963.01,
+          "lignite": 4440.8,
+          "river": 3775.17,
+          "importCoal": 9793.54,
+          "wind": 5050.8,
+          "sun": 5.35,
+          "fueloil": 86.82,
+          "geothermal": 1091.85,
+          "asphaltiteCoal": 196.51,
+          "blackCoal": 297.43,
+          "biomass": 865.13,
+          "naphta": 0,
+          "lng": 0,
+          "importExport": -325.52,
+          "wasteheat": 81.53
+        }
+      ]
+    },
+    "dpp-bulk": {
+      "items": [
+        {
+          "date": "2026-07-01T00:00:00+03:00",
+          "time": "00:00",
+          "toplam": 1710,
+          "dogalgaz": 0,
+          "ruzgar": 0,
+          "linyit": 0,
+          "tasKomur": 0,
+          "ithalKomur": 0,
+          "fuelOil": 0,
+          "jeotermal": 0,
+          "barajli": 1710,
+          "nafta": 0,
+          "biokutle": 0,
+          "akarsu": 0,
+          "gunes": 0,
+          "diger": 0,
+          "orgId": 195,
+          "uevcbId": 733,
+          "uevcbName": "ATATÜRK HES DB"
+        },
+        {
+          "date": "2026-07-01T01:00:00+03:00",
+          "time": "01:00",
+          "toplam": 1440,
+          "dogalgaz": 0,
+          "ruzgar": 0,
+          "linyit": 0,
+          "tasKomur": 0,
+          "ithalKomur": 0,
+          "fuelOil": 0,
+          "jeotermal": 0,
+          "barajli": 1440,
+          "nafta": 0,
+          "biokutle": 0,
+          "akarsu": 0,
+          "gunes": 0,
+          "diger": 0,
+          "orgId": 195,
+          "uevcbId": 733,
+          "uevcbName": "ATATÜRK HES DB"
+        }
+      ]
+    }
+  }
+}

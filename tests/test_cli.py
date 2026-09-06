@@ -119,6 +119,22 @@ def test_install_skills_to_path(capsys, tmp_path):
     assert (tmp_path / "eptr2-price-analysis" / "SKILL.md").exists()
 
 
+@pytest.mark.parametrize("argv,directory", [([], ".agents"), (["--client", "claude"], ".claude")])
+def test_install_skills_client_destination(capsys, tmp_path, monkeypatch, argv, directory):
+    monkeypatch.chdir(tmp_path)
+    code, out, err = run(capsys, "install-skills", *argv)
+    assert code == 0 and out == ""
+    assert (tmp_path / directory / "skills/eptr2-price-analysis/SKILL.md").is_file()
+    assert str(tmp_path / directory / "skills") in err
+
+
+def test_install_skills_explicit_path_overrides_client(capsys, tmp_path):
+    target = tmp_path / "custom"
+    code, _, _ = run(capsys, "install-skills", "--client", "claude", "--dest", str(target))
+    assert code == 0
+    assert (target / "eptr2-price-analysis/SKILL.md").is_file()
+
+
 def test_mcp_config_generic_and_vscode(capsys):
     code, out, _ = run(capsys, "mcp-config")
     assert code == 0
@@ -158,6 +174,10 @@ class FakeEPTR2:
 def fake_client(monkeypatch):
     import eptr2 as eptr2_pkg
 
+    ## Class attributes persist between tests; reset so "was never called" can
+    ## be asserted meaningfully.
+    FakeEPTR2.last_call = None
+    FakeEPTR2.last_init = None
     monkeypatch.setattr(eptr2_pkg, "EPTR2", FakeEPTR2)
     return FakeEPTR2
 
@@ -176,14 +196,30 @@ def test_call_json(capsys, fake_client):
 
 
 def test_call_csv_and_params(capsys, fake_client):
+    ## dam-clearing genuinely accepts org_id alongside the required dates. The
+    ## call is validated before it is sent, so the fixture has to be a
+    ## combination the endpoint really allows.
     code, out, _ = run(
-        capsys, "call", "mcp", "-p", "org_id=123", "--format", "csv"
+        capsys,
+        "call",
+        "dam-clearing",
+        "--start-date",
+        "2026-07-01",
+        "--end-date",
+        "2026-07-02",
+        "-p",
+        "org_id=123",
+        "--format",
+        "csv",
     )
     assert code == 0
     lines = out.strip().splitlines()
     assert lines[0] == "date,price"
     assert len(lines) == 3
-    assert fake_client.last_call == ("mcp", {"org_id": "123"})
+    assert fake_client.last_call == (
+        "dam-clearing",
+        {"start_date": "2026-07-01", "end_date": "2026-07-02", "org_id": "123"},
+    )
 
 
 def test_call_bad_param(capsys, fake_client):
@@ -192,9 +228,85 @@ def test_call_bad_param(capsys, fake_client):
     assert "key=value" in err
 
 
+def test_call_rejects_unknown_key(capsys, fake_client):
+    code, _, err = run(
+        capsys, "call", "mcp_price", "--start-date", "2026-07-01", "--end-date", "2026-07-02"
+    )
+    assert code == 2
+    assert "Unknown call key" in err
+    assert "Did you mean" in err
+    assert fake_client.last_call is None
+
+
+def test_call_rejects_malformed_date(capsys, fake_client):
+    code, _, err = run(
+        capsys, "call", "mcp", "--start-date", "06/09/2026", "--end-date", "2026-07-02"
+    )
+    assert code == 2
+    assert "start_date" in err
+    assert "YYYY-MM-DD" in err
+    ## The client is never constructed, so a malformed date cannot be reported
+    ## as a credentials failure.
+    assert fake_client.last_init is None
+    assert fake_client.last_call is None
+
+
+def test_call_rejects_missing_required_param(capsys, fake_client):
+    code, _, err = run(capsys, "call", "mcp", "--start-date", "2026-07-01")
+    assert code == 2
+    assert "missing required parameter(s)" in err
+    assert "end_date" in err
+    assert fake_client.last_call is None
+
+
+def test_call_rejects_unknown_param(capsys, fake_client):
+    code, _, err = run(
+        capsys,
+        "call",
+        "mcp",
+        "--start-date",
+        "2026-07-01",
+        "--end-date",
+        "2026-07-02",
+        "-p",
+        "org_id=123",
+    )
+    assert code == 2
+    assert "does not accept parameter(s)" in err
+    assert fake_client.last_call is None
+
+
+def test_call_unknown_param_allowed_with_opt_out(capsys, fake_client):
+    code, _, _ = run(
+        capsys,
+        "call",
+        "mcp",
+        "--start-date",
+        "2026-07-01",
+        "--end-date",
+        "2026-07-02",
+        "-p",
+        "org_id=123",
+        "--no-strict-params",
+    )
+    assert code == 0
+    assert fake_client.last_call[0] == "mcp"
+    assert fake_client.last_init["strict_params"] is False
+
+
 def test_call_output_file(capsys, fake_client, tmp_path):
     target = tmp_path / "out.json"
-    code, out, err = run(capsys, "call", "mcp", "--output", str(target))
+    code, out, err = run(
+        capsys,
+        "call",
+        "mcp",
+        "--start-date",
+        "2026-07-01",
+        "--end-date",
+        "2026-07-02",
+        "--output",
+        str(target),
+    )
     assert code == 0
     assert out == ""
     assert str(target) in err

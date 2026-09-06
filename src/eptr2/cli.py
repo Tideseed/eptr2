@@ -116,6 +116,7 @@ def _serialize_records(result, fmt: str) -> str:
 
 def _cmd_call(args) -> int:
     from eptr2 import EPTR2
+    from eptr2.agentic.validation import EptrValidationError, validate_call
 
     params = {}
     if args.start_date:
@@ -129,13 +130,30 @@ def _cmd_call(args) -> int:
         k, v = item.split("=", 1)
         params[k] = v
 
+    ## Validate before constructing the client. EPTR2() performs a ticket
+    ## round-trip, so validating afterwards reports a mistyped date or call key
+    ## as an authentication failure, which sends the caller to fix the wrong
+    ## thing. Exit 2 means the request was malformed and the caller can fix it;
+    ## exit 1 means the request was well-formed but the call did not succeed.
+    try:
+        key = validate_call(
+            args.key, params, strict_unknown=not args.no_strict_params
+        )
+    except EptrValidationError as e:
+        _err(str(e))
+        return 2
+
     try:
         client = EPTR2(
             use_dotenv=not args.no_dotenv,
             dotenv_path=args.dotenv_path,
             recycle_tgt=True,
+            strict_params=not args.no_strict_params,
         )
-        result = client.call(args.key, **params)
+        result = client.call(key, **params)
+    except EptrValidationError as e:
+        _err(str(e))
+        return 2
     except Exception as e:
         _err(f"Call failed: {e}")
         return 1
@@ -209,15 +227,16 @@ def _cmd_install_skills(args) -> int:
 
     try:
         installed = skills_mod.install_skills(
-            skills_mod.resolve_dest(args.dest),
+            args.dest,
             skills=args.only or None,
             force=args.force,
+            client=args.client,
         )
     except ValueError as e:
         _err(str(e))
         return 1
 
-    dest = skills_mod.resolve_dest(args.dest)
+    dest = skills_mod.resolve_dest(args.dest, client=args.client)
     if installed:
         _err(f"Installed {len(installed)} skill(s) to {dest}:")
         for p in installed:
@@ -331,6 +350,15 @@ def build_parser() -> argparse.ArgumentParser:
     p.add_argument("--output", help="Write result to file instead of stdout")
     p.add_argument("--no-dotenv", action="store_true", help="Do not read a .env file")
     p.add_argument("--dotenv-path", default=".env")
+    p.add_argument(
+        "--no-strict-params",
+        action="store_true",
+        help=(
+            "Send the request even if it carries parameters the endpoint does not "
+            "accept (they are dropped, so any filtering they implied is silently "
+            "lost). Off by default: unrecognised parameters are an error."
+        ),
+    )
     p.set_defaults(func=_cmd_call)
 
     p = sub.add_parser("schema", help="Generate or check the machine-readable API schema")
@@ -343,7 +371,11 @@ def build_parser() -> argparse.ArgumentParser:
     p.add_argument(
         "--dest",
         default="project",
-        help="'user' (~/.claude/skills), 'project' (./.claude/skills) or a path",
+        help="'project' (./.agents/skills), 'user' (~/.agents/skills), or an explicit path",
+    )
+    p.add_argument(
+        "--client", choices=["generic", "claude"], default="generic",
+        help="Use .agents/skills by default; 'claude' selects .claude/skills for project/user destinations",
     )
     p.add_argument("--list", action="store_true", help="List bundled skills and exit")
     p.add_argument("--only", action="append", metavar="SKILL", help="Install only these skills")

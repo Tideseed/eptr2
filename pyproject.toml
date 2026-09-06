@@ -5,7 +5,7 @@ description = "EPIAS Transparency Platform v2.0 Python client by Robokami / Tide
 authors = [{ name = "Tideseed", email = "info@tideseed.com" }]
 license = { text = "Apache License 2.0" }
 readme = "README.md"
-requires-python = ">=3.10"
+requires-python = ">=3.11"
 dependencies = ["urllib3>=2.7.0", "pytz>=2024.1"]
 
 

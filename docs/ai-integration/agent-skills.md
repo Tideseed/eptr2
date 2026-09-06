@@ -4,7 +4,7 @@ eptr2 bundles agent skills that provide specialized guidance for different types
 
 ## What are Agent Skills?
 
-Agent Skills are structured knowledge files in the provider-agnostic Agent Skills format — a directory containing a `SKILL.md` file with trigger descriptions plus optional reference files and scripts. Any compatible AI assistant or agent runtime can consume them: when you ask about electricity prices, consumption, or generation, the assistant automatically loads the relevant skill.
+Agent Skills are structured knowledge files in the provider-agnostic Agent Skills format — a directory containing a `SKILL.md` file with trigger descriptions plus optional reference files and scripts. Compatible runtimes can consume them; discovery and automatic activation depend on the runtime configuration. The skills use standard Markdown and Python/CLI examples without vendor-specific tool allowlists.
 
 ## Available Skills
 
@@ -20,7 +20,7 @@ Agent Skills are structured knowledge files in the provider-agnostic Agent Skill
 
 ## How Skills Work
 
-Skills are automatically invoked based on your query:
+Runtimes that support automatic skill discovery can select a skill based on your query:
 
 | Your Question | Skill Triggered |
 |---------------|-----------------|
@@ -116,15 +116,28 @@ The skills ship inside the pip package — no repository clone needed:
 
 ```bash
 pip install eptr2
-eptr2 install-skills                 # into ./.claude/skills (project)
-eptr2 install-skills --dest user     # into ~/.claude/skills
+eptr2 install-skills                 # into ./.agents/skills (project)
+eptr2 install-skills --dest user     # into ~/.agents/skills
+eptr2 install-skills --client claude  # into ./.claude/skills
+eptr2 install-skills --client claude --dest user  # into ~/.claude/skills
 eptr2 install-skills --dest PATH     # anywhere your agent runtime looks for skills
 eptr2 install-skills --list          # see what's bundled
 ```
 
+The default changed from `.claude/skills` to `.agents/skills`. Existing installations are not moved, deleted, or overwritten. Use `--client claude` to retain the old project/user locations, or `--dest PATH` for any other runtime. Explicit paths take precedence over `--client`; leading `~` is expanded. Avoid installing duplicate copies into multiple directories scanned by the same runtime.
+
+`--only NAME` selects a skill; existing directories are skipped unless `--force` is supplied. The same choices are available in Python:
+
+```python
+from eptr2.agentic.skills import install_skills
+
+install_skills()  # project .agents/skills
+install_skills("user", client="claude")  # user .claude/skills
+```
+
 ## Skill Files Location
 
-Inside the package the canonical copies live under `eptr2/assets/skills/`; the repository keeps a synced copy in `.claude/skills/` for repo-local use:
+Inside the package the canonical copies live under `eptr2/assets/skills/`; the repository keeps a synced copy in `.agents/skills/` for repo-local use:
 
 ```
 eptr2/assets/skills/
@@ -141,7 +154,7 @@ eptr2/assets/skills/
 
 You can create custom skills for your specific use cases:
 
-1. Create a directory in your runtime's skills location (e.g. `.claude/skills/`)
+1. Create a directory in your runtime's skills location (e.g. `.agents/skills/`)
 2. Add a `SKILL.md` file with:
    - Skill description
    - Trigger keywords

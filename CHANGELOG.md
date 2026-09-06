@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased — provider-neutral agent skills
+
+- Default project/user skill installations to `.agents/skills`; `--client claude` retains `.claude/skills`, and `--dest PATH` supports other runtimes. Existing installations are left untouched.
+- Move the repository skill mirror to `.agents/skills` and remove vendor-specific tool allowlists from the packaged skills.
+- Correct skill examples for composite signatures, exported wrapper names, price fields, generation totals, and contract-aware costs; add executable offline example checks.
+
 All notable changes are published via GitHub Releases.
 
 - Repository: [Tideseed/eptr2](https://github.com/Tideseed/eptr2)

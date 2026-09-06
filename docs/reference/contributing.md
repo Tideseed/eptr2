@@ -6,7 +6,7 @@ Thank you for your interest in contributing to eptr2! This guide will help you g
 
 ### Prerequisites
 
-- Python 3.10 or higher
+- Python 3.11 or higher
 - Git
 - uv or pip
 

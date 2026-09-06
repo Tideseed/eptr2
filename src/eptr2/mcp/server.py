@@ -9,9 +9,16 @@ import json
 import sys
 import logging
 import asyncio
+import functools
 from typing import Any, Optional
 
 from eptr2 import EPTR2
+from eptr2.agentic.validation import (
+    DATE_PARAMS,
+    EptrValidationError,
+    validate_call,
+    validate_date_value,
+)
 
 
 logger = logging.getLogger(__name__)
@@ -38,6 +45,10 @@ _client_config: dict[str, Any] = {
     "recycle_tgt": True,
     "dotenv_path": ".env",
     "tgt_path": ".",
+    ## Agents cannot see a UserWarning on stderr. Without this, a misspelled
+    ## filter is dropped and the call still returns a plausible-looking but
+    ## unfiltered result -- a wrong answer rather than an error.
+    "strict_params": True,
 }
 
 
@@ -75,6 +86,7 @@ def create_mcp_server(
         "recycle_tgt": recycle_tgt,
         "dotenv_path": dotenv_path,
         "tgt_path": tgt_path,
+        "strict_params": True,
     }
     _eptr_client = None
     return mcp
@@ -96,6 +108,43 @@ async def run_mcp_server(
     await asyncio.to_thread(server.run)
 
 
+def _input_error(message: str) -> str:
+    """Render an input error as data the calling agent can act on.
+
+    An exception raised out of a tool reaches the agent as an opaque protocol
+    error with a traceback. A structured payload naming the problem lets it
+    correct the call instead of guessing or retrying unchanged.
+    """
+    return json.dumps(
+        {"error": "invalid_input", "message": message},
+        indent=2,
+        ensure_ascii=False,
+    )
+
+
+def _validated(func):
+    """Validate date-like arguments and report input errors as data.
+
+    Applies to every tool, including those that go through composite helpers
+    rather than ``EPTR2.call``, so a malformed date is named at the surface
+    instead of surfacing as ``Invalid isoformat string`` from deep in the
+    request layer -- or, worse, as an authentication error because the client
+    was constructed first.
+    """
+
+    @functools.wraps(func)
+    def wrapper(*args, **kwargs):
+        try:
+            for name, value in kwargs.items():
+                if name in DATE_PARAMS:
+                    validate_date_value(name, value)
+            return func(*args, **kwargs)
+        except EptrValidationError as exc:
+            return _input_error(str(exc))
+
+    return wrapper
+
+
 def _format_result(result: Any) -> str:
     """Format result for MCP response."""
     if hasattr(result, "to_json"):
@@ -110,6 +159,7 @@ def _format_result(result: Any) -> str:
 if MCP_AVAILABLE:
 
     @mcp.tool()
+    @_validated
     def get_market_clearing_price(start_date: str, end_date: str) -> str:
         """Get Market Clearing Price (MCP/PTF) data from Turkish electricity market."""
         client = _get_eptr_client()
@@ -117,6 +167,7 @@ if MCP_AVAILABLE:
         return _format_result(result)
 
     @mcp.tool()
+    @_validated
     def get_system_marginal_price(start_date: str, end_date: str) -> str:
         """Get System Marginal Price (SMP/SMF) data from Turkish electricity market."""
         client = _get_eptr_client()
@@ -124,6 +175,7 @@ if MCP_AVAILABLE:
         return _format_result(result)
 
     @mcp.tool()
+    @_validated
     def get_real_time_consumption(start_date: str, end_date: str) -> str:
         """Get real-time electricity consumption data in MWh."""
         client = _get_eptr_client()
@@ -131,6 +183,7 @@ if MCP_AVAILABLE:
         return _format_result(result)
 
     @mcp.tool()
+    @_validated
     def get_real_time_generation(start_date: str, end_date: str) -> str:
         """Get real-time generation data by resource type (wind, solar, hydro, etc.)."""
         client = _get_eptr_client()
@@ -138,6 +191,7 @@ if MCP_AVAILABLE:
         return _format_result(result)
 
     @mcp.tool()
+    @_validated
     def get_demand_forecast(start_date: str, end_date: str) -> str:
         """Get demand forecast data (Load Plan/UECM)."""
         client = _get_eptr_client()
@@ -145,6 +199,7 @@ if MCP_AVAILABLE:
         return _format_result(result)
 
     @mcp.tool()
+    @_validated
     def get_imbalance_price(start_date: str, end_date: str) -> str:
         """Get electricity imbalance prices (positive and negative)."""
         client = _get_eptr_client()
@@ -152,6 +207,7 @@ if MCP_AVAILABLE:
         return _format_result(result)
 
     @mcp.tool()
+    @_validated
     def get_available_eptr2_calls() -> str:
         """List all 231 available API calls in the eptr2 library.
         Requires no credentials."""
@@ -168,6 +224,7 @@ if MCP_AVAILABLE:
         )
 
     @mcp.tool()
+    @_validated
     def describe_eptr2_call(call_key: str) -> str:
         """Get full details for one API call key: description (EN/TR), category,
         HTTP method, endpoint path, and required/optional parameters.
@@ -183,6 +240,7 @@ if MCP_AVAILABLE:
         return json.dumps(d, indent=2, ensure_ascii=False, default=str)
 
     @mcp.tool()
+    @_validated
     def search_eptr2_calls(query: str, category: Optional[str] = None) -> str:
         """Search API call keys by keyword (matches key, title and description in
         English and Turkish). Optionally filter by category (e.g. GÖP, GİP, DGP).
@@ -201,6 +259,7 @@ if MCP_AVAILABLE:
         return json.dumps(compact, indent=2, ensure_ascii=False)
 
     @mcp.tool()
+    @_validated
     def call_eptr2_api(
         call_key: str,
         start_date: Optional[str] = None,
@@ -208,7 +267,6 @@ if MCP_AVAILABLE:
         additional_params: Optional[dict[str, Any] | str] = None,
     ) -> str:
         """Generic function to call any eptr2 API endpoint. Use get_available_eptr2_calls first."""
-        client = _get_eptr_client()
         params = {}
         if start_date:
             params["start_date"] = start_date
@@ -216,14 +274,33 @@ if MCP_AVAILABLE:
             params["end_date"] = end_date
         if additional_params:
             if isinstance(additional_params, str):
-                additional_params = json.loads(additional_params)
+                try:
+                    additional_params = json.loads(additional_params)
+                except json.JSONDecodeError as exc:
+                    return _input_error(
+                        "additional_params is not valid JSON "
+                        f"({exc.msg} at position {exc.pos}). Pass an object such as "
+                        '{"pp_id": 123}, or omit it.'
+                    )
             if not isinstance(additional_params, dict):
-                raise TypeError("additional_params must be a dictionary or JSON string")
+                return _input_error(
+                    "additional_params must be a JSON object (or a JSON string "
+                    f"encoding one), got {type(additional_params).__name__}."
+                )
             params.update(additional_params)
-        result = client.call(call_key, **params)
+
+        ## Validate the key and its parameters before touching the client: a
+        ## typo would otherwise surface as an authentication failure, or -- for
+        ## an unrecognised parameter -- as a successful but silently unfiltered
+        ## result, which is the harder mistake for an agent to notice.
+        key = validate_call(call_key, params)
+
+        client = _get_eptr_client()
+        result = client.call(key, **params)
         return _format_result(result)
 
     @mcp.tool()
+    @_validated
     def get_hourly_consumption_and_forecast(start_date: str, end_date: str) -> str:
         """Get composite data combining load plan, UECM, and real-time consumption."""
         client = _get_eptr_client()
@@ -235,6 +312,7 @@ if MCP_AVAILABLE:
         return _format_result(result)
 
     @mcp.tool()
+    @_validated
     def get_price_and_cost_data(start_date: str, end_date: str) -> str:
         """Get comprehensive price and cost data including MCP, SMP, and imbalance costs."""
         client = _get_eptr_client()
@@ -246,6 +324,7 @@ if MCP_AVAILABLE:
         return _format_result(result)
 
     @mcp.tool()
+    @_validated
     def get_market_operations_summary(start_date: str, end_date: str) -> str:
         """Get combined market operations data: Day-Ahead Market (GÖP) matched
         quantities, bilateral contracts (İA) and Intraday Market (GİP) volumes,
@@ -259,6 +338,7 @@ if MCP_AVAILABLE:
         return _format_result(result)
 
     @mcp.tool()
+    @_validated
     def get_balancing_market_data(start_date: str, end_date: str) -> str:
         """Get Balancing Power Market (DGP) data: up/down regulation
         instructions (YAL/YAT) together with the System Marginal Price."""
@@ -269,6 +349,7 @@ if MCP_AVAILABLE:
         return _format_result(result)
 
     @mcp.tool()
+    @_validated
     def get_bulk_production_plans(
         start_date: str,
         end_date: str,
@@ -293,6 +374,7 @@ if MCP_AVAILABLE:
         return _format_result(result)
 
     @mcp.tool()
+    @_validated
     def get_bulk_actual_generation(
         start_date: str,
         end_date: str,
@@ -317,6 +399,7 @@ if MCP_AVAILABLE:
         return _format_result(result)
 
     @mcp.tool()
+    @_validated
     def calculate_imbalance_prices_and_costs(
         contract: str,
         mcp_price: float,
@@ -371,6 +454,7 @@ if MCP_AVAILABLE:
         return _format_result(result)
 
     @mcp.tool()
+    @_validated
     def calculate_kupst_deviation_cost(
         contract: str,
         actual: float,

@@ -48,23 +48,28 @@ def list_bundled_skills() -> list[str]:
     return sorted(p.name for p in root.iterdir() if p.is_dir())
 
 
-def resolve_dest(target: Union[str, Path]) -> Path:
+def resolve_dest(target: Union[str, Path], client: str = "generic") -> Path:
     """Resolve an install destination.
 
-    "user" -> ~/.claude/skills (a common agent-skills location),
-    "project" -> ./.claude/skills, anything else is used as a path as-is.
+    "project" and "user" select .agents/skills under the working directory
+    or home directory. client="claude" selects .claude/skills instead.
+    Explicit paths take precedence over the client and expand a leading ~.
     """
+    if client not in {"generic", "claude"}:
+        raise ValueError("client must be 'generic' or 'claude'")
+    directory = ".claude" if client == "claude" else ".agents"
     if target == "user":
-        return Path.home() / ".claude" / "skills"
+        return Path.home() / directory / "skills"
     if target == "project":
-        return Path.cwd() / ".claude" / "skills"
-    return Path(target)
+        return Path.cwd() / directory / "skills"
+    return Path(target).expanduser()
 
 
 def install_skills(
-    dest: Union[str, Path],
+    dest: Union[str, Path] = "project",
     skills: Optional[list[str]] = None,
     force: bool = False,
+    client: str = "generic",
 ) -> list[Path]:
     """Copy bundled skills into ``dest`` (created if missing).
 
@@ -84,7 +89,7 @@ def install_skills(
             )
         selected = skills
 
-    dest_path = resolve_dest(dest)
+    dest_path = resolve_dest(dest, client=client)
     dest_path.mkdir(parents=True, exist_ok=True)
 
     installed = []
