@@ -28,8 +28,8 @@ def get_all_important_ids(
     max_lives = kwargs.get("max_lives", DEFAULT_COMPOSITE_RETRIES)
     retry_kwargs = {
         "retry_attempts": max_lives,
-        "retry_backoff": kwargs.get("retry_backoff", 0),
-        "retry_backoff_max": kwargs.get("retry_backoff_max", 0),
+        "retry_backoff": kwargs.get("retry_backoff", DEFAULT_COMPOSITE_BACKOFF),
+        "retry_backoff_max": kwargs.get("retry_backoff_max", DEFAULT_COMPOSITE_BACKOFF),
         "retry_jitter": kwargs.get("retry_jitter", 0.0),
     }
 

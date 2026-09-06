@@ -21,9 +21,9 @@ def process_idm_data(
     """
     retry_kwargs = {
         "retry_attempts": kwargs.get("lives", DEFAULT_COMPOSITE_RETRIES),
-        "retry_backoff": kwargs.get("retry_backoff", 0),
+        "retry_backoff": kwargs.get("retry_backoff", DEFAULT_COMPOSITE_BACKOFF),
         "retry_backoff_max": kwargs.get(
-            "retry_backoff_max", kwargs.get("retry_backoff", 0)
+            "retry_backoff_max", kwargs.get("retry_backoff", DEFAULT_COMPOSITE_BACKOFF)
         ),
         "retry_jitter": kwargs.get("retry_jitter", 0.0),
     }
@@ -80,9 +80,9 @@ def get_day_ahead_and_bilateral_matches(
 
     retry_kwargs = {
         "retry_attempts": kwargs.get("lives", DEFAULT_COMPOSITE_RETRIES),
-        "retry_backoff": kwargs.get("retry_backoff", 0),
+        "retry_backoff": kwargs.get("retry_backoff", DEFAULT_COMPOSITE_BACKOFF),
         "retry_backoff_max": kwargs.get(
-            "retry_backoff_max", kwargs.get("retry_backoff", 0)
+            "retry_backoff_max", kwargs.get("retry_backoff", DEFAULT_COMPOSITE_BACKOFF)
         ),
         "retry_jitter": kwargs.get("retry_jitter", 0.0),
     }
@@ -269,8 +269,8 @@ def get_day_ahead_detail_info(
                     end_date=end_date,
                     request_kwargs={"timeout": kwargs.get("timeout", DEFAULT_COMPOSITE_TIMEOUT)},
                     retry_attempts=kwargs.get("lives", lives),
-                    retry_backoff=kwargs.get("retry_backoff", 0),
-                    retry_backoff_max=kwargs.get("retry_backoff_max", 0),
+                    retry_backoff=kwargs.get("retry_backoff", DEFAULT_COMPOSITE_BACKOFF),
+                    retry_backoff_max=kwargs.get("retry_backoff_max", DEFAULT_COMPOSITE_BACKOFF),
                     retry_jitter=kwargs.get("retry_jitter", 0.0),
                 )
 

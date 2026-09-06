@@ -23,6 +23,16 @@ def get_hourly_consumption_and_forecast_data(
     if eptr is None:
         eptr = EPTR2(dotenv_path=kwargs.get("dotenv_path", ".env"))
 
+    ## Transient handshake/read timeouts are exactly what retries exist for;
+    ## without them a single slow response fails the whole composite.
+    retry_kwargs = {
+        "retry_attempts": kwargs.get("max_lives", DEFAULT_COMPOSITE_RETRIES),
+        "retry_backoff": kwargs.get("retry_backoff", DEFAULT_COMPOSITE_BACKOFF),
+        "retry_backoff_max": kwargs.get("retry_backoff_max", DEFAULT_COMPOSITE_BACKOFF),
+        "retry_jitter": 0.0,
+    }
+
+
     if verbose:
         logger.info("Loading load plan...")
 
@@ -31,6 +41,7 @@ def get_hourly_consumption_and_forecast_data(
         start_date=start_date,
         end_date=end_date,
         request_kwargs={"timeout": DEFAULT_COMPOSITE_TIMEOUT},
+        **retry_kwargs,
     )
 
     df = lp_df[["date", "lep"]].rename(columns={"lep": "load_plan", "date": "dt"})
@@ -39,7 +50,7 @@ def get_hourly_consumption_and_forecast_data(
         logger.info("Loading UECM...")
 
     uecm_df: pd.DataFrame = eptr.call(
-        "uecm", start_date=start_date, end_date=end_date, request_kwargs={"timeout": DEFAULT_COMPOSITE_TIMEOUT}
+        "uecm", start_date=start_date, end_date=end_date, request_kwargs={"timeout": DEFAULT_COMPOSITE_TIMEOUT}, **retry_kwargs
     )
 
     if not uecm_df.empty:
@@ -61,6 +72,7 @@ def get_hourly_consumption_and_forecast_data(
         start_date=start_date,
         end_date=end_date,
         request_kwargs={"timeout": DEFAULT_COMPOSITE_TIMEOUT},
+        **retry_kwargs,
     )
 
     df = df.merge(

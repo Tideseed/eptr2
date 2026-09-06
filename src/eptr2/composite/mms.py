@@ -1,4 +1,9 @@
 import logging
+from eptr2.main import (
+    DEFAULT_COMPOSITE_BACKOFF,
+    DEFAULT_COMPOSITE_RETRIES,
+    DEFAULT_COMPOSITE_TIMEOUT,
+)
 from eptr2 import EPTR2
 from eptr2.util.time import iso_to_contract
 import pandas as pd
@@ -35,6 +40,13 @@ def get_mms_detail(
         uevcb_id=uevcb_id,
         pp_id=pp_id,
         message_type_id=message_type_id,
+        request_kwargs={"timeout": kwargs.get("timeout", DEFAULT_COMPOSITE_TIMEOUT)},
+        ## Transient handshake/read timeouts are what retries exist for; this
+        ## call previously had neither a timeout nor a retry budget.
+        retry_attempts=kwargs.get("max_lives", DEFAULT_COMPOSITE_RETRIES),
+        retry_backoff=kwargs.get("retry_backoff", DEFAULT_COMPOSITE_BACKOFF),
+        retry_backoff_max=kwargs.get("retry_backoff_max", DEFAULT_COMPOSITE_BACKOFF),
+        retry_jitter=0.0,
     )
 
     df_wip = df.explode("faultDetails", ignore_index=True)
