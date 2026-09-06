@@ -1717,7 +1717,7 @@
 </span></code></pre></div>
 <p>The static site will be generated in the <code>site/</code> directory.</p>
 <h2 id="deployment">Deployment<a class="headerlink" href="#deployment" title="Permanent link">&para;</a></h2>
-<p>Documentation is automatically deployed to GitHub Pages when changes are pushed to the <code>main</code> branch.</p>
+<p>Documentation is automatically deployed to GitHub Pages when changes are pushed to the <code>docs</code> branch (the workflow also filters on <code>docs/**</code>, <code>mkdocs.yml</code> and <code>src/eptr2/**</code>).</p>
 <p>The deployment workflow is defined in <code>.github/workflows/docs.yml</code>.</p>
 <h3 id="manual-deployment">Manual deployment<a class="headerlink" href="#manual-deployment" title="Permanent link">&para;</a></h3>
 <div class="language-bash highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>mkdocs<span class="w"> </span>gh-deploy

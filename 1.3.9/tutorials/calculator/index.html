@@ -1395,34 +1395,6 @@
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="Running the Calculator">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#prerequisites" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Prerequisites
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#launch" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Launch
-      
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
 </li>
       
         <li class="md-nav__item">
@@ -1782,34 +1754,6 @@
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="Running the Calculator">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#prerequisites" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Prerequisites
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#launch" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Launch
-      
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
 </li>
       
         <li class="md-nav__item">
@@ -2049,23 +1993,38 @@
 <h1 id="calculator-app">Calculator App<a class="headerlink" href="#calculator-app" title="Permanent link">&para;</a></h1>
 <p>The calculator tutorial app helps you estimate imbalance and KÜPST (deviation) costs for any date and hour.</p>
 <h2 id="running-the-calculator">Running the Calculator<a class="headerlink" href="#running-the-calculator" title="Permanent link">&para;</a></h2>
-<h3 id="prerequisites">Prerequisites<a class="headerlink" href="#prerequisites" title="Permanent link">&para;</a></h3>
-<p>Install eptr2 with all extras:</p>
-<div class="language-bash highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>pip<span class="w"> </span>install<span class="w"> </span><span class="s2">"eptr2[allextras]"</span>
+<p>The calculator ships in the separate <code>eptr2-tutorials</code> project (in the
+<code>tutorials/</code> directory of the <a href="https://github.com/Tideseed/eptr2">eptr2 repository</a>),
+so that installing <code>eptr2</code> itself does not pull in Streamlit:</p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>git<span class="w"> </span>clone<span class="w"> </span>https://github.com/Tideseed/eptr2.git
+</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="nb">cd</span><span class="w"> </span>eptr2/tutorials
+</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>uv<span class="w"> </span>run<span class="w"> </span>eptr2-calc
 </span></code></pre></div>
-<h3 id="launch">Launch<a class="headerlink" href="#launch" title="Permanent link">&para;</a></h3>
-<div class="language-python highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">eptr2.tutorials</span><span class="w"> </span><span class="kn">import</span> <span class="n">run_calc_app</span>
-</span><span id="__span-1-2"><a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>
-</span><span id="__span-1-3"><a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a><span class="n">run_calc_app</span><span class="p">(</span>
-</span><span id="__span-1-4"><a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a>    <span class="n">username</span><span class="o">=</span><span class="s2">"your.email@example.com"</span><span class="p">,</span>
-</span><span id="__span-1-5"><a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a>    <span class="n">password</span><span class="o">=</span><span class="s2">"yourpassword"</span>
-</span><span id="__span-1-6"><a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a><span class="p">)</span>
+<p>Or install it first:</p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="nb">cd</span><span class="w"> </span>eptr2/tutorials
+</span><span id="__span-1-2"><a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>pip<span class="w"> </span>install<span class="w"> </span>-e<span class="w"> </span>.
+</span><span id="__span-1-3"><a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a>eptr2-calc
 </span></code></pre></div>
-<p>Or with <code>.env</code> credentials:</p>
-<div class="language-python highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">eptr2.tutorials</span><span class="w"> </span><span class="kn">import</span> <span class="n">run_calc_app</span>
+<p>Credentials come from <code>EPTR_USERNAME</code> / <code>EPTR_PASSWORD</code> in your environment or a
+<code>.env</code> file.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p><code>from eptr2.tutorials import run_calc_app</code> no longer works: the tutorial
+apps were moved out of the main package.</p>
+</div>
+<div class="admonition tip">
+<p class="admonition-title">Calculating costs in your own code</p>
+<p>You do not need the app to compute these numbers. The cost utilities are
+plain functions that need no API call:</p>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">eptr2.util.costs</span><span class="w"> </span><span class="kn">import</span> <span class="n">calculate_unit_price_and_costs_by_contract</span>
 </span><span id="__span-2-2"><a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>
-</span><span id="__span-2-3"><a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a><span class="n">run_calc_app</span><span class="p">()</span>  <span class="c1"># Uses EPTR_USERNAME and EPTR_PASSWORD</span>
+</span><span id="__span-2-3"><a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a><span class="n">calculate_unit_price_and_costs_by_contract</span><span class="p">(</span>
+</span><span id="__span-2-4"><a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a>    <span class="n">contract</span><span class="o">=</span><span class="s2">"PH26070101"</span><span class="p">,</span> <span class="n">mcp</span><span class="o">=</span><span class="mi">4000</span><span class="p">,</span> <span class="n">smp</span><span class="o">=</span><span class="mi">4000</span><span class="p">,</span>
+</span><span id="__span-2-5"><a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a>    <span class="n">system_direction</span><span class="o">=</span><span class="s2">"Enerji Açığı"</span><span class="p">,</span>  <span class="c1"># required when MCP == SMP</span>
+</span><span id="__span-2-6"><a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a><span class="p">)</span>
 </span></code></pre></div>
+<p>See the <a href="../../api/util/">Utilities API</a> for the full set.</p>
+</div>
 <h2 id="features">Features<a class="headerlink" href="#features" title="Permanent link">&para;</a></h2>
 <h3 id="imbalance-cost-calculation">Imbalance Cost Calculation<a class="headerlink" href="#imbalance-cost-calculation" title="Permanent link">&para;</a></h3>
 <p>Calculate costs for energy imbalances:</p>
@@ -2135,9 +2094,7 @@
 </span></code></pre></div>
 <h2 id="configuration">Configuration<a class="headerlink" href="#configuration" title="Permanent link">&para;</a></h2>
 <h3 id="custom-port">Custom Port<a class="headerlink" href="#custom-port" title="Permanent link">&para;</a></h3>
-<div class="language-python highlight"><pre><span></span><code><span id="__span-5-1"><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">eptr2.tutorials</span><span class="w"> </span><span class="kn">import</span> <span class="n">run_calc_app</span>
-</span><span id="__span-5-2"><a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a>
-</span><span id="__span-5-3"><a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a><span class="n">run_calc_app</span><span class="p">(</span><span class="n">port</span><span class="o">=</span><span class="mi">8503</span><span class="p">)</span>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-5-1"><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a>streamlit<span class="w"> </span>run<span class="w"> </span>eptr2_tutorials/calc.py<span class="w"> </span>--server.port<span class="w"> </span><span class="m">8503</span>
 </span></code></pre></div>
 <h2 id="see-also">See Also<a class="headerlink" href="#see-also" title="Permanent link">&para;</a></h2>
 <ul>

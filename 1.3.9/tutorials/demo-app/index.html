@@ -1378,45 +1378,6 @@
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="Running Locally">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#prerequisites" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Prerequisites
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#command-line" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Command Line
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#programmatic" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Programmatic
-      
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
 </li>
       
         <li class="md-nav__item">
@@ -1815,45 +1776,6 @@
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="Running Locally">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#prerequisites" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Prerequisites
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#command-line" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Command Line
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#programmatic" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Programmatic
-      
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
 </li>
       
         <li class="md-nav__item">
@@ -2091,31 +2013,35 @@
 
 
 <h1 id="demo-app">Demo App<a class="headerlink" href="#demo-app" title="Permanent link">&para;</a></h1>
-<p>eptr2 includes a built-in Streamlit demo app for exploring Turkish electricity market data interactively.</p>
+<p>The Streamlit demo app lets you explore Turkish electricity market data
+interactively. It lives in the separate <code>eptr2-tutorials</code> package, so the core
+<code>eptr2</code> install stays lightweight (no Streamlit dependency).</p>
 <h2 id="online-demo">Online Demo<a class="headerlink" href="#online-demo" title="Permanent link">&para;</a></h2>
 <p>Visit the live demo at: <strong><a href="https://eptr2demo.streamlit.app/">https://eptr2demo.streamlit.app/</a></strong></p>
 <h2 id="running-locally">Running Locally<a class="headerlink" href="#running-locally" title="Permanent link">&para;</a></h2>
-<h3 id="prerequisites">Prerequisites<a class="headerlink" href="#prerequisites" title="Permanent link">&para;</a></h3>
-<p>Install eptr2 with all extras:</p>
-<div class="language-bash highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>pip<span class="w"> </span>install<span class="w"> </span><span class="s2">"eptr2[allextras]"</span>
+<p>The apps ship in the <code>tutorials/</code> directory of the
+<a href="https://github.com/Tideseed/eptr2">eptr2 repository</a>, as their own
+<code>eptr2-tutorials</code> project:</p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>git<span class="w"> </span>clone<span class="w"> </span>https://github.com/Tideseed/eptr2.git
+</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="nb">cd</span><span class="w"> </span>eptr2/tutorials
+</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>uv<span class="w"> </span>run<span class="w"> </span>eptr2demo
 </span></code></pre></div>
-<h3 id="command-line">Command Line<a class="headerlink" href="#command-line" title="Permanent link">&para;</a></h3>
-<p>Run the demo app from the terminal:</p>
-<div class="language-bash highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>eptr2demo
+<p>Or install it and use the console scripts:</p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="nb">cd</span><span class="w"> </span>eptr2/tutorials
+</span><span id="__span-1-2"><a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>pip<span class="w"> </span>install<span class="w"> </span>-e<span class="w"> </span>.
+</span><span id="__span-1-3"><a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a>
+</span><span id="__span-1-4"><a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a>eptr2demo<span class="w">        </span><span class="c1"># composite multi-page app</span>
+</span><span id="__span-1-5"><a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a>eptr2-demo<span class="w">       </span><span class="c1"># single-page data explorer</span>
+</span><span id="__span-1-6"><a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a>eptr2-calc<span class="w">       </span><span class="c1"># imbalance / KÜPST calculator</span>
 </span></code></pre></div>
-<h3 id="programmatic">Programmatic<a class="headerlink" href="#programmatic" title="Permanent link">&para;</a></h3>
-<div class="language-python highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">eptr2.tutorials</span><span class="w"> </span><span class="kn">import</span> <span class="n">run_demo_app</span>
-</span><span id="__span-2-2"><a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>
-</span><span id="__span-2-3"><a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a><span class="n">run_demo_app</span><span class="p">(</span>
-</span><span id="__span-2-4"><a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a>    <span class="n">username</span><span class="o">=</span><span class="s2">"your.email@example.com"</span><span class="p">,</span>
-</span><span id="__span-2-5"><a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a>    <span class="n">password</span><span class="o">=</span><span class="s2">"yourpassword"</span>
-</span><span id="__span-2-6"><a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a><span class="p">)</span>
-</span></code></pre></div>
-<p>Or with <code>.env</code> file credentials:</p>
-<div class="language-python highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">eptr2.tutorials</span><span class="w"> </span><span class="kn">import</span> <span class="n">run_demo_app</span>
-</span><span id="__span-3-2"><a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a>
-</span><span id="__span-3-3"><a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a><span class="n">run_demo_app</span><span class="p">()</span>  <span class="c1"># Will use EPTR_USERNAME and EPTR_PASSWORD from .env</span>
-</span></code></pre></div>
+<p>Credentials are read from <code>EPTR_USERNAME</code> / <code>EPTR_PASSWORD</code> in your environment
+or a <code>.env</code> file, exactly as for the library itself.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Earlier versions exposed these apps as <code>eptr2.tutorials</code> inside the main
+package. They were moved out so that installing <code>eptr2</code> does not pull in
+Streamlit; <code>from eptr2.tutorials import run_demo_app</code> no longer works.</p>
+</div>
 <h2 id="features">Features<a class="headerlink" href="#features" title="Permanent link">&para;</a></h2>
 <p>The demo app provides:</p>
 <h3 id="data-explorer">Data Explorer<a class="headerlink" href="#data-explorer" title="Permanent link">&para;</a></h3>
@@ -2145,36 +2071,33 @@
 </div>
 <h2 id="configuration">Configuration<a class="headerlink" href="#configuration" title="Permanent link">&para;</a></h2>
 <h3 id="custom-port">Custom Port<a class="headerlink" href="#custom-port" title="Permanent link">&para;</a></h3>
-<div class="language-python highlight"><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">eptr2.tutorials</span><span class="w"> </span><span class="kn">import</span> <span class="n">run_demo_app</span>
-</span><span id="__span-4-2"><a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a>
-</span><span id="__span-4-3"><a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a><span class="n">run_demo_app</span><span class="p">(</span>
-</span><span id="__span-4-4"><a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a>    <span class="n">port</span><span class="o">=</span><span class="mi">8502</span>  <span class="c1"># Default is 8501</span>
-</span><span id="__span-4-5"><a id="__codelineno-4-5" name="__codelineno-4-5" href="#__codelineno-4-5"></a><span class="p">)</span>
+<p>The apps are ordinary Streamlit apps, so pass Streamlit's own flags:</p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>streamlit<span class="w"> </span>run<span class="w"> </span>eptr2_tutorials/composite/Ana_Sayfa.py<span class="w"> </span>--server.port<span class="w"> </span><span class="m">8502</span>
 </span></code></pre></div>
 <h3 id="custom-theme">Custom Theme<a class="headerlink" href="#custom-theme" title="Permanent link">&para;</a></h3>
 <p>The demo app uses Streamlit's theming. Create <code>.streamlit/config.toml</code>:</p>
-<div class="language-toml highlight"><pre><span></span><code><span id="__span-5-1"><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="k">[theme]</span>
-</span><span id="__span-5-2"><a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a><span class="n">primaryColor</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"#4F46E5"</span>
-</span><span id="__span-5-3"><a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a><span class="n">backgroundColor</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"#FFFFFF"</span>
-</span><span id="__span-5-4"><a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a><span class="n">secondaryBackgroundColor</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"#F3F4F6"</span>
-</span><span id="__span-5-5"><a id="__codelineno-5-5" name="__codelineno-5-5" href="#__codelineno-5-5"></a><span class="n">textColor</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"#111827"</span>
+<div class="language-toml highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="k">[theme]</span>
+</span><span id="__span-3-2"><a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a><span class="n">primaryColor</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"#4F46E5"</span>
+</span><span id="__span-3-3"><a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a><span class="n">backgroundColor</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"#FFFFFF"</span>
+</span><span id="__span-3-4"><a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a><span class="n">secondaryBackgroundColor</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"#F3F4F6"</span>
+</span><span id="__span-3-5"><a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a><span class="n">textColor</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"#111827"</span>
 </span></code></pre></div>
 <h2 id="troubleshooting">Troubleshooting<a class="headerlink" href="#troubleshooting" title="Permanent link">&para;</a></h2>
 <h3 id="streamlit-not-found">Streamlit Not Found<a class="headerlink" href="#streamlit-not-found" title="Permanent link">&para;</a></h3>
 <p>Ensure you installed with extras:</p>
-<div class="language-bash highlight"><pre><span></span><code><span id="__span-6-1"><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a>pip<span class="w"> </span>install<span class="w"> </span><span class="s2">"eptr2[allextras]"</span>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>pip<span class="w"> </span>install<span class="w"> </span><span class="s2">"eptr2[allextras]"</span>
 </span></code></pre></div>
 <h3 id="authentication-errors">Authentication Errors<a class="headerlink" href="#authentication-errors" title="Permanent link">&para;</a></h3>
 <p>Check your credentials:</p>
-<div class="language-python highlight"><pre><span></span><code><span id="__span-7-1"><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">eptr2</span><span class="w"> </span><span class="kn">import</span> <span class="n">EPTR2</span>
-</span><span id="__span-7-2"><a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a>
-</span><span id="__span-7-3"><a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a><span class="c1"># Test credentials</span>
-</span><span id="__span-7-4"><a id="__codelineno-7-4" name="__codelineno-7-4" href="#__codelineno-7-4"></a><span class="n">eptr</span> <span class="o">=</span> <span class="n">EPTR2</span><span class="p">(</span><span class="n">username</span><span class="o">=</span><span class="s2">"..."</span><span class="p">,</span> <span class="n">password</span><span class="o">=</span><span class="s2">"..."</span><span class="p">)</span>
-</span><span id="__span-7-5"><a id="__codelineno-7-5" name="__codelineno-7-5" href="#__codelineno-7-5"></a><span class="nb">print</span><span class="p">(</span><span class="n">eptr</span><span class="o">.</span><span class="n">call</span><span class="p">(</span><span class="s2">"mcp"</span><span class="p">,</span> <span class="n">start_date</span><span class="o">=</span><span class="s2">"2024-07-29"</span><span class="p">,</span> <span class="n">end_date</span><span class="o">=</span><span class="s2">"2024-07-29"</span><span class="p">))</span>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-5-1"><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">eptr2</span><span class="w"> </span><span class="kn">import</span> <span class="n">EPTR2</span>
+</span><span id="__span-5-2"><a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a>
+</span><span id="__span-5-3"><a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a><span class="c1"># Test credentials</span>
+</span><span id="__span-5-4"><a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a><span class="n">eptr</span> <span class="o">=</span> <span class="n">EPTR2</span><span class="p">(</span><span class="n">username</span><span class="o">=</span><span class="s2">"..."</span><span class="p">,</span> <span class="n">password</span><span class="o">=</span><span class="s2">"..."</span><span class="p">)</span>
+</span><span id="__span-5-5"><a id="__codelineno-5-5" name="__codelineno-5-5" href="#__codelineno-5-5"></a><span class="nb">print</span><span class="p">(</span><span class="n">eptr</span><span class="o">.</span><span class="n">call</span><span class="p">(</span><span class="s2">"mcp"</span><span class="p">,</span> <span class="n">start_date</span><span class="o">=</span><span class="s2">"2024-07-29"</span><span class="p">,</span> <span class="n">end_date</span><span class="o">=</span><span class="s2">"2024-07-29"</span><span class="p">))</span>
 </span></code></pre></div>
 <h3 id="port-already-in-use">Port Already in Use<a class="headerlink" href="#port-already-in-use" title="Permanent link">&para;</a></h3>
 <p>Try a different port:</p>
-<div class="language-bash highlight"><pre><span></span><code><span id="__span-8-1"><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a>streamlit<span class="w"> </span>run<span class="w"> </span>--server.port<span class="w"> </span><span class="m">8502</span><span class="w"> </span>...
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-6-1"><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a>streamlit<span class="w"> </span>run<span class="w"> </span>--server.port<span class="w"> </span><span class="m">8502</span><span class="w"> </span>...
 </span></code></pre></div>
 <h2 id="see-also">See Also<a class="headerlink" href="#see-also" title="Permanent link">&para;</a></h2>
 <ul>
