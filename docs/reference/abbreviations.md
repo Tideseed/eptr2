@@ -83,4 +83,4 @@ The Turkish electricity market uses many abbreviations, both in Turkish and Engl
 ## See Also
 
 - [Available API Calls](../user-guide/api-calls.md)
-- [Calculator App](../tutorials/calculator.md)
+- [Utilities API](../api/util.md)

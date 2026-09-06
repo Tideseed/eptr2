@@ -9,7 +9,7 @@
 
 ### Full Installation (Recommended)
 
-Install with all extras for the complete feature set including pandas, MCP server, and demo app:
+Install with all extras for the complete feature set including pandas and MCP server support:
 
 === "pip"
     ```bash

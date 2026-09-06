@@ -9,9 +9,6 @@
 
 **eptr2** is a Python client for [EPIAS Transparency Platform v2.0](https://seffaflik.epias.com.tr/home) - the official Turkish electricity market data platform.
 
-!!! tip "Live Demo"
-    Try the live demo at <https://eptr2demo.streamlit.app/>
-
 ## Features
 
 - 🔌 **231 API Endpoints** - Access comprehensive Turkish electricity market data

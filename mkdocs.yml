@@ -168,9 +168,6 @@ nav:
     - Composite Functions: api/composite.md
     - MCP Server: api/mcp.md
     - Utilities: api/util.md
-  - Tutorials:
-    - Demo App: tutorials/demo-app.md
-    - Calculator App: tutorials/calculator.md
   - Reference:
     - Common Abbreviations: reference/abbreviations.md
     - Changelog: reference/changelog.md

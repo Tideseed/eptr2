@@ -279,7 +279,6 @@ except Exception as e:
 - Main README: `/README.md`
 - Documentation: https://tideseed.github.io/eptr2/
 - Package: https://pypi.org/project/eptr2/
-- Demo: https://eptr2demo.streamlit.app/
 - EPIAS Platform: https://seffaflik.epias.com.tr/
 
 ## Common Abbreviations

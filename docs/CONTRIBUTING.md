@@ -65,9 +65,6 @@ docs/
 │   ├── composite.md
 │   ├── mcp.md
 │   └── util.md
-├── tutorials/                  # Tutorials
-│   ├── demo-app.md
-│   └── calculator.md
 ├── reference/                  # Reference docs
 │   ├── abbreviations.md
 │   ├── changelog.md

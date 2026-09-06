@@ -13,7 +13,7 @@
 
 It is an unofficial package by [Robokami](https://robokami.com) / [Tideseed](https://tideseed.com), Apache License 2.0.
 
-📖 **Full documentation: <https://tideseed.github.io/eptr2/>** · 🇹🇷 **[Türkçe bölüm aşağıda](#türkçe)** · 🔴 Live demo: <https://eptr2demo.streamlit.app/>
+📖 **Full documentation: <https://tideseed.github.io/eptr2/>** · 🇹🇷 **[Türkçe bölüm aşağıda](#türkçe)**
 
 ---
 
@@ -328,5 +328,3 @@ Böylece bir yapay zeka asistanına doğrudan "geçen ayın PTF ortalamasını h
 ### Dokümantasyon
 
 Ayrıntılı ve güncel dokümantasyon: **<https://tideseed.github.io/eptr2/>**
-
-Canlı demo: <https://eptr2demo.streamlit.app/>
