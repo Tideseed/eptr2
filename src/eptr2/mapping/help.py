@@ -479,7 +479,7 @@ def get_help_d(key=None):
             },
             "url": "https://seffaflik.epias.com.tr/electricity/electricity-market-reports/idm-order-list",
         },
-        "idm-order-list": {
+        "idm-order-history": {
             "category": "Elektrik Piyasası Raporları",
             "title": {
                 "tr": "GİP Teklif Listesi",
@@ -1685,7 +1685,7 @@ def get_help_d(key=None):
             },
             "url": "https://seffaflik.epias.com.tr/natural-gas/natural-gas-markets/spot-gas-markets-sgp/tso-balancing-transactions/3-coded-transaction",
         },
-        "physical-realization": {
+        "ng-physical-realization": {
             "category": "NG",
             "title": {
                 "tr": "Fiziki Gerçekleşme",

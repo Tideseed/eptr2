@@ -86,6 +86,18 @@ def get_idm_contract_list(se_date: str, eptr: EPTR2 | None = None, **kwargs):
 
 
 def get_idm_order_history(se_date: str, idm_contract_id: str | int, eptr: EPTR2 | None = None, **kwargs):
+    """IDM Order List / GİP Teklif Listesi
+
+    Category: Elektrik Piyasası Raporları
+
+    EN (IDM Order List):
+        It is the data set that shows the list of bids/offer in the Intraday Market.
+
+    TR (GİP Teklif Listesi):
+        Gün İçi Piyasasına verilerin Tekliflerin listesini gösteren veri setidir
+
+    Reference: https://seffaflik.epias.com.tr/electricity/electricity-market-reports/idm-order-list
+    """
     if eptr is None:
         eptr = EPTR2()
     return eptr.call("idm-order-history", se_date=se_date, idm_contract_id=idm_contract_id, **kwargs)

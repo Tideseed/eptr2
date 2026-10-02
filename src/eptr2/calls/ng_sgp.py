@@ -337,6 +337,18 @@ def get_ng_orange_code_ops(start_date: str, end_date: str, eptr: EPTR2 | None = 
 
 
 def get_ng_physical_realization(start_date: str, end_date: str, eptr: EPTR2 | None = None, **kwargs):
+    """Physical Realization / Fiziki Gerçekleşme
+
+    Category: NG
+
+    EN (Physical Realization):
+        It shows Natural Gas Quantity that the Shippers add or remove from the physical network points to the system through Buying or Selling.
+
+    TR (Fiziki Gerçekleşme):
+        Taşıtanların Alış veya Satış yoluyla, fiziki şebeke noktalarından sisteme eklediği veya çıkardığı Doğal Gaz Miktarını gösterir.
+
+    Reference: https://seffaflik.epias.com.tr/natural-gas/natural-gas-markets/spot-gas-markets-sgp/allocation-data/physical-realization
+    """
     if eptr is None:
         eptr = EPTR2()
     return eptr.call("ng-physical-realization", start_date=start_date, end_date=end_date, **kwargs)

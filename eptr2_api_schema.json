@@ -1153,11 +1153,7 @@
         "en": "The number of meters with eligible costumer usage type",
         "tr": "Sayaç kullanım tipi serbest tüketici olan sayaçların sayısıdır"
       },
-      "optional_params": [
-        "district_name",
-        "pg_name",
-        "province_id"
-      ],
+      "optional_params": [],
       "required_params": [
         "start_date",
         "end_date"
@@ -1195,7 +1191,10 @@
         "tr": "Sayaç kullanım tipi serbest tüketici olan sayaçların uzlaştırmaya esas çekiş miktarı toplamıdır."
       },
       "optional_params": [],
-      "required_params": [],
+      "required_params": [
+        "start_date",
+        "end_date"
+      ],
       "title": {
         "en": "Eligible Customer Quantity",
         "tr": "Serbest Tüketici Tüketim Miktarı"
@@ -1372,10 +1371,10 @@
     "idm-order-history": {
       "call_method": "POST",
       "call_path": "reporting-service/v1/data/idm-order-list",
-      "category": "Uncategorized",
+      "category": "Elektrik Piyasası Raporları",
       "desc": {
-        "en": "",
-        "tr": ""
+        "en": "It is the data set that shows the list of bids/offer in the Intraday Market.",
+        "tr": "Gün İçi Piyasasına verilerin Tekliflerin listesini gösteren veri setidir"
       },
       "optional_params": [],
       "required_params": [
@@ -1383,10 +1382,10 @@
         "idm_contract_id"
       ],
       "title": {
-        "en": "",
-        "tr": ""
+        "en": "IDM Order List",
+        "tr": "GİP Teklif Listesi"
       },
-      "url": null
+      "url": "https://seffaflik.epias.com.tr/electricity/electricity-market-reports/idm-order-list"
     },
     "idm-qty": {
       "call_method": "POST",
@@ -1535,8 +1534,7 @@
       },
       "optional_params": [],
       "required_params": [
-        "start_date",
-        "end_date"
+        "start_date"
       ],
       "title": {
         "en": "Interim Market Clearing Price (I.MCP)",
@@ -2424,10 +2422,10 @@
     "ng-physical-realization": {
       "call_method": "POST",
       "call_path": "natural-gas-service/v1/markets/sgp/data/physical-realization",
-      "category": "Uncategorized",
+      "category": "NG",
       "desc": {
-        "en": "",
-        "tr": ""
+        "en": "It shows Natural Gas Quantity that the Shippers add or remove from the physical network points to the system through Buying or Selling.",
+        "tr": "Taşıtanların Alış veya Satış yoluyla, fiziki şebeke noktalarından sisteme eklediği veya çıkardığı Doğal Gaz Miktarını gösterir."
       },
       "optional_params": [],
       "required_params": [
@@ -2435,10 +2433,10 @@
         "end_date"
       ],
       "title": {
-        "en": "",
-        "tr": ""
+        "en": "Physical Realization",
+        "tr": "Fiziki Gerçekleşme"
       },
-      "url": null
+      "url": "https://seffaflik.epias.com.tr/natural-gas/natural-gas-markets/spot-gas-markets-sgp/allocation-data/physical-realization"
     },
     "ng-shippers-imbalance-quantity": {
       "call_method": "POST",
@@ -3567,7 +3565,11 @@
         "en": "The item that is reflected on the invoice due to under- or over-invoicing of the relevant month’s consumption in the previous 12 months is called 'Retroactive Adjustment Item'. This data refers to the volume of meters associated with Retroactive Adjustment Item.",
         "tr": "Geçmiş 12 ay içindeki ilgili ayın tüketiminin eksik ya da fazla faturalandırılması nedeniyle faturaya yansıtılan kalem 'Geçmişe Dönük Düzeltme Kalemi' olarak adlandırılır. Bu veri GDDK ile ilişkilendirilen sayaçların hacim verilerini ifade eder."
       },
-      "optional_params": [],
+      "optional_params": [
+        "subscriber_pg",
+        "version_start_date",
+        "version_end_date"
+      ],
       "required_params": [
         "mr_org_id",
         "period_start_date",
@@ -3587,7 +3589,11 @@
         "en": "The item that is reflected on the invoice due to under- or over-invoicing of the relevant month’s consumption in the previous 12 months is called 'Retroactive Adjustment Item'. This data refers to the volume of meters associated with Retroactive Adjustment Item.",
         "tr": "Geçmiş 12 ay içindeki ilgili ayın tüketiminin eksik ya da fazla faturalandırılması nedeniyle faturaya yansıtılan kalem 'Geçmişe Dönük Düzeltme Kalemi' olarak adlandırılır. Bu veri GDDK ile ilişkilendirilen sayaçların hacim verilerini ifade eder."
       },
-      "optional_params": [],
+      "optional_params": [
+        "subscriber_pg",
+        "period_start_date",
+        "period_end_date"
+      ],
       "required_params": [
         "mr_org_id",
         "version_start_date",
@@ -4695,7 +4701,7 @@
       "url": "https://seffaflik.epias.com.tr/electricity/electricity-transmission/zero-balance-adjustment/monthly-zero-balance-adjustment"
     }
   },
-  "eptr2_version": "1.4.0.dev1",
+  "eptr2_version": "1.4.0.dev2",
   "schema_format_version": "2.0",
   "usage": {
     "cli": "eptr2 call <key> --start-date ... --end-date ...",

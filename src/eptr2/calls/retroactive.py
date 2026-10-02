@@ -32,7 +32,7 @@ def get_ra_distribution_list(eptr: EPTR2 | None = None, **kwargs):
     return eptr.call("ra-distribution-list", **kwargs)
 
 
-def get_ra_meter_volumes_period(mr_org_id: str | int, period_start_date: str, period_end_date: str, eptr: EPTR2 | None = None, **kwargs):
+def get_ra_meter_volumes_period(mr_org_id: str | int, period_start_date: str, period_end_date: str, subscriber_pg: str | None = None, version_start_date: str | None = None, version_end_date: str | None = None, eptr: EPTR2 | None = None, **kwargs):
     """Meter Volumes Subject to Retroactive Adjustment Data (Mandatory Period Selection) / GDDK’ya Konu olan Sayaç Hacim Verileri (Zorunlu Period Seçimi)
 
     Category: GDDK
@@ -47,10 +47,10 @@ def get_ra_meter_volumes_period(mr_org_id: str | int, period_start_date: str, pe
     """
     if eptr is None:
         eptr = EPTR2()
-    return eptr.call("ra-meter-volumes-period", mr_org_id=mr_org_id, period_start_date=period_start_date, period_end_date=period_end_date, **kwargs)
+    return eptr.call("ra-meter-volumes-period", mr_org_id=mr_org_id, period_start_date=period_start_date, period_end_date=period_end_date, subscriber_pg=subscriber_pg, version_start_date=version_start_date, version_end_date=version_end_date, **kwargs)
 
 
-def get_ra_meter_volumes_version(mr_org_id: str | int, version_start_date: str, version_end_date: str, eptr: EPTR2 | None = None, **kwargs):
+def get_ra_meter_volumes_version(mr_org_id: str | int, version_start_date: str, version_end_date: str, subscriber_pg: str | None = None, period_start_date: str | None = None, period_end_date: str | None = None, eptr: EPTR2 | None = None, **kwargs):
     """Meter Volumes Subject to Retroactive Adjustment Data (Mandatory Version Selection) / GDDK’ya Konu olan Sayaç Hacim Verileri (Zorunlu Versiyon Seçimi)
 
     Category: GDDK
@@ -65,7 +65,7 @@ def get_ra_meter_volumes_version(mr_org_id: str | int, version_start_date: str, 
     """
     if eptr is None:
         eptr = EPTR2()
-    return eptr.call("ra-meter-volumes-version", mr_org_id=mr_org_id, version_start_date=version_start_date, version_end_date=version_end_date, **kwargs)
+    return eptr.call("ra-meter-volumes-version", mr_org_id=mr_org_id, version_start_date=version_start_date, version_end_date=version_end_date, subscriber_pg=subscriber_pg, period_start_date=period_start_date, period_end_date=period_end_date, **kwargs)
 
 
 def get_ra_meters(distribution_id: str | int, start_date: str, end_date: str, ra_spg_name: str | None = None, eptr: EPTR2 | None = None, **kwargs):

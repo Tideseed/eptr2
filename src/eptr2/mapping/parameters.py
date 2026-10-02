@@ -55,6 +55,7 @@ def get_param_label(key):
         "dist_company_id": {"label": "distributionCompanyId"},
         "district_name": {"label": "districtName"},
         "pg_name": {"label": "profileGroupName"},
+        "ra_spg_name": {"label": "subscriberProfileGroupName"},
         "uevcb_ids": {"label": "uevcbIds"},
         "pp_ids": {"label": "powerPlantIds"},
         "org_ids": {"label": "organizationIds"},
@@ -65,7 +66,7 @@ def get_param_label(key):
 def get_required_parameters(key, return_mapping=False, mapping_only_keys=False):
     d = {
         "mcp": ["start_date", "end_date"],
-        "interim-mcp": ["start_date", "end_date"],
+        "interim-mcp": ["start_date"],
         "interim-mcp-status": [],
         "date-init": [],
         "smp": ["start_date", "end_date"],
@@ -330,6 +331,7 @@ def get_required_parameters(key, return_mapping=False, mapping_only_keys=False):
         "planned-outages": ["period"],
         "elig-profile-groups": ["period"],
         "eligible-consumer-count": ["start_date", "end_date"],
+        "eligible-consumer-quantity": ["start_date", "end_date"],
         "unplanned-outages": ["period"],
         "dpp-bulk": ["date", "uevcb_ids", "region"],
         "rt-gen-bulk": ["date", "pp_ids"],
@@ -378,13 +380,13 @@ def get_optional_parameters(key):
         "consumer-breakdown": ["province_id", "profile_group_id"],
         "idm-qty": ["org_id"],
         "ra-meters": ["ra_spg_name"],
-        "ra-meter-volume-period": [
-            "ra_spg_name",
+        "ra-meter-volumes-period": [
+            "subscriber_pg",
             "version_start_date",
             "version_end_date",
         ],
-        "ra-meter-volume-version": [
-            "ra_spg_name",
+        "ra-meter-volumes-version": [
+            "subscriber_pg",
             "period_start_date",
             "period_end_date",
         ],
@@ -430,7 +432,6 @@ def get_optional_parameters(key):
         "planned-outages": ["province_id", "dist_company_id"],
         "elig-profile-groups": ["district_name", "province_id"],
         "unplanned-outages": ["province_id", "dist_company_id"],
-        "eligible-consumer-count": ["district_name", "pg_name", "province_id"],
     }
 
     return d.get(key, [])

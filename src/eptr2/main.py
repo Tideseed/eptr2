@@ -455,10 +455,12 @@ class EPTR2:
                 stacklevel=2,
             )
 
+        ## Generated wrappers forward unset optional parameters as None; an
+        ## optional None means "not given" (a None date would crash preprocessing)
         call_body = {
             k: preprocess_parameter(k, v)
             for k, v in call_body_raw.items()  ## If there is a call_body parameter in kwargsi, use it, else use kwargs
-            if k in all_params
+            if k in all_params and not (v is None and k not in required_body_params)
         }
 
         for body_key in required_body_params:

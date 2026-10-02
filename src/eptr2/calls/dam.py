@@ -222,7 +222,7 @@ def get_dam_volume(start_date: str, end_date: str, eptr: EPTR2 | None = None, **
     return eptr.call("dam-volume", start_date=start_date, end_date=end_date, **kwargs)
 
 
-def get_interim_mcp(start_date: str, end_date: str, eptr: EPTR2 | None = None, **kwargs):
+def get_interim_mcp(start_date: str, eptr: EPTR2 | None = None, **kwargs):
     """Interim Market Clearing Price (I.MCP) / Kesinleşmemiş Piyasa Takas Fiyatı (K.PTF)
 
     Category: GÖP
@@ -237,7 +237,7 @@ def get_interim_mcp(start_date: str, end_date: str, eptr: EPTR2 | None = None, *
     """
     if eptr is None:
         eptr = EPTR2()
-    return eptr.call("interim-mcp", start_date=start_date, end_date=end_date, **kwargs)
+    return eptr.call("interim-mcp", start_date=start_date, **kwargs)
 
 
 def get_interim_mcp_status(eptr: EPTR2 | None = None, **kwargs):

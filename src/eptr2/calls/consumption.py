@@ -66,7 +66,7 @@ def get_elig_profile_groups(period: str, district_name: str | None = None, provi
     return eptr.call("elig-profile-groups", period=period, district_name=district_name, province_id=province_id, **kwargs)
 
 
-def get_eligible_consumer_count(start_date: str, end_date: str, district_name: str | None = None, pg_name: str | None = None, province_id: str | int | None = None, eptr: EPTR2 | None = None, **kwargs):
+def get_eligible_consumer_count(start_date: str, end_date: str, eptr: EPTR2 | None = None, **kwargs):
     """Eligible Customer Count / Serbest Tüketici Adedi
 
     Category: Serbest Tüketici
@@ -81,7 +81,7 @@ def get_eligible_consumer_count(start_date: str, end_date: str, district_name: s
     """
     if eptr is None:
         eptr = EPTR2()
-    return eptr.call("eligible-consumer-count", start_date=start_date, end_date=end_date, district_name=district_name, pg_name=pg_name, province_id=province_id, **kwargs)
+    return eptr.call("eligible-consumer-count", start_date=start_date, end_date=end_date, **kwargs)
 
 
 def get_eligible_consumer_count_detail(period: str, eptr: EPTR2 | None = None, **kwargs):
@@ -102,7 +102,7 @@ def get_eligible_consumer_count_detail(period: str, eptr: EPTR2 | None = None, *
     return eptr.call("eligible-consumer-count-detail", period=period, **kwargs)
 
 
-def get_eligible_consumer_quantity(eptr: EPTR2 | None = None, **kwargs):
+def get_eligible_consumer_quantity(start_date: str, end_date: str, eptr: EPTR2 | None = None, **kwargs):
     """Eligible Customer Quantity / Serbest Tüketici Tüketim Miktarı
 
     Category: Serbest Tüketici
@@ -117,7 +117,7 @@ def get_eligible_consumer_quantity(eptr: EPTR2 | None = None, **kwargs):
     """
     if eptr is None:
         eptr = EPTR2()
-    return eptr.call("eligible-consumer-quantity", **kwargs)
+    return eptr.call("eligible-consumer-quantity", start_date=start_date, end_date=end_date, **kwargs)
 
 
 def get_get_distribution_companies(eptr: EPTR2 | None = None, **kwargs):
