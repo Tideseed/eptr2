@@ -599,11 +599,11 @@ def get_path_map(just_call_keys: bool = False):
                 "prev": "transmission",
                 "label": "line-capacities",
             },
-            ##Enterkonneksiyon Hat Kapasiteleri
+            ##Kapasite Talepleri
             "capacity-demand": {
                 "prefix": "data",
                 "prev": "transmission",
-                "label": "line-capacities",
+                "label": "capacity-demand",
             },
             ##Nomine Kapasite
             "nominal-capacity": {
@@ -621,7 +621,7 @@ def get_path_map(just_call_keys: bool = False):
             "intl-capacity-demand-direction-list": {
                 "prefix": "data",
                 "prev": "transmission",
-                "label": "line-capacities-direction",
+                "label": "capacity-demand-direction",
             },
             ## Piyasa Mesaj Sistemi
             "mms": {

@@ -490,7 +490,7 @@
     },
     "capacity-demand": {
       "call_method": "POST",
-      "call_path": "electricity-service/v1/transmission/data/line-capacities",
+      "call_path": "electricity-service/v1/transmission/data/capacity-demand",
       "category": "İletim",
       "desc": {
         "en": "Shows the requests for capacity auctions and allocated capacities.",
@@ -1581,7 +1581,7 @@
     },
     "intl-capacity-demand-direction-list": {
       "call_method": "GET",
-      "call_path": "electricity-service/v1/transmission/data/line-capacities-direction",
+      "call_path": "electricity-service/v1/transmission/data/capacity-demand-direction",
       "category": "İletim",
       "desc": {
         "en": "Capacity Requests Direction Listing",
@@ -4695,7 +4695,7 @@
       "url": "https://seffaflik.epias.com.tr/electricity/electricity-transmission/zero-balance-adjustment/monthly-zero-balance-adjustment"
     }
   },
-  "eptr2_version": "1.3.9",
+  "eptr2_version": "1.4.0.dev1",
   "schema_format_version": "2.0",
   "usage": {
     "cli": "eptr2 call <key> --start-date ... --end-date ...",
