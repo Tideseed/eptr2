@@ -259,7 +259,7 @@
   },
   "date_format": "YYYY-MM-DD (ISO 8601); market timezone is Europe/Istanbul",
   "description": "Machine-readable schema of the eptr2 Python client for the EPIAS Transparency Platform (Turkish electricity and natural gas markets). Generated with `eptr2 schema`; do not edit by hand.",
-  "endpoint_count": 232,
+  "endpoint_count": 234,
   "endpoints": {
     "anc-pf-qty": {
       "call_method": "POST",
@@ -3728,6 +3728,24 @@
       },
       "url": "https://seffaflik.epias.com.tr/electricity/renewables-support-mechanism/installed-capacity"
     },
+    "ren-capacity-old": {
+      "call_method": "POST",
+      "call_path": "electricity-service/v1/renewables/data/old-installed-capacity",
+      "category": "YEKDEM",
+      "desc": {
+        "en": "Installed capacity of generation facilities within YEKDEM, for periods up to and including the YEKDEM deadline (later periods: ren-capacity). Licensed capacity covers plants registered with EPİAŞ; unlicensed capacity comes from distribution companies.",
+        "tr": "YEKDEM kapsamındaki üretim tesislerinin kurulu güç miktarıdır (YEKDEM son tarih ve öncesi veriler). Lisanslı kurulu güç bilgileri EPİAŞ’a kayıtlı santraller olup, lisanssız kurulu güç bilgisi dağıtım şirketlerinden temin edilmektedir."
+      },
+      "optional_params": [],
+      "required_params": [
+        "period"
+      ],
+      "title": {
+        "en": "YEKDEM Installed Capacity (Up To the YEKDEM Deadline)",
+        "tr": "YEKDEM Kurulu Güç (YEKDEM Son Tarih ve Öncesi)"
+      },
+      "url": "https://seffaflik.epias.com.tr/electricity-service/technical/tr/index.html#_old-installed-capacity"
+    },
     "ren-income": {
       "call_method": "POST",
       "call_path": "electricity-service/v1/renewables/data/renewables-support-mechanism-income",
@@ -3783,6 +3801,22 @@
         "tr": "YEKDEM Katılımcı Listesi"
       },
       "url": "https://seffaflik.epias.com.tr/electricity/renewables-support-mechanism/unit-cost"
+    },
+    "ren-participant-year-list": {
+      "call_method": "GET",
+      "call_path": "electricity-service/v1/renewables/data/renewables-participant-year-list",
+      "category": "YEKDEM",
+      "desc": {
+        "en": "Years available for the YEKDEM participant list (ren-participant-list).",
+        "tr": "YEKDEM Katılımcı Listesi için seçilebilecek yıllar."
+      },
+      "optional_params": [],
+      "required_params": [],
+      "title": {
+        "en": "YEKDEM Participant List Years",
+        "tr": "YEKDEM Katılımcı Listesi Yıl Listesi"
+      },
+      "url": "https://seffaflik.epias.com.tr/electricity-service/technical/tr/index.html#_renewables-participant-year-list"
     },
     "ren-pp-list": {
       "call_method": "POST",
@@ -4701,7 +4735,7 @@
       "url": "https://seffaflik.epias.com.tr/electricity/electricity-transmission/zero-balance-adjustment/monthly-zero-balance-adjustment"
     }
   },
-  "eptr2_version": "1.4.0.dev2",
+  "eptr2_version": "1.4.0.dev3",
   "schema_format_version": "2.0",
   "usage": {
     "cli": "eptr2 call <key> --start-date ... --end-date ...",

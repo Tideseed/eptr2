@@ -1094,6 +1094,30 @@ def get_help_d(key=None):
             },
             "url": "https://seffaflik.epias.com.tr/electricity/renewables-support-mechanism/unit-cost",
         },
+        "ren-capacity-old": {
+            "category": "YEKDEM",
+            "title": {
+                "tr": "YEKDEM Kurulu Güç (YEKDEM Son Tarih ve Öncesi)",
+                "en": "YEKDEM Installed Capacity (Up To the YEKDEM Deadline)",
+            },
+            "desc": {
+                "tr": "YEKDEM kapsamındaki üretim tesislerinin kurulu güç miktarıdır (YEKDEM son tarih ve öncesi veriler). Lisanslı kurulu güç bilgileri EPİAŞ’a kayıtlı santraller olup, lisanssız kurulu güç bilgisi dağıtım şirketlerinden temin edilmektedir.",
+                "en": "Installed capacity of generation facilities within YEKDEM, for periods up to and including the YEKDEM deadline (later periods: ren-capacity). Licensed capacity covers plants registered with EPİAŞ; unlicensed capacity comes from distribution companies.",
+            },
+            "url": "https://seffaflik.epias.com.tr/electricity-service/technical/tr/index.html#_old-installed-capacity",
+        },
+        "ren-participant-year-list": {
+            "category": "YEKDEM",
+            "title": {
+                "tr": "YEKDEM Katılımcı Listesi Yıl Listesi",
+                "en": "YEKDEM Participant List Years",
+            },
+            "desc": {
+                "tr": "YEKDEM Katılımcı Listesi için seçilebilecek yıllar.",
+                "en": "Years available for the YEKDEM participant list (ren-participant-list).",
+            },
+            "url": "https://seffaflik.epias.com.tr/electricity-service/technical/tr/index.html#_renewables-participant-year-list",
+        },
         "zero-balance": {
             "category": "İletim",
             "title": {

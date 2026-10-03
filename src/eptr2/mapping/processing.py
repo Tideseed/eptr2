@@ -236,6 +236,7 @@ def get_postprocess_function(key):
         "ng-latest-settlement-date",
         "page-settings",
         "page-update-date",
+        "ren-participant-year-list",
     ]:
         return postprocess_direct_dict
 
@@ -253,7 +254,7 @@ def get_postprocess_function(key):
     ]:
         return postprocess_direct_dict_to_df
 
-    elif key in ["ren-capacity"]:
+    elif key in ["ren-capacity", "ren-capacity-old"]:
         return postprocess_ren_capacity_dict_to_df
     else:
         raise Exception("Postprocess function is not defined for this call.")

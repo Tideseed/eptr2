@@ -5,9 +5,11 @@ from eptr2.main import EPTR2
 
 __all__ = [
     "get_ren_capacity",
+    "get_ren_capacity_old",
     "get_ren_income",
     "get_ren_lic_cost",
     "get_ren_participant_list",
+    "get_ren_participant_year_list",
     "get_ren_pp_list",
     "get_ren_rt_gen",
     "get_ren_total_cost",
@@ -34,6 +36,24 @@ def get_ren_capacity(period: str, eptr: EPTR2 | None = None, **kwargs):
     if eptr is None:
         eptr = EPTR2()
     return eptr.call("ren-capacity", period=period, **kwargs)
+
+
+def get_ren_capacity_old(period: str, eptr: EPTR2 | None = None, **kwargs):
+    """YEKDEM Installed Capacity (Up To the YEKDEM Deadline) / YEKDEM Kurulu Güç (YEKDEM Son Tarih ve Öncesi)
+
+    Category: YEKDEM
+
+    EN (YEKDEM Installed Capacity (Up To the YEKDEM Deadline)):
+        Installed capacity of generation facilities within YEKDEM, for periods up to and including the YEKDEM deadline (later periods: ren-capacity). Licensed capacity covers plants registered with EPİAŞ; unlicensed capacity comes from distribution companies.
+
+    TR (YEKDEM Kurulu Güç (YEKDEM Son Tarih ve Öncesi)):
+        YEKDEM kapsamındaki üretim tesislerinin kurulu güç miktarıdır (YEKDEM son tarih ve öncesi veriler). Lisanslı kurulu güç bilgileri EPİAŞ’a kayıtlı santraller olup, lisanssız kurulu güç bilgisi dağıtım şirketlerinden temin edilmektedir.
+
+    Reference: https://seffaflik.epias.com.tr/electricity-service/technical/tr/index.html#_old-installed-capacity
+    """
+    if eptr is None:
+        eptr = EPTR2()
+    return eptr.call("ren-capacity-old", period=period, **kwargs)
 
 
 def get_ren_income(start_date: str, end_date: str, eptr: EPTR2 | None = None, **kwargs):
@@ -88,6 +108,24 @@ def get_ren_participant_list(year: str | int, eptr: EPTR2 | None = None, **kwarg
     if eptr is None:
         eptr = EPTR2()
     return eptr.call("ren-participant-list", year=year, **kwargs)
+
+
+def get_ren_participant_year_list(eptr: EPTR2 | None = None, **kwargs):
+    """YEKDEM Participant List Years / YEKDEM Katılımcı Listesi Yıl Listesi
+
+    Category: YEKDEM
+
+    EN (YEKDEM Participant List Years):
+        Years available for the YEKDEM participant list (ren-participant-list).
+
+    TR (YEKDEM Katılımcı Listesi Yıl Listesi):
+        YEKDEM Katılımcı Listesi için seçilebilecek yıllar.
+
+    Reference: https://seffaflik.epias.com.tr/electricity-service/technical/tr/index.html#_renewables-participant-year-list
+    """
+    if eptr is None:
+        eptr = EPTR2()
+    return eptr.call("ren-participant-year-list", **kwargs)
 
 
 def get_ren_pp_list(period: str, eptr: EPTR2 | None = None, **kwargs):

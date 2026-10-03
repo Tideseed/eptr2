@@ -539,6 +539,18 @@ def get_path_map(just_call_keys: bool = False):
                 "prev": "renewables",
                 "label": "renewables-participant",
             },
+            ## YEKDEM Kurulu Güç (YEKDEM Son Tarih ve Öncesi)
+            "ren-capacity-old": {
+                "prefix": "data",
+                "prev": "renewables",
+                "label": "old-installed-capacity",
+            },
+            ## YEKDEM Katılımcı Listesi Yıl Listesi
+            "ren-participant-year-list": {
+                "prefix": "data",
+                "prev": "renewables",
+                "label": "renewables-participant-year-list",
+            },
             ## Sıfır Bakiye Düzeltme Tutarı
             "zero-balance": {
                 "prefix": "data",
@@ -1184,6 +1196,7 @@ def get_call_method(key):
         "get-distribution-companies",
         "main-tariff-group-list",
         "mf-meter-reading-type",
+        "ren-participant-year-list",
     ]
 
     if key in get_methods:

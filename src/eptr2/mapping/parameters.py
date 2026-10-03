@@ -136,6 +136,8 @@ def get_required_parameters(key, return_mapping=False, mapping_only_keys=False):
         "ren-capacity": ["period"],
         "wind-forecast": ["start_date", "end_date"],
         "ren-participant-list": ["year"],
+        "ren-capacity-old": ["period"],
+        "ren-participant-year-list": [],
         "zero-balance": ["start_date", "end_date"],
         "iskk": ["start_date", "end_date"],
         "congestion-cost": ["start_date", "end_date", "price_type", "order_type"],
