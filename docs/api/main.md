@@ -89,7 +89,7 @@ Returns list of all available API endpoint keys:
 
 ```python
 calls = eptr.get_available_calls()
-print(len(calls))  # 232
+print(len(calls))  # 234
 ```
 
 ### get_number_of_calls

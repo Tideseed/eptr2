@@ -2,6 +2,40 @@
 
 All notable changes to eptr2 are documented here.
 
+## Version 1.4.0 (Development)
+
+Endpoint mappings were reviewed against EPİAŞ's technical documentation
+(electricity, natural gas, reporting) and every call key was exercised against
+the live API.
+
+### Fixed
+- `capacity-demand` and `intl-capacity-demand-direction-list` called the
+  line-capacities endpoints ([#6](https://github.com/Tideseed/eptr2/issues/6));
+  they now return capacity-auction requests (`auctionCode`,
+  `requestedCapacity`, `allocatedCapacity`, `clearencePrice`, …).
+- `eligible-consumer-quantity` requires `start_date`/`end_date` (it always
+  returned HTTP 400).
+- `ra-meters` with `ra_spg_name` (and `get_ra_meters`) raised `TypeError`; the
+  filter now maps to `subscriberProfileGroupName`.
+- `ra-meter-volumes-period` / `-version`: optional parameters were registered
+  under a misspelled key and dropped; the profile-group filter is
+  `subscriber_pg`.
+- Optional parameters passed as `None` are no longer sent (a `None` date
+  crashed the generated wrappers).
+- `page-update-date` raised under the default `postprocess=True`.
+- Help entries for `idm-order-history` and `ng-physical-realization`.
+
+### Added
+- `ren-capacity-old` — YEKDEM installed capacity up to the YEKDEM deadline.
+- `ren-participant-year-list` — years available for `ren-participant-list`.
+
+### Breaking
+- `capacity-demand` returns different columns (the real endpoint's).
+- `interim-mcp` / `get_interim_mcp` take `start_date` only; the endpoint
+  ignored `end_date` and returned the start day.
+- `eligible-consumer-count` drops `district_name`, `pg_name`, `province_id`;
+  the endpoint never applied them.
+
 ## Version 1.3.8 (Development)
 
 ### Added

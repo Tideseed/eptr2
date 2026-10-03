@@ -24,7 +24,7 @@ patterns.
 
 ```python
 import eptr2.calls as calls
-print(len(calls.__all__))   # 234 (232 endpoints + 2 aliases)
+print(len(calls.__all__))   # 236 (234 endpoints + 2 aliases)
 ```
 
 The wrappers are auto-generated from

@@ -108,7 +108,7 @@ EPTR_PASSWORD=yourpassword
 
 ## Discovery
 ```python
-# List all 232 available calls
+# List all 234 available calls
 calls = eptr.get_available_calls()
 
 # Include aliases
