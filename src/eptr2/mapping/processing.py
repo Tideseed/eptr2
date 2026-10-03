@@ -235,6 +235,7 @@ def get_postprocess_function(key):
         "dam-list",
         "ng-latest-settlement-date",
         "page-settings",
+        "page-update-date",
     ]:
         return postprocess_direct_dict
 
