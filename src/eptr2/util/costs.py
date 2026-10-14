@@ -82,6 +82,17 @@ def get_starting_contract_by_regulation_period(
 ### KUPST TOLERANCE FUNCTIONS ###
 
 
+
+def _contract_floor_ceil(contract: str, kwargs: dict) -> dict:
+    """Floor and ceiling in force on the CONTRACT's date, unless given explicitly. Without this the helpers below used the
+    ceiling in force today (4500 since 2026-04-04), so January-March 2026 hours at the 3400 cap missed the 1.05 surcharge
+    (483 of 15,635 published hours 2025-01..2026-10 differed from mcp-smp-imb)."""
+    fc_d = contract_to_floor_ceil_prices(contract)
+    if fc_d is not None:
+        kwargs.setdefault("floor_price", fc_d["min"])
+        kwargs.setdefault("ceil_price", fc_d["max"])
+    return kwargs
+
 def get_kupst_tolerance_by_contract(
     contract: str,
     source: Literal["wind", "solar", "sun", "unlicensed", "other"] = "other",
@@ -701,6 +712,8 @@ def calculate_unit_imbalance_price_by_contract(
     """
 
     regulation_period = get_regulation_period_by_contract(contract)
+    if regulation_period != "pre_2026":
+        kwargs = _contract_floor_ceil(contract, kwargs)
 
     d = calculate_unit_imbalance_price(
         mcp=mcp,
@@ -1120,6 +1133,8 @@ def calculate_unit_imbalance_cost_by_contract(
     """
 
     regulation_period = get_regulation_period_by_contract(contract)
+    if regulation_period != "pre_2026":
+        kwargs = _contract_floor_ceil(contract, kwargs)
 
     return calculate_unit_imbalance_cost(
         mcp=mcp,

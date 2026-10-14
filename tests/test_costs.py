@@ -1356,3 +1356,18 @@ class TestDynamicCeilingPrice:
             mcp=current_ceiling, smp=current_ceiling, include_prices=True
         )
         assert costs["neg_imb_price"] > current_ceiling
+
+
+
+def test_by_contract_uses_the_ceiling_of_the_contract_date():
+    """Jan-Mar 2026 (cap 3400): an hour at the cap gets the 1.05 surcharge, as in the published mcp-smp-imb (2026-01-13 10:00:
+    PTF = SMF = 3400, Enerji Açığı -> NDF 3784.2, PDF 3298). Before the fix the cap in force today (4500) was used: NDF 3604."""
+    from eptr2.util.costs import calculate_unit_imbalance_cost_by_contract, calculate_unit_imbalance_price_by_contract
+
+    c = calculate_unit_imbalance_cost_by_contract("PH26011310", 3400.0, 3400.0, include_prices=True, sd_sign=-1)
+    assert round(c["neg_imb_price"], 2) == 3784.2 and round(c["pos_imb_price"], 2) == 3298.0
+    p = calculate_unit_imbalance_price_by_contract("PH26011310", 3400.0, 3400.0, sd_sign=-1)
+    assert round(p["neg_imb_price"], 2) == 3784.2
+    # an explicit ceiling still wins
+    c2 = calculate_unit_imbalance_cost_by_contract("PH26011310", 3400.0, 3400.0, include_prices=True, sd_sign=-1, ceil_price=4500.0)
+    assert round(c2["neg_imb_price"], 2) == 3604.0

@@ -24,6 +24,13 @@ the live API.
   crashed the generated wrappers).
 - `page-update-date` raised under the default `postprocess=True`.
 - Help entries for `idm-order-history` and `ng-physical-realization`.
+- `calculate_unit_imbalance_price_by_contract` and
+  `calculate_unit_imbalance_cost_by_contract` used the price ceiling in force
+  TODAY, not on the contract's date: January–March 2026 hours at the 3400 TL/MWh
+  cap missed the 1.05 ceiling surcharge (483 of 15,635 published hours
+  2025-01..2026-10 differed from `mcp-smp-imb`; 0 after the fix). They now
+  resolve floor and ceiling from the contract like the other `*_by_contract`
+  helpers; explicit `floor_price` / `ceil_price` still win.
 
 ### Added
 - `ren-capacity-old` — YEKDEM installed capacity up to the YEKDEM deadline.
