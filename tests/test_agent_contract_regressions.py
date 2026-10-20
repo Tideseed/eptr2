@@ -727,3 +727,23 @@ class TestDatedRegulationParams:
         for row in rows:
             assert required <= set(row), f"{row['date']} is missing {required - set(row)}"
             assert "default" in row["kupst_tolerance"]
+
+    def test_datetime_route_carries_the_dated_values(self):
+        """plant_costs prices by datetime, so that route must resolve too."""
+        from eptr2.util.costs import calculate_unit_price_and_costs_by_datetime as bdt
+
+        before = bdt("2026-10-31T23:00:00+03:00", mcp=120, smp=130, system_direction=-1)
+        after = bdt("2026-11-01T00:00:00+03:00", mcp=120, smp=130, system_direction=-1)
+        assert before["pos_imb_price"] == pytest.approx(-103.0)
+        assert after["pos_imb_price"] == pytest.approx(116.4)
+
+    def test_resolution_agrees_with_date_comparison_every_hour(self):
+        """The params map resolves by contract-string order while the price map
+        compares dates. They must not disagree on any hour at a boundary."""
+        from eptr2.util.costs import contract_to_regulation_params as resolve
+        from eptr2.util.time import iso_to_contract
+
+        for day, expected in (("2026-10-31", "2026-01-01"), ("2026-11-01", "2026-11-01")):
+            for hour in range(24):
+                contract = iso_to_contract(f"{day}T{hour:02d}:00:00+03:00")
+                assert resolve(contract)["date"] == expected, contract
