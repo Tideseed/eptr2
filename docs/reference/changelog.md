@@ -32,6 +32,12 @@ the live API.
   resolve floor and ceiling from the contract like the other `*_by_contract`
   helpers; explicit `floor_price` / `ceil_price` still win.
 
+- `get_time_min_max_price_map`: the 3,000 TL/MWh cap (GİP 3,090) starts on
+  **2024-07-01**, not 2024-06-01. In June 2024 PTF and SMF topped out at exactly
+  2,700 and GİP trades at exactly 2,781 (= 2,700 × 1.03); the first 3,000 / 3,090
+  prices are on 2024-07-01. June 2024 contracts now resolve to the 2,700 cap
+  (`contract_to_floor_ceil_prices`, the `*_by_contract` imbalance helpers).
+
 ### Added
 - `ren-capacity-old` — YEKDEM installed capacity up to the YEKDEM deadline.
 - `ren-participant-year-list` — years available for `ren-participant-list`.

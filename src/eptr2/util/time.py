@@ -814,7 +814,7 @@ def get_time_min_max_price_map():
             "idm_max": 3502.0,
         },
         {
-            "date": "2024-06-01",
+            "date": "2024-07-01",
             "min": 0,
             "max": 3000.0,
             "idm_min": 0,
@@ -893,7 +893,7 @@ def contract_to_floor_ceil_prices(c: str | None = None):
 
     Example:
         >>> contract_to_floor_ceil_prices("PH24072914")
-        {'date': '2024-06-01', 'min': 0, 'max': 3000.0, 'idm_min': 0, 'idm_max': 3090.0}
+        {'date': '2024-07-01', 'min': 0, 'max': 3000.0, 'idm_min': 0, 'idm_max': 3090.0}
 
         >>> contract_to_floor_ceil_prices()  # No contract = current limits
         {'date': '2026-04-04', 'min': 0, 'max': 4500.0, 'idm_min': 0, 'idm_max': 4635.0}
