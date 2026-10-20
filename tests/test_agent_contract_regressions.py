@@ -629,3 +629,101 @@ def test_sd_sign_remains_supported_alongside_system_direction():
 
     ## omitting it is unchanged for existing callers
     assert p26(**prices)["neg_imb_price"] == pytest.approx(4120.0)
+
+
+# --- dated regulation parameters (V, margins, KUPST) -----------------------
+
+
+class TestDatedRegulationParams:
+    """Values that change within the 2026 regulation come from a dated map, so
+    a value-only change is one data row rather than a new code path. V dropped
+    from 150 to 100 from the first delivery hour of 2026-11-01."""
+
+    def test_boundary_resolves_either_side(self):
+        from eptr2.util.costs import contract_to_regulation_params as resolve
+
+        assert resolve("PH26103123")["V"] == 150
+        assert resolve("PH26110100")["V"] == 100
+        ## pre-2026 is a different formula family and is not covered by the map
+        assert resolve("PH25123123") is None
+
+    def test_v_change_moves_the_price_at_the_boundary(self):
+        """min(mcp, smp) = 120 sits between the old and new V, so the positive
+        imbalance price switches branch exactly at the boundary."""
+        from eptr2.util.costs import calculate_unit_price_and_costs_by_contract as bc
+
+        before = bc(contract="PH26103123", mcp=120, smp=130, system_direction=-1)
+        after = bc(contract="PH26110100", mcp=120, smp=130, system_direction=-1)
+
+        ## V=150: 120 < V -> -B * (1 + margin)
+        assert before["pos_imb_price"] == pytest.approx(-103.0)
+        ## V=100: 120 >= V -> 120 * (1 - margin)
+        assert after["pos_imb_price"] == pytest.approx(116.4)
+
+    def test_explicit_values_still_win(self):
+        from eptr2.util.costs import calculate_unit_price_and_costs_by_contract as bc
+
+        forced = bc(
+            contract="PH26110100", mcp=120, smp=130, system_direction=-1, V=150
+        )
+        assert forced["pos_imb_price"] == pytest.approx(-103.0)
+
+    def test_low_level_function_is_not_wall_clock_dependent(self):
+        """The raw 2026 function keeps literal defaults: a contract-free call
+        cannot know the delivery hour, so it must not drift with the date."""
+        from eptr2.util.costs import calculate_unit_imbalance_price_2026 as p26
+
+        assert p26(mcp=120, smp=130, sd_sign=-1)["pos_imb_price"] == pytest.approx(-103.0)
+
+    def test_kupst_resolves_from_the_same_dated_row(self):
+        """The KUPST side must move with the imbalance side; resolving one by
+        date and the other by period would silently disagree."""
+        from eptr2.util.costs import (
+            contract_to_regulation_params as resolve,
+            get_kupst_tolerance_by_contract as tol,
+            calculate_unit_kupst_cost_by_contract as unit_kupst,
+        )
+
+        for contract in ("PH26010100", "PH26110100"):
+            row = resolve(contract)
+            assert tol(contract, "wind") == row["kupst_tolerance"]["wind"]
+            assert tol(contract, "sun") == row["kupst_tolerance"]["solar"]
+            assert tol(contract, "coal") == row["kupst_tolerance"]["default"]
+            assert unit_kupst(
+                contract=contract, mcp=1000, smp=1000
+            ) == pytest.approx(1000 * row["kupst_multiplier"])
+
+    def test_pre_2026_kupst_untouched(self):
+        from eptr2.util.costs import (
+            get_kupst_tolerance_by_contract as tol,
+            calculate_unit_kupst_cost_by_contract as unit_kupst,
+        )
+
+        assert tol("PH25123123", "wind") == 0.17
+        assert tol("PH25123123", "solar") == 0.10
+        assert unit_kupst(contract="PH25123123", mcp=1000, smp=1000) == pytest.approx(30.0)
+
+    def test_live_verified_sample_unchanged(self):
+        """PH26070101 deficit hour, confirmed against the API earlier."""
+        from eptr2.util.costs import calculate_unit_price_and_costs_by_contract as bc
+
+        assert bc(
+            contract="PH26070101", mcp=4000, smp=4000, system_direction="Enerji Açığı"
+        )["neg_imb_price"] == pytest.approx(4240.0)
+
+    def test_every_row_is_self_describing(self):
+        """Each row carries the full value set, so adding a change is one row."""
+        from eptr2.util.costs import get_time_regulation_params_map
+
+        rows = get_time_regulation_params_map()
+        assert [r["date"] for r in rows] == sorted(
+            (r["date"] for r in rows), reverse=True
+        ), "rows must be newest first"
+        required = {
+            "date", "V", "B", "low_margin", "high_margin", "ceil_margin",
+            "kupst_multiplier", "kupst_multiplier_maintenance",
+            "kupst_floor_price", "kupst_tolerance",
+        }
+        for row in rows:
+            assert required <= set(row), f"{row['date']} is missing {required - set(row)}"
+            assert "default" in row["kupst_tolerance"]

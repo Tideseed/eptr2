@@ -5,6 +5,132 @@ import math
 from eptr2.util.time import contract_to_floor_ceil_prices, iso_to_contract
 
 
+def get_time_regulation_params_map():
+    """
+    Regulation parameters that change over time within the 2026 regulation.
+
+    Same shape and conventions as
+    :func:`eptr2.util.time.get_time_min_max_price_map`: one row per regulation
+    change, newest first, each row carrying the full set of values so it reads
+    standalone. A regulation change that alters only values is a single new row
+    here; a change to a *formula* needs a new regulation period instead (see
+    :func:`get_regulation_period_by_contract`).
+
+    Rows apply from the first delivery hour of ``date``. Only the 2026
+    regulation is covered: pre-2026 uses different formulas and different KUPST
+    semantics, and is resolved by regulation period, not by this map.
+
+    Returns:
+        list: dictionaries containing
+            - 'date': first date the values apply (YYYY-MM-DD)
+            - 'V': reference/threshold price (TL/MWh)
+            - 'B': reference price for positive imbalance (TL/MWh)
+            - 'low_margin' / 'high_margin': imbalance margins
+            - 'ceil_margin': additional margin at the price ceiling
+            - 'kupst_multiplier': unit KUPST multiplier
+            - 'kupst_multiplier_maintenance': multiplier with maintenance penalty
+            - 'kupst_floor_price': KUPST floor price (TL/MWh)
+            - 'kupst_tolerance': per-source tolerances, with a 'default' entry
+    """
+    map_l = [
+        {
+            ## V lowered from 150 to 100 effective from the first delivery hour
+            ## of 2026-11-01. The imbalance formula itself is unchanged.
+            ## TODO: confirm the KUPST multipliers and tolerances for this
+            ## period; they currently repeat the 2026-01-01 values.
+            "date": "2026-11-01",
+            "V": 100,
+            "B": 100,
+            "low_margin": 0.03,
+            "high_margin": 0.06,
+            "ceil_margin": 0.05,
+            "kupst_multiplier": 0.05,
+            "kupst_multiplier_maintenance": 0.08,
+            "kupst_floor_price": 750.0,
+            "kupst_tolerance": {
+                "wind": 0.15,
+                "solar": 0.08,
+                "unlicensed": 0.2,
+                "default": 0.05,
+            },
+        },
+        {
+            "date": "2026-01-01",
+            "V": 150,
+            "B": 100,
+            "low_margin": 0.03,
+            "high_margin": 0.06,
+            "ceil_margin": 0.05,
+            "kupst_multiplier": 0.05,
+            "kupst_multiplier_maintenance": 0.08,
+            "kupst_floor_price": 750.0,
+            "kupst_tolerance": {
+                "wind": 0.15,
+                "solar": 0.08,
+                "unlicensed": 0.2,
+                "default": 0.05,
+            },
+        },
+    ]
+
+    return sorted(map_l, key=lambda x: x["date"], reverse=True)
+
+
+def regulation_date_to_contract(date_str: str) -> str:
+    """First hourly contract code of ``date_str`` (YYYY-MM-DD) -> 'PHYYMMDD00'."""
+    year, month, day = date_str.split("-")
+    return f"PH{year[2:]}{month}{day}00"
+
+
+def contract_to_regulation_params(contract: str | None = None) -> dict | None:
+    """
+    Resolve the regulation parameters applying to a contract's delivery hour.
+
+    Contract codes are lexicographically ordered, so the applicable row is the
+    newest one whose start contract is not after ``contract``.
+
+    Args:
+        contract: Contract code 'PHYYMMDDhh'. If None, the newest row is
+            returned (the parameters currently in force).
+
+    Returns:
+        dict or None: the parameter row, or None for pre-2026 contracts, which
+        are governed by the pre-2026 formulas rather than this map.
+    """
+    params_map = get_time_regulation_params_map()
+
+    if contract is None:
+        return params_map[0]
+
+    for row in params_map:
+        if contract >= regulation_date_to_contract(row["date"]):
+            return row
+
+    return None
+
+
+## Parameters of the 2026 imbalance-price formula that the dated map supplies.
+IMBALANCE_PARAM_KEYS = ("V", "B", "low_margin", "high_margin", "ceil_margin")
+
+
+def inject_regulation_params(contract: str, kwargs: dict, keys=IMBALANCE_PARAM_KEYS) -> dict:
+    """
+    Fill ``keys`` in ``kwargs`` from the dated parameters for ``contract``.
+
+    Explicitly supplied values always win; only missing (or None) keys are
+    filled, mirroring how floor and ceiling prices are injected.
+    """
+    params = contract_to_regulation_params(contract)
+    if params is None:
+        return kwargs
+
+    for key in keys:
+        if key in params and kwargs.get(key) is None:
+            kwargs[key] = params[key]
+
+    return kwargs
+
+
 def get_regulation_period_by_contract(contract: str):
     """
     Determine the regulation period from a contract code.
@@ -131,6 +257,15 @@ def get_kupst_tolerance_by_contract(
     0.17
     """
     regulation_period = get_regulation_period_by_contract(contract)
+    ## Tolerances can change within a regulation period; pre-2026 keeps its
+    ## own table and is resolved by period alone.
+    reg_params = contract_to_regulation_params(contract)
+    if reg_params is not None:
+        tolerances = reg_params["kupst_tolerance"]
+        alias_map = {"sun": "solar"}
+        return tolerances.get(
+            alias_map.get(source, source), tolerances["default"]
+        )
     return get_kupst_tolerance(source, regulation_period=regulation_period)
 
 
@@ -255,6 +390,18 @@ def calculate_unit_kupst_cost_by_contract(
     Using a contract code, get the KUPST tolerance for the given source.
     """
     regulation_period = get_regulation_period_by_contract(contract)
+    ## KUPST multipliers and the floor price can change within a regulation
+    ## period, so resolve them from the dated parameters when not given.
+    reg_params = contract_to_regulation_params(contract)
+    if reg_params is not None:
+        if kupst_multiplier is None:
+            kupst_multiplier = (
+                reg_params["kupst_multiplier_maintenance"]
+                if include_maintenance_penalty
+                else reg_params["kupst_multiplier"]
+            )
+        if kupst_floor_price is None:
+            kupst_floor_price = reg_params["kupst_floor_price"]
     return calculate_unit_kupst_cost(
         mcp=mcp,
         smp=smp,
@@ -516,6 +663,18 @@ def calculate_kupst_cost_by_contract(
     90.0
     """
     regulation_period = get_regulation_period_by_contract(contract)
+    ## KUPST multipliers and the floor price can change within a regulation
+    ## period, so resolve them from the dated parameters when not given.
+    reg_params = contract_to_regulation_params(contract)
+    if reg_params is not None:
+        if kupst_multiplier is None:
+            kupst_multiplier = (
+                reg_params["kupst_multiplier_maintenance"]
+                if include_maintenance_penalty
+                else reg_params["kupst_multiplier"]
+            )
+        if kupst_floor_price is None:
+            kupst_floor_price = reg_params["kupst_floor_price"]
     return calculate_kupst_cost(
         actual=actual,
         forecast=forecast,
@@ -712,6 +871,8 @@ def calculate_unit_imbalance_price_by_contract(
     """
 
     regulation_period = get_regulation_period_by_contract(contract)
+    ## V, B and the margins can change within a regulation period.
+    kwargs = inject_regulation_params(contract, kwargs)
     if regulation_period != "pre_2026":
         kwargs = _contract_floor_ceil(contract, kwargs)
 
@@ -871,6 +1032,13 @@ def calculate_unit_imbalance_price_2026(
         Reference/threshold price in TL/MWh. Used for:
         - Calculating negative imbalance price (floor for price calculation)
         - Determining positive imbalance price threshold
+        These literal defaults are the values in force from 2026-01-01.
+        They are deliberately NOT resolved from the calendar: a call
+        without a contract cannot know the delivery hour, so resolving
+        'today's value' would silently change results on a regulation
+        boundary. The ``*_by_contract`` and ``*_by_datetime`` helpers
+        resolve the applicable set from
+        :func:`get_time_regulation_params_map` (V is 100 from 2026-11-01).
     B : float, default 100
         Reference price for positive imbalance in TL/MWh. Applied when imbalance price
         would fall below V.
@@ -1133,6 +1301,8 @@ def calculate_unit_imbalance_cost_by_contract(
     """
 
     regulation_period = get_regulation_period_by_contract(contract)
+    ## V, B and the margins can change within a regulation period.
+    kwargs = inject_regulation_params(contract, kwargs)
     if regulation_period != "pre_2026":
         kwargs = _contract_floor_ceil(contract, kwargs)
 
@@ -1252,6 +1422,13 @@ def calculate_unit_imbalance_cost_2026(
         resolved at call time (4500.0 since 2026-04-04).
     V : float, default 150
         Reference/threshold price in TL/MWh.
+        These literal defaults are the values in force from 2026-01-01.
+        They are deliberately NOT resolved from the calendar: a call
+        without a contract cannot know the delivery hour, so resolving
+        'today's value' would silently change results on a regulation
+        boundary. The ``*_by_contract`` and ``*_by_datetime`` helpers
+        resolve the applicable set from
+        :func:`get_time_regulation_params_map` (V is 100 from 2026-11-01).
     B : float, default 100
         Reference price for positive imbalance in TL/MWh.
     low_margin : float, default 0.03
@@ -1492,6 +1669,9 @@ def calculate_unit_price_and_costs_by_contract(
             ## Only set floor and ceil if not already provided in kwargs, to allow overrides
             kwargs["floor_price"] = kwargs.get("floor_price", fc_d["min"])
             kwargs["ceil_price"] = kwargs.get("ceil_price", fc_d["max"])
+
+    ## V, B and the margins can change within a regulation period.
+    kwargs = inject_regulation_params(contract, kwargs)
 
     res = calculate_unit_price_and_costs(
         mcp=mcp,
@@ -1847,6 +2027,9 @@ def calculate_diff_costs_by_contract(
             # Only set floor and ceil if not already provided in kwargs, to allow overrides
             kwargs["floor_price"] = kwargs.get("floor_price", fc_d["min"])
             kwargs["ceil_price"] = kwargs.get("ceil_price", fc_d["max"])
+
+    ## V, B and the margins can change within a regulation period.
+    kwargs = inject_regulation_params(contract, kwargs)
 
     return calculate_diff_costs(
         forecast=forecast,
