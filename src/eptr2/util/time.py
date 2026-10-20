@@ -839,14 +839,14 @@ def get_time_min_max_price_map():
             "min": 0,
             "max": 3050.0,
             "idm_min": 0,
-            "idm_max": 3141.5,
+            "idm_max": 3142.0,
         },
         {
             "date": "2023-02-01",
             "min": 0,
             "max": 3650.0,
             "idm_min": 0,
-            "idm_max": 3759.5,
+            "idm_max": 3760.0,
         },
         {
             "date": "2023-01-01",

@@ -37,6 +37,16 @@ the live API.
   2,700 and GİP trades at exactly 2,781 (= 2,700 × 1.03); the first 3,000 / 3,090
   prices are on 2024-07-01. June 2024 contracts now resolve to the 2,700 cap
   (`contract_to_floor_ceil_prices`, the `*_by_contract` imbalance helpers).
+- `get_time_min_max_price_map`: the GİP (IDM) ceiling is **3,760** TL/MWh from
+  2023-02-01 (was 3,759.5) and **3,142** from 2023-03-01 (was 3,141.5). EPİAŞ
+  rounds 1.03 × the PTF cap up to the lira: February 2023 PH contracts traded at
+  most 3,760.00 (121 trades at exactly that price, none above) and March 2023 at
+  most 3,142.00 (142 trades, none above).
+- `get_uevcb_ids` (and the `periodic_orgs` wrappers that call it) capped the
+  current month at the process's local date instead of today's date in
+  Istanbul: on a host behind Turkey (e.g. Europe/Berlin, UTC) the last day
+  queried was yesterday between Istanbul midnight and local midnight. It now
+  uses Istanbul wall-clock time.
 
 ### Added
 - `ren-capacity-old` — YEKDEM installed capacity up to the YEKDEM deadline.
