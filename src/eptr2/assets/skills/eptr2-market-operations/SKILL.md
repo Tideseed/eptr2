@@ -29,4 +29,14 @@ A trade value in TL is not a matched quantity in MWh. Do not sum every numeric c
 
 For organization-specific analyses, resolve the organization and pass its ID only to endpoints that accept it. Gate-closure and publication schedules can change; verify them for the requested period instead of treating this skill as a market-rule source.
 
+## An organization's positions (GÖP + İA + GİP)
+
+`eptr2.composite.get_dabi_idm_data(start_date, end_date, eptr=eptr, org_id=...)` returns them per hour in one frame:
+`da_long`/`da_short` (GÖP purchases/sales), `bi_long`/`bi_short` (bilateral), `idm_long`/`idm_short` (GİP), the nets
+`dabi_net`, `idm_net`, `dabi_idm_net` (**long minus short = net purchases**) and `net_sales` (positive = net seller).
+
+**EPİAŞ swaps bid/ask on the per-organization GİP endpoint:** in `idm-qty` with `org_id`, `clearingQuantityAsk` is what the
+organization BOUGHT and `clearingQuantityBid` what it SOLD. The composite maps this; raw `idm-qty` users must too.
+`dam-clearing` per organization is not swapped (`matchedBids` = purchases, `matchedOffers` = sales).
+
 Read [examples.md](examples.md) for discovery and a bounded raw-response query.

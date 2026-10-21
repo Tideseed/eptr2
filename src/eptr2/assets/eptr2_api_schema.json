@@ -47,7 +47,7 @@
     "get_dabi_idm_data": {
       "module": "eptr2.composite.dabi_idm",
       "signature": "(start_date: str, end_date: str, eptr: eptr2.main.EPTR2 | None = None, org_id: str | None = None, verbose: bool = False, **kwargs)",
-      "summary": "This function retrieves DABI IDM data for a specific organization. It is a wrapper around the `process_idm_data` function."
+      "summary": "An organisation's hourly market positions (GÖP, bilateral and GİP purchases, sales, nets and net_sales)."
     },
     "get_dabi_idm_data_period": {
       "module": "eptr2.composite.dabi_idm",
@@ -57,7 +57,7 @@
     "get_day_ahead_and_bilateral_matches": {
       "module": "eptr2.composite.dabi_idm",
       "signature": "(start_date: str, end_date: str, eptr: eptr2.main.EPTR2 | None = None, include_contract_symbol: bool = True, org_id: str = None, include_idm_data: bool = False, include_org_id: bool = False, verbose: bool = False, **kwargs)",
-      "summary": "This composite function gets day ahead and bilateral matches for the whole market or for a single organization. You can also include IDM data if you provide an org_id."
+      "summary": "Day-ahead (GÖP) and bilateral (İA) matched quantities per hour, optionally with one organisation's GİP quantities."
     },
     "get_day_ahead_detail_info": {
       "module": "eptr2.composite.dabi_idm",
@@ -162,7 +162,7 @@
     "process_idm_data": {
       "module": "eptr2.composite.dabi_idm",
       "signature": "(eptr: eptr2.main.EPTR2, start_date: str, end_date: str, org_id: str, **kwargs) -> pandas.DataFrame",
-      "summary": "This function processes IDM data and includes it in the DataFrame."
+      "summary": "Fetch one organisation's intraday (GİP / IDM) matched quantities per contract (call key ``idm-qty`` with ``org_id``)."
     },
     "wrapper_hourly_production_plan_and_realized": {
       "module": "eptr2.composite.production",
@@ -4735,7 +4735,7 @@
       "url": "https://seffaflik.epias.com.tr/electricity/electricity-transmission/zero-balance-adjustment/monthly-zero-balance-adjustment"
     }
   },
-  "eptr2_version": "1.4.0.dev6",
+  "eptr2_version": "1.4.0.dev7",
   "schema_format_version": "2.0",
   "usage": {
     "cli": "eptr2 call <key> --start-date ... --end-date ...",

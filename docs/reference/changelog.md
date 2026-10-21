@@ -9,6 +9,10 @@ Endpoint mappings were reviewed against EPİAŞ's technical documentation
 the live API.
 
 ### Fixed
+- `get_dabi_idm_data` / `get_day_ahead_and_bilateral_matches`: documented columns and signs (nets are long minus short =
+  net purchases), the per-organization GİP bid/ask swap (`clearingQuantityAsk` = bought, `clearingQuantityBid` = sold), and
+  a new `net_sales` column (positive = net seller). `get_dabi_idm_data_period` and the GİP fetch now pass `**kwargs`
+  (retry and timeout options were dropped). Offline regression test with a stubbed client.
 - `capacity-demand` and `intl-capacity-demand-direction-list` called the
   line-capacities endpoints ([#6](https://github.com/Tideseed/eptr2/issues/6));
   they now return capacity-auction requests (`auctionCode`,
