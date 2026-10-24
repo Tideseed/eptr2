@@ -9,3 +9,4 @@ from eptr2.composite.plant_costs import *  # noqa: F403
 from eptr2.composite.periodic_orgs import *  # noqa: F403
 from eptr2.composite.ids import *  # noqa: F403
 from eptr2.composite.ancillary import *  # noqa: F403
+from eptr2.composite.org_activity import *  # noqa: F403

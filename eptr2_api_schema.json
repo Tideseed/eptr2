@@ -4,6 +4,16 @@
     "smf": "smp"
   },
   "composite_functions": {
+    "calculate_idm_contract_stats": {
+      "module": "eptr2.composite.org_activity",
+      "signature": "(log_df: pandas.DataFrame) -> pandas.DataFrame",
+      "summary": "Calculates per contract intraday statistics from the IDM trade log (idm-log or idm_log_longer output)."
+    },
+    "calculate_org_activity": {
+      "module": "eptr2.composite.org_activity",
+      "signature": "(df: pandas.DataFrame) -> pandas.DataFrame",
+      "summary": "Decomposes an organization's hourly positions into day ahead / intraday trades, day trades and free quantity and adds a fictitious (estimated) PnL."
+    },
     "calculate_portfolio_costs": {
       "module": "eptr2.composite.plant_costs",
       "signature": "(start_date: str, end_date: str, id_df: pandas.DataFrame, *, plant_name_col='plant_name', export_to_excel: bool = False, export_dir: str = 'data', check_existing: bool = False, portfolio_name: str | None = None, translate: bool = False, verbose=True, use_uevm=False, ignore_org_id=True, reduce_cost_details=False, forecast_source: Literal['kgup', 'kudup'] = 'kgup', use_latest_regulation: bool = False, include_price_range_adjustment: bool = False, **kwargs)",
@@ -123,6 +133,11 @@
       "module": "eptr2.composite.periodic_orgs",
       "signature": "(start_date: str, end_date: str, **kwargs) -> pandas.DataFrame",
       "summary": "This is a wrapper function to get generation organizations with their UEVCB IDs for multiple periods between start_date and end_date."
+    },
+    "get_org_estimated_activity": {
+      "module": "eptr2.composite.org_activity",
+      "signature": "(start_date: str, end_date: str, org_id: str, eptr: eptr2.main.EPTR2 | None = None, idm_log_df: pandas.DataFrame | None = None, verbose: bool = False, **kwargs) -> pandas.DataFrame",
+      "summary": "Estimates an organization's (company's) trading activity for the given period (start_date and end_date inclusive) on an hourly contract basis."
     },
     "get_periodic_generation_organization_lists": {
       "module": "eptr2.composite.periodic_orgs",

@@ -33,6 +33,12 @@ the live API.
   helpers; explicit `floor_price` / `ceil_price` still win.
 
 ### Added
+- `get_org_estimated_activity` composite: a company's estimated hourly activity
+  over a date range. Splits day-ahead open / intraday close, intraday day trade
+  (`min(idm_long, idm_short)`) and the free quantity to be consumed or
+  generated, and adds a fictitious PnL from MCP and the intraday WAP and TAD
+  (quantity-weighted mean |price − WAP|) of the trade log. Helpers
+  `calculate_idm_contract_stats` and `calculate_org_activity` are pure.
 - `ren-capacity-old` — YEKDEM installed capacity up to the YEKDEM deadline.
 - `ren-participant-year-list` — years available for `ren-participant-list`.
 
