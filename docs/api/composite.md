@@ -49,6 +49,20 @@ from eptr2.composite import (
       show_source: true
       heading_level: 4
 
+### Organization Activity Functions
+
+::: eptr2.composite.org_activity.get_org_estimated_activity
+    options:
+      show_root_heading: true
+      show_source: true
+      heading_level: 4
+
+::: eptr2.composite.org_activity.calculate_org_activity
+    options:
+      show_root_heading: true
+      show_source: false
+      heading_level: 4
+
 ## Quick Reference
 
 ### get_hourly_consumption_and_forecast_data

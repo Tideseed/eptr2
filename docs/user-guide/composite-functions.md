@@ -179,14 +179,46 @@ costs = calculate_plant_costs(
 ## IDM (Intraday Market) Log
 
 ```python
-from eptr2.composite import get_idm_log_data
+from eptr2.composite import idm_log_longer
 
-idm_log = get_idm_log_data(
+idm_log = idm_log_longer(
     start_date="2024-07-29",
     end_date="2024-07-29",
     eptr=eptr
 )
 ```
+
+`quantity` in the log is in lots (1 lot = 0.1 MWh).
+
+## Organization Estimated Activity
+
+Estimates a company's hourly trading activity from its matched quantities
+(`get_dabi_idm_data`), MCP and the intraday trade log:
+
+```python
+from eptr2.composite import get_org_estimated_activity
+
+df = get_org_estimated_activity(
+    start_date="2026-10-01",
+    end_date="2026-10-07",
+    org_id=104000,
+    eptr=eptr,
+)
+```
+
+| Column | Meaning |
+|--------|---------|
+| `da_id_close` | Day-ahead position reversed in the intraday market: `min(abs(da_net), abs(idm_net))` when they have opposite signs |
+| `day_trade` | `min(idm_long, idm_short)`, bought and sold back within the intraday market |
+| `free_qty` | `da_net + bi_net + idm_net`; positive must be consumed, negative generated (subtract `bi_net` for DA + IDM only) |
+| `idm_wap`, `idm_tad` | Intraday WAP and TAD (quantity-weighted mean of `abs(price - WAP)`) of the contract from the trade log |
+| `da_id_pnl` | `da_id_close * sign(da_net) * (idm_wap - mcp)` |
+| `day_trade_pnl` | `day_trade * idm_tad` |
+| `total_pnl` | Sum of both |
+
+The PnL is fictitious: the company's own trade prices are not public. To
+analyse several companies, fetch the log once with `idm_log_longer` and pass it
+as `idm_log_df`.
 
 ## MMS (Market Management System) Data
 
