@@ -213,7 +213,7 @@
     },
     "calculate_kupst_cost_by_contract": {
       "module": "eptr2.util.costs",
-      "signature": "(contract: str, actual: float, forecast: float, mcp: float, smp: float, tol: float | None = None, source: str | None = None, kupst_multiplier: float | None = None, kupst_floor_price: float | None = None, return_detail: bool = False, include_maintenance_penalty=False)",
+      "signature": "(contract: str, actual: float, forecast: float, mcp: float, smp: float, tol: float | None = None, source: str | None = None, kupst_multiplier: float | None = None, kupst_floor_price: float | None = None, return_detail: bool = False, include_maintenance_penalty=False, category: str | None = None)",
       "summary": "Calculate KUPST (Production Plan Deviation Cost) using a contract code."
     },
     "calculate_unit_imbalance_cost": {
@@ -243,8 +243,8 @@
     },
     "calculate_unit_kupst_cost_by_contract": {
       "module": "eptr2.util.costs",
-      "signature": "(contract: str, mcp: float, smp: float, kupst_multiplier: float = None, kupst_floor_price: float = None, include_maintenance_penalty: bool = False)",
-      "summary": "Using a contract code, get the KUPST tolerance for the given source."
+      "signature": "(contract: str, mcp: float, smp: float, kupst_multiplier: float = None, kupst_floor_price: float = None, include_maintenance_penalty: bool = False, category: str | None = 'other')",
+      "summary": "Unit KUPST cost (TL/MWh) for a contract. Multiplier and floor price are"
     },
     "calculate_unit_price_and_costs": {
       "module": "eptr2.util.costs",
@@ -268,8 +268,8 @@
     },
     "get_kupst_tolerance_by_contract": {
       "module": "eptr2.util.costs",
-      "signature": "(contract: str, source: Literal['wind', 'solar', 'sun', 'unlicensed', 'other'] = 'other')",
-      "summary": "Get KUPST tolerance for a given source and contract code."
+      "signature": "(contract: str, source: str = 'other')",
+      "summary": "Get KUPST tolerance for a given source (KUPST category) and contract code."
     }
   },
   "date_format": "YYYY-MM-DD (ISO 8601); market timezone is Europe/Istanbul",

@@ -117,6 +117,10 @@ def get_hourly_price_and_cost_data(
                 "include_maintenance_penalty",
             ]
         }
+        ## KUPST multipliers depend on the KUPST category (e.g. 'wind',
+        ## 'storage_plant') from 2026-11-01. Default is 'other'.
+        if kwargs.get("kupst_category") is not None:
+            added_params["category"] = kwargs["kupst_category"]
 
         price_df["kupst_cost"] = price_df.apply(
             lambda x: calculate_unit_kupst_cost_by_contract(

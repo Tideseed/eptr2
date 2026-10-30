@@ -686,12 +686,12 @@ class TestDatedRegulationParams:
 
         for contract in ("PH26010100", "PH26110100"):
             row = resolve(contract)
-            assert tol(contract, "wind") == row["kupst_tolerance"]["wind"]
-            assert tol(contract, "sun") == row["kupst_tolerance"]["solar"]
-            assert tol(contract, "coal") == row["kupst_tolerance"]["default"]
+            assert tol(contract, "wind") == row["kupst"]["wind"]["tolerance"]
+            assert tol(contract, "sun") == row["kupst"]["solar"]["tolerance"]
+            assert tol(contract, "coal") == row["kupst"]["other"]["tolerance"]
             assert unit_kupst(
                 contract=contract, mcp=1000, smp=1000
-            ) == pytest.approx(1000 * row["kupst_multiplier"])
+            ) == pytest.approx(1000 * row["kupst"]["other"]["multiplier"])
 
     def test_pre_2026_kupst_untouched(self):
         from eptr2.util.costs import (
@@ -721,12 +721,13 @@ class TestDatedRegulationParams:
         ), "rows must be newest first"
         required = {
             "date", "V", "B", "low_margin", "high_margin", "ceil_margin",
-            "kupst_multiplier", "kupst_multiplier_maintenance",
-            "kupst_floor_price", "kupst_tolerance",
+            "kupst_floor_price", "kupst",
         }
         for row in rows:
             assert required <= set(row), f"{row['date']} is missing {required - set(row)}"
-            assert "default" in row["kupst_tolerance"]
+            assert "other" in row["kupst"]
+            for cat, cat_d in row["kupst"].items():
+                assert {"tolerance", "multiplier"} <= set(cat_d), f"{row['date']} {cat}"
 
     def test_datetime_route_carries_the_dated_values(self):
         """plant_costs prices by datetime, so that route must resolve too."""
@@ -747,3 +748,166 @@ class TestDatedRegulationParams:
             for hour in range(24):
                 contract = iso_to_contract(f"{day}T{hour:02d}:00:00+03:00")
                 assert resolve(contract)["date"] == expected, contract
+
+
+class TestKupstCategories:
+    """From 2026-11-01 KUPST tolerance and multiplier depend on the category.
+    Every entry point must resolve the same values, otherwise a category
+    silently gets the 'other' rate on some paths."""
+
+    NOV = "PH26110100"
+    OCT = "PH26103123"
+
+    def _all_paths(self, contract, category):
+        from eptr2.util.costs import (
+            get_kupst_tolerance_by_contract,
+            calculate_unit_kupst_cost_by_contract,
+            calculate_kupst_cost_by_contract,
+            calculate_unit_price_and_costs_by_contract,
+            calculate_diff_costs_by_contract,
+        )
+
+        detail = calculate_kupst_cost_by_contract(
+            contract=contract,
+            actual=50,
+            forecast=100,
+            mcp=1000,
+            smp=1000,
+            source=category,
+            return_detail=True,
+        )
+        diff = calculate_diff_costs_by_contract(
+            forecast=100,
+            actual=50,
+            is_producer=True,
+            contract=contract,
+            mcp=1000,
+            smp=1000,
+            production_source=category,
+            include_quantities=True,
+            system_direction=1,
+        )
+        return {
+            "tol": {
+                get_kupst_tolerance_by_contract(contract, category),
+                detail["kupst_tol_perc"],
+                ## kupsm = 50 - 100 * tol
+                round(1 - diff["kupsm"] / 100 - 0.5, 4),
+            },
+            "unit": {
+                round(x, 4)
+                for x in (
+                    calculate_unit_kupst_cost_by_contract(
+                        contract=contract, mcp=1000, smp=1000, category=category
+                    ),
+                    detail["unit_kupst_cost"],
+                    calculate_unit_price_and_costs_by_contract(
+                        contract=contract,
+                        mcp=1000,
+                        smp=1000,
+                        system_direction=1,
+                        kupst_category=category,
+                    )["unit_kupst"],
+                    diff["kupst_cost"] / diff["kupsm"],
+                )
+            },
+        }
+
+    @pytest.mark.parametrize(
+        "category, tol, multiplier",
+        [
+            ("wind", 0.15, 0.05),
+            ("solar", 0.08, 0.05),
+            ("storage_plant", 0.05, 0.10),
+            ("other", 0.05, 0.05),
+            ("unlicensed_transmission", 0.20, 0.02),
+            ("unlicensed_distribution", 0.25, 0.01),
+            ("standalone_storage", 0.20, 0.02),
+            ("unlicensed", 0.20, 0.02),
+            ("sun", 0.08, 0.05),
+            ("hydro", 0.05, 0.05),
+        ],
+    )
+    def test_every_path_agrees_from_november(self, category, tol, multiplier):
+        res = self._all_paths(self.NOV, category)
+        assert res["tol"] == {tol}
+        assert res["unit"] == {round(1000 * multiplier, 4)}
+
+    def test_new_categories_are_other_before_november(self):
+        res = self._all_paths(self.OCT, "standalone_storage")
+        assert res["tol"] == {0.05}
+        assert res["unit"] == {50.0}
+        ## unlicensed kept its 20% tolerance, the multiplier was 0.05
+        res = self._all_paths(self.OCT, "unlicensed")
+        assert res["tol"] == {0.20}
+        assert res["unit"] == {50.0}
+
+    @pytest.mark.parametrize(
+        "contract, category, multiplier",
+        [
+            ("PH26110100", "wind", 0.08),
+            ("PH26110100", "other", 0.08),
+            ## No maintenance multiplier for these categories
+            ("PH26110100", "storage_plant", 0.10),
+            ("PH26110100", "unlicensed_transmission", 0.02),
+            ("PH26103123", "storage_plant", 0.08),
+        ],
+    )
+    def test_maintenance_penalty_does_not_clobber_category(
+        self, contract, category, multiplier
+    ):
+        from eptr2.util.costs import (
+            calculate_unit_kupst_cost_by_contract,
+            calculate_unit_price_and_costs_by_contract,
+        )
+
+        assert calculate_unit_kupst_cost_by_contract(
+            contract=contract,
+            mcp=1000,
+            smp=1000,
+            category=category,
+            include_maintenance_penalty=True,
+        ) == pytest.approx(1000 * multiplier)
+        assert calculate_unit_price_and_costs_by_contract(
+            contract=contract,
+            mcp=1000,
+            smp=1000,
+            system_direction=1,
+            kupst_category=category,
+            include_maintenance_penalty=True,
+        )["unit_kupst"] == pytest.approx(1000 * multiplier)
+
+    def test_maintenance_fault_threshold(self):
+        from eptr2.util.costs import is_kupst_maintenance_penalty_applicable as applies
+
+        assert applies(self.NOV, "wind", 30) and not applies(self.NOV, "wind", 29)
+        assert applies(self.NOV, "sun", 30)
+        assert applies(self.NOV, "hydro", 25) and not applies(self.NOV, "hydro", 24)
+        assert not applies(self.NOV, "storage_plant", 100)
+        ## No threshold recorded before November
+        assert not applies(self.OCT, "wind", 100)
+
+    def test_explicit_values_still_win(self):
+        from eptr2.util.costs import calculate_kupst_cost_by_contract
+
+        d = calculate_kupst_cost_by_contract(
+            contract=self.NOV,
+            actual=50,
+            forecast=100,
+            mcp=1000,
+            smp=1000,
+            source="standalone_storage",
+            tol=0.1,
+            kupst_multiplier=0.03,
+            return_detail=True,
+        )
+        assert d["kupst_tol_perc"] == 0.1
+        assert d["unit_kupst_cost"] == pytest.approx(30.0)
+
+    def test_latest_regulation_is_newest_row(self):
+        from eptr2.util.costs import get_kupst_params_by_contract
+
+        assert (
+            get_kupst_params_by_contract(None, "standalone_storage")["tolerance"]
+            == 0.20
+        )

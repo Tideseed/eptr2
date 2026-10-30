@@ -9,8 +9,8 @@ from eptr2.composite.price_and_cost import get_hourly_price_and_cost_data
 from eptr2.composite.production import wrapper_hourly_production_plan_and_realized
 from eptr2.util.costs import (
     calculate_kupsm,
-    get_kupst_tolerance,
     get_kupst_tolerance_by_contract,
+    get_kupst_params_by_contract,
     calculate_unit_imbalance_cost,
     calculate_unit_kupst_cost,
 )
@@ -108,6 +108,7 @@ def gather_and_calculate_plant_costs(
         include_contract_symbol=True,
         include_wap=False,
         timeout=timeout,
+        kupst_category=plant_type,
     )
 
     #### Merge and calculate costs
@@ -132,11 +133,16 @@ def gather_and_calculate_plant_costs(
         how="inner",
     )
 
-    ## Calculate kupsm and costs
-    kupst_tolerance = get_kupst_tolerance(plant_type)
+    ## Calculate kupsm and costs. The tolerance depends on the contract's date.
+    tol_by_contract = {
+        contract: get_kupst_tolerance_by_contract(contract=contract, source=plant_type)
+        for contract in merged_df["contract"].unique()
+    }
     merged_df["kupsm"] = merged_df.apply(
         lambda row: calculate_kupsm(
-            actual=row["actual"], forecast=row["forecast"], tol=kupst_tolerance
+            actual=row["actual"],
+            forecast=row["forecast"],
+            tol=tol_by_contract[row["contract"]],
         ),
         axis=1,
     )
@@ -285,10 +291,11 @@ def calculate_portfolio_costs(
         for pfx in ["", "da_"]:
             plant_source = row.get("source", "other")
             if use_latest_regulation:
-                ## Explicit scenario: price every hour under the current regulation.
-                fixed_tol = get_kupst_tolerance(
-                    source=plant_source, regulation_period="current"
-                )
+                ## Explicit scenario: price every hour under the latest
+                ## regulation, i.e. the newest row of the dated parameters.
+                fixed_tol = get_kupst_params_by_contract(
+                    None, category=plant_source
+                )["tolerance"]
                 tol_by_contract = None
             else:
                 ## KUPST tolerance depends on the regulation period, which is derived
@@ -370,9 +377,14 @@ def calculate_portfolio_costs(
                 axis=1,
             )
             cost_df2 = pd.concat([cost_df2, pd.json_normalize(temp_series)], axis=1)
+            latest_kupst_d = get_kupst_params_by_contract(None, category="other")
             cost_df2["unit_kupst_cost"] = cost_df2.apply(
                 lambda row: calculate_unit_kupst_cost(
-                    mcp=row["mcp"], smp=row["smp"], regulation_period="current"
+                    mcp=row["mcp"],
+                    smp=row["smp"],
+                    kupst_multiplier=latest_kupst_d["multiplier"],
+                    kupst_floor_price=latest_kupst_d["floor_price"],
+                    regulation_period="current",
                 ),
                 axis=1,
             )

@@ -27,31 +27,72 @@ def get_time_regulation_params_map():
             - 'B': reference price for positive imbalance (TL/MWh)
             - 'low_margin' / 'high_margin': imbalance margins
             - 'ceil_margin': additional margin at the price ceiling
-            - 'kupst_multiplier': unit KUPST multiplier
-            - 'kupst_multiplier_maintenance': multiplier with maintenance penalty
             - 'kupst_floor_price': KUPST floor price (TL/MWh)
-            - 'kupst_tolerance': per-source tolerances, with a 'default' entry
+            - 'kupst': KUPST parameters by category (see KUPST_CATEGORIES),
+              each with 'tolerance', 'multiplier' and, where the regulation
+              defines one, 'multiplier_maintenance' and
+              'maintenance_fault_threshold' (monthly fault entries from which
+              the maintenance multiplier applies). 'other' is the fallback.
     """
+
+    ## Categories without a 'multiplier_maintenance' have no maintenance
+    ## multiplier; the plain multiplier applies even with the penalty flag.
+    def _kupst_2026_01():
+        rate = {"multiplier": 0.05, "multiplier_maintenance": 0.08}
+        return {
+            "wind": {"tolerance": 0.15, **rate},
+            "solar": {"tolerance": 0.08, **rate},
+            "unlicensed_transmission": {"tolerance": 0.20, **rate},
+            "other": {"tolerance": 0.05, **rate},
+        }
+
     map_l = [
         {
-            ## V lowered from 150 to 100 effective from the first delivery hour
-            ## of 2026-11-01. The imbalance formula itself is unchanged.
-            ## TODO: confirm the KUPST multipliers and tolerances for this
-            ## period; they currently repeat the 2026-01-01 values.
+            ## V lowered from 150 to 100 and KUPST multipliers and tolerances
+            ## set per category, effective from the first delivery hour of
+            ## 2026-11-01. The imbalance and KUPST formulas are unchanged.
+            ## Source: KUPST coefficients table ("Tablo 4, KÜPST katsayıları,
+            ## Kasım 2026'dan itibaren") supplied by the maintainer.
+            ## TODO: cite the board decision / Resmi Gazete issue.
+            ## Consumption unit categories of the same table start in 2027
+            ## and are not included yet.
             "date": "2026-11-01",
             "V": 100,
             "B": 100,
             "low_margin": 0.03,
             "high_margin": 0.06,
             "ceil_margin": 0.05,
-            "kupst_multiplier": 0.05,
-            "kupst_multiplier_maintenance": 0.08,
             "kupst_floor_price": 750.0,
-            "kupst_tolerance": {
-                "wind": 0.15,
-                "solar": 0.08,
-                "unlicensed": 0.2,
-                "default": 0.05,
+            "kupst": {
+                ## Rüzgar
+                "wind": {
+                    "tolerance": 0.15,
+                    "multiplier": 0.05,
+                    "multiplier_maintenance": 0.08,
+                    "maintenance_fault_threshold": 30,
+                },
+                ## Güneş
+                "solar": {
+                    "tolerance": 0.08,
+                    "multiplier": 0.05,
+                    "multiplier_maintenance": 0.08,
+                    "maintenance_fault_threshold": 30,
+                },
+                ## Depolamalı üretim tesisi
+                "storage_plant": {"tolerance": 0.05, "multiplier": 0.10},
+                ## Diğer kaynaklar
+                "other": {
+                    "tolerance": 0.05,
+                    "multiplier": 0.05,
+                    "multiplier_maintenance": 0.08,
+                    "maintenance_fault_threshold": 25,
+                },
+                ## İletime bağlı lisanssız, santral bazında
+                "unlicensed_transmission": {"tolerance": 0.20, "multiplier": 0.02},
+                ## Dağıtıma bağlı lisanssız, katılımcı bazında
+                "unlicensed_distribution": {"tolerance": 0.25, "multiplier": 0.01},
+                ## Müstakil depolama
+                "standalone_storage": {"tolerance": 0.20, "multiplier": 0.02},
             },
         },
         {
@@ -61,15 +102,8 @@ def get_time_regulation_params_map():
             "low_margin": 0.03,
             "high_margin": 0.06,
             "ceil_margin": 0.05,
-            "kupst_multiplier": 0.05,
-            "kupst_multiplier_maintenance": 0.08,
             "kupst_floor_price": 750.0,
-            "kupst_tolerance": {
-                "wind": 0.15,
-                "solar": 0.08,
-                "unlicensed": 0.2,
-                "default": 0.05,
-            },
+            "kupst": _kupst_2026_01(),
         },
     ]
 
@@ -109,6 +143,83 @@ def contract_to_regulation_params(contract: str | None = None) -> dict | None:
     return None
 
 
+## KUPST categories of the dated map. A category is not exactly the source:
+## storage and unlicensed plants have their own categories.
+KUPST_CATEGORIES = (
+    "wind",
+    "solar",
+    "storage_plant",
+    "other",
+    "unlicensed_transmission",
+    "unlicensed_distribution",
+    "standalone_storage",
+)
+KUPST_CATEGORY_ALIASES = {"sun": "solar", "unlicensed": "unlicensed_transmission"}
+
+
+def get_kupst_params_by_contract(
+    contract: str | None,
+    category: str | None = "other",
+    include_maintenance_penalty: bool = False,
+) -> dict | None:
+    """
+    Resolve KUPST tolerance, multiplier and floor price for a category and contract.
+
+    Args:
+        contract: Contract code 'PHYYMMDDhh'. If None, the newest regulation row
+            is used (the latest regulation).
+        category: KUPST category, one of KUPST_CATEGORIES. 'sun' is an alias of
+            'solar' and 'unlicensed' of 'unlicensed_transmission' (per plant, the
+            20% tolerance unlicensed plants had before). Any other value
+            (e.g. 'hydro', 'coal') falls back to 'other'. Note that
+            'unlicensed_distribution' is applied per participant, so the
+            deviation should be the participant's aggregate.
+        include_maintenance_penalty: Use the maintenance multiplier. Categories
+            without one keep their plain multiplier.
+
+    Returns:
+        dict with 'category' (resolved), 'tolerance', 'multiplier' and
+        'floor_price', or None for pre-2026 contracts.
+    """
+    params = contract_to_regulation_params(contract)
+    if params is None:
+        return None
+
+    category = KUPST_CATEGORY_ALIASES.get(category, category)
+    if category not in params["kupst"]:
+        category = "other"
+    cat_d = params["kupst"][category]
+
+    multiplier = cat_d["multiplier"]
+    if include_maintenance_penalty:
+        multiplier = cat_d.get("multiplier_maintenance", multiplier)
+
+    return {
+        "category": category,
+        "tolerance": cat_d["tolerance"],
+        "multiplier": multiplier,
+        "floor_price": params["kupst_floor_price"],
+    }
+
+
+def is_kupst_maintenance_penalty_applicable(
+    contract: str | None, category: str | None, monthly_fault_entries: int
+) -> bool:
+    """
+    Whether the KUPST maintenance multiplier applies, given the number of fault
+    entries of the plant in the month (e.g. 30 or more for wind and solar, 25 or
+    more for other sources from 2026-11-01). False for categories or periods
+    without a defined threshold.
+    """
+    params = contract_to_regulation_params(contract)
+    if params is None:
+        return False
+    category = KUPST_CATEGORY_ALIASES.get(category, category)
+    cat_d = params["kupst"].get(category, params["kupst"]["other"])
+    threshold = cat_d.get("maintenance_fault_threshold")
+    return threshold is not None and monthly_fault_entries >= threshold
+
+
 ## Parameters of the 2026 imbalance-price formula that the dated map supplies.
 IMBALANCE_PARAM_KEYS = ("V", "B", "low_margin", "high_margin", "ceil_margin")
 
@@ -129,6 +240,25 @@ def inject_regulation_params(contract: str, kwargs: dict, keys=IMBALANCE_PARAM_K
             kwargs[key] = params[key]
 
     return kwargs
+
+
+def inject_kupst_params(contract: str, kwargs: dict, category: str | None = "other") -> dict | None:
+    """
+    Fill kupst_multiplier and kupst_floor_price in ``kwargs`` for the KUPST
+    category from the dated parameters for ``contract``. Explicitly supplied
+    values win. Returns the resolved KUPST parameters (None before 2026).
+    """
+    kupst_d = get_kupst_params_by_contract(
+        contract,
+        category=category,
+        include_maintenance_penalty=kwargs.get("include_maintenance_penalty", False),
+    )
+    if kupst_d is not None:
+        if kwargs.get("kupst_multiplier") is None:
+            kwargs["kupst_multiplier"] = kupst_d["multiplier"]
+        if kwargs.get("kupst_floor_price") is None:
+            kwargs["kupst_floor_price"] = kupst_d["floor_price"]
+    return kupst_d
 
 
 def get_regulation_period_by_contract(contract: str):
@@ -221,10 +351,10 @@ def _contract_floor_ceil(contract: str, kwargs: dict) -> dict:
 
 def get_kupst_tolerance_by_contract(
     contract: str,
-    source: Literal["wind", "solar", "sun", "unlicensed", "other"] = "other",
+    source: str = "other",
 ):
     """
-    Get KUPST tolerance for a given source and contract code.
+    Get KUPST tolerance for a given source (KUPST category) and contract code.
 
     KUPST (Kesinlestirilmis Uretim Planından Sapma Tutarı - Production Plan Deviation Cost)
     tolerance determines the allowable deviation between forecasted and actual production
@@ -232,8 +362,12 @@ def get_kupst_tolerance_by_contract(
 
     Parameters
     ----------
-    source : {'wind', 'solar', 'sun', 'unlicensed', 'other'}, default 'other'
-        Energy source type. 'sun' is aliased to 'solar'.
+    source : str, default 'other'
+        KUPST category from 2026 (see KUPST_CATEGORIES and
+        get_kupst_params_by_contract), e.g. 'wind', 'solar', 'storage_plant',
+        'unlicensed_transmission', 'standalone_storage'. Before 2026 one of
+        'wind', 'solar', 'other'. 'sun' is aliased to 'solar'; unknown
+        values fall back to 'other'.
     contract : str
         Contract code to determine the applicable regulation period.
 
@@ -248,24 +382,22 @@ def get_kupst_tolerance_by_contract(
     - Wind: 17% (pre-2026) → 15% (2026+)
     - Solar: 10% (pre-2026) → 8% (2026+)
     - Default: 5% for sources not specifically listed
+    - From 2026-11-01 per category, e.g. unlicensed (transmission) 20%,
+      unlicensed (distribution) 25%, standalone storage 20%
 
     Examples
     --------
-    >>> get_kupst_tolerance_by_contract('wind', 'PH26010100')
+    >>> get_kupst_tolerance_by_contract('PH26010100', 'wind')
     0.15
-    >>> get_kupst_tolerance_by_contract('wind', 'PH25123100')
+    >>> get_kupst_tolerance_by_contract('PH25123100', 'wind')
     0.17
     """
     regulation_period = get_regulation_period_by_contract(contract)
     ## Tolerances can change within a regulation period; pre-2026 keeps its
     ## own table and is resolved by period alone.
-    reg_params = contract_to_regulation_params(contract)
-    if reg_params is not None:
-        tolerances = reg_params["kupst_tolerance"]
-        alias_map = {"sun": "solar"}
-        return tolerances.get(
-            alias_map.get(source, source), tolerances["default"]
-        )
+    kupst_d = get_kupst_params_by_contract(contract, category=source)
+    if kupst_d is not None:
+        return kupst_d["tolerance"]
     return get_kupst_tolerance(source, regulation_period=regulation_period)
 
 
@@ -385,23 +517,27 @@ def calculate_unit_kupst_cost_by_contract(
     kupst_multiplier: float = None,
     kupst_floor_price: float = None,
     include_maintenance_penalty: bool = False,
+    category: str | None = "other",
 ):
     """
-    Using a contract code, get the KUPST tolerance for the given source.
+    Unit KUPST cost (TL/MWh) for a contract. Multiplier and floor price are
+    resolved from the dated regulation parameters for the KUPST category (see
+    get_kupst_params_by_contract) unless given explicitly. category is
+    ignored before 2026.
     """
     regulation_period = get_regulation_period_by_contract(contract)
     ## KUPST multipliers and the floor price can change within a regulation
     ## period, so resolve them from the dated parameters when not given.
-    reg_params = contract_to_regulation_params(contract)
-    if reg_params is not None:
+    kupst_d = get_kupst_params_by_contract(
+        contract,
+        category=category,
+        include_maintenance_penalty=include_maintenance_penalty,
+    )
+    if kupst_d is not None:
         if kupst_multiplier is None:
-            kupst_multiplier = (
-                reg_params["kupst_multiplier_maintenance"]
-                if include_maintenance_penalty
-                else reg_params["kupst_multiplier"]
-            )
+            kupst_multiplier = kupst_d["multiplier"]
         if kupst_floor_price is None:
-            kupst_floor_price = reg_params["kupst_floor_price"]
+            kupst_floor_price = kupst_d["floor_price"]
     return calculate_unit_kupst_cost(
         mcp=mcp,
         smp=smp,
@@ -489,12 +625,12 @@ def calculate_unit_kupst_cost(
         if kupst_floor_price is None:
             kupst_floor_price = 750.0
 
+        ## The maintenance penalty is already in kupst_multiplier
         return calculate_unit_kupst_cost_2026(
             mcp=mcp,
             smp=smp,
             kupst_multiplier_default=kupst_multiplier,
             kupst_floor_price=kupst_floor_price,
-            include_maintenance_penalty=include_maintenance_penalty,
         )
     elif regulation_period == "pre_2026":
         if kupst_multiplier is None:
@@ -552,8 +688,12 @@ def calculate_unit_kupst_cost_2026(
     include_maintenance_penalty: bool = False,
 ):
     """
-    Calculate unit KUPST costs based on source type according to the EPDK regulation (2026).
-    Based on draft regulation published 22 Sep 2025.
+    Calculate unit KUPST costs according to the EPDK regulation (2026).
+
+    Contract-free, so it keeps literal defaults. Multipliers per KUPST category
+    and their changes over time (e.g. from 2026-11-01) are resolved by
+    calculate_unit_kupst_cost_by_contract (see get_kupst_params_by_contract).
+    The source shortcut below is from the draft regulation of 22 Sep 2025.
     """
 
     kupst_multiplier = 0.08 if include_maintenance_penalty else kupst_multiplier_default
@@ -599,6 +739,7 @@ def calculate_kupst_cost_by_contract(
     kupst_floor_price: float | None = None,
     return_detail: bool = False,
     include_maintenance_penalty=False,
+    category: str | None = None,
 ):
     """
     Calculate KUPST (Production Plan Deviation Cost) using a contract code.
@@ -632,6 +773,10 @@ def calculate_kupst_cost_by_contract(
         If False, returns only the total KUPST cost.
     include_maintenance_penalty : bool, default False
         If True, applies maintenance penalty to multiplier.
+    category : str, optional
+        KUPST category from 2026 (see get_kupst_params_by_contract). Defaults to
+        source, so source='standalone_storage' sets both tolerance and
+        multiplier.
 
     Returns
     -------
@@ -665,16 +810,20 @@ def calculate_kupst_cost_by_contract(
     regulation_period = get_regulation_period_by_contract(contract)
     ## KUPST multipliers and the floor price can change within a regulation
     ## period, so resolve them from the dated parameters when not given.
-    reg_params = contract_to_regulation_params(contract)
-    if reg_params is not None:
+    category = source if category is None else category
+    kupst_d = get_kupst_params_by_contract(
+        contract,
+        category=category,
+        include_maintenance_penalty=include_maintenance_penalty,
+    )
+    if kupst_d is not None:
         if kupst_multiplier is None:
-            kupst_multiplier = (
-                reg_params["kupst_multiplier_maintenance"]
-                if include_maintenance_penalty
-                else reg_params["kupst_multiplier"]
-            )
+            kupst_multiplier = kupst_d["multiplier"]
         if kupst_floor_price is None:
-            kupst_floor_price = reg_params["kupst_floor_price"]
+            kupst_floor_price = kupst_d["floor_price"]
+        ## Tolerance of the dated category, not of the regulation period base table
+        if tol is None and category is not None:
+            tol = kupst_d["tolerance"]
     return calculate_kupst_cost(
         actual=actual,
         forecast=forecast,
@@ -1632,6 +1781,8 @@ def calculate_unit_price_and_costs_by_contract(
         - kupst_floor_price : float, default 750.0
         - kupst_multiplier : float, default varies by regulation
         - include_maintenance_penalty : bool, default False
+        - kupst_category : str, default 'other'. KUPST category for the
+          multiplier (see get_kupst_params_by_contract)
         - For 2026: floor_price, ceil_price, V, B, low_margin, high_margin, ceil_margin
         - For pre-2026: penalty_margin
 
@@ -1672,6 +1823,8 @@ def calculate_unit_price_and_costs_by_contract(
 
     ## V, B and the margins can change within a regulation period.
     kwargs = inject_regulation_params(contract, kwargs)
+    ## So can KUPST multipliers, which depend on the KUPST category.
+    inject_kupst_params(contract, kwargs, category=kwargs.pop("kupst_category", "other"))
 
     res = calculate_unit_price_and_costs(
         mcp=mcp,
@@ -1747,14 +1900,16 @@ def calculate_unit_price_and_costs(
             mcp=mcp, smp=smp, include_prices=True, **kwargs
         )
         if include_kupst:
+            kupst_multiplier = kwargs.get("kupst_multiplier")
+            if kupst_multiplier is None:
+                kupst_multiplier = (
+                    0.08 if kwargs.get("include_maintenance_penalty", False) else 0.05
+                )
             unit_kupst = calculate_unit_kupst_cost_2026(
                 mcp=mcp,
                 smp=smp,
                 kupst_floor_price=kwargs.get("kupst_floor_price", 750.0),
-                kupst_multiplier_default=kwargs.get("kupst_multiplier", 0.05),
-                include_maintenance_penalty=kwargs.get(
-                    "include_maintenance_penalty", False
-                ),
+                kupst_multiplier_default=kupst_multiplier,
             )
             d["unit_kupst"] = unit_kupst
 
@@ -1957,9 +2112,11 @@ def calculate_diff_costs_by_contract(
         Market Clearing Price in TL/MWh.
     smp : float
         System Marginal Price in TL/MWh.
-    production_source : {'wind', 'solar', 'sun', 'unlicensed', 'other'}, optional
-        Energy source type. Required for producers to determine KUPST tolerance.
-        Not needed for consumers. 'sun' is aliased to 'solar'.
+    production_source : str, optional
+        Energy source type, or KUPST category from 2026 (see
+        get_kupst_params_by_contract). Required for producers to determine KUPST
+        tolerance and multiplier. Not needed for consumers. 'sun' is aliased
+        to 'solar'.
     include_quantities : bool, default False
         If True, returned dictionary includes imbalance quantity and KUPST deviation quantity.
     **kwargs
@@ -2030,6 +2187,10 @@ def calculate_diff_costs_by_contract(
 
     ## V, B and the margins can change within a regulation period.
     kwargs = inject_regulation_params(contract, kwargs)
+    ## So can KUPST multipliers and tolerances, which depend on the category.
+    kupst_d = inject_kupst_params(contract, kwargs, category=production_source)
+    if kupst_d is not None and production_source is not None:
+        kwargs.setdefault("kupst_tol", kupst_d["tolerance"])
 
     return calculate_diff_costs(
         forecast=forecast,
@@ -2145,6 +2306,8 @@ def calculate_diff_costs(
     {'imb_cost': 100.0, 'kupst_cost': 90.0, 'total_cost': 190.0, 'imb_qty': -20.0, 'kupsm': 2.0}
     """
 
+    kupst_tol = kwargs.pop("kupst_tol", None)
+
     signed_imb_qty = calculate_imbalance_amount(
         actual=actual,
         forecast=forecast,
@@ -2157,10 +2320,11 @@ def calculate_diff_costs(
         if production_source is None:
             raise Exception("production_source must be provided for producers")
 
-        kupst_tol = get_kupst_tolerance(
-            source=production_source if production_source is not None else "default",
-            regulation_period=regulation_period,
-        )
+        if kupst_tol is None:
+            kupst_tol = get_kupst_tolerance(
+                source=production_source if production_source is not None else "default",
+                regulation_period=regulation_period,
+            )
         kupsm = calculate_kupsm(tol=kupst_tol, actual=actual, forecast=forecast)
 
     cost_d = calculate_unit_price_and_costs(

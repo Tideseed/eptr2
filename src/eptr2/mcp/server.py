@@ -467,9 +467,12 @@ if MCP_AVAILABLE:
         """Calculate the KUPST production-plan deviation cost for one hour.
         Pure calculation, no API call. contract is 'PHYYMMDDhh'; actual and
         forecast are production in MWh; mcp_price/smp_price in TL/MWh.
-        source sets the tolerance band (e.g. 'wind', 'solar', 'other') unless
-        an explicit tolerance (decimal, e.g. 0.15) is given. Returns the cost
-        breakdown including deviation amount and unit KUPST price."""
+        source is the KUPST category, which sets the tolerance band and, from
+        2026-11-01, the multiplier: 'wind', 'solar', 'storage_plant',
+        'unlicensed_transmission', 'unlicensed_distribution',
+        'standalone_storage' or 'other' (unknown values count as 'other').
+        An explicit tolerance (decimal, e.g. 0.15) overrides the band. Returns
+        the cost breakdown including deviation amount and unit KUPST price."""
         from eptr2.util.costs import calculate_kupst_cost_by_contract
 
         result = calculate_kupst_cost_by_contract(

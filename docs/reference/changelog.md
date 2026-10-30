@@ -9,6 +9,12 @@ Endpoint mappings were reviewed against EPİAŞ's technical documentation
 the live API.
 
 ### Fixed
+- `calculate_kupst_cost_by_contract`, `calculate_diff_costs_by_contract`
+  and `calculate_unit_price_and_costs_by_contract` took KÜPST tolerance or
+  multiplier from the regulation period's base table instead of the contract's
+  date; `include_maintenance_penalty` overrode a multiplier passed in.
+- `gather_and_calculate_plant_costs` applied today's tolerance to every hour
+  and the `other` multiplier to every plant type.
 - `capacity-demand` and `intl-capacity-demand-direction-list` called the
   line-capacities endpoints ([#6](https://github.com/Tideseed/eptr2/issues/6));
   they now return capacity-auction requests (`auctionCode`,
@@ -33,6 +39,17 @@ the live API.
   helpers; explicit `floor_price` / `ceil_price` still win.
 
 ### Added
+- Regulation values that change over time come from one dated table
+  (`get_time_regulation_params_map`) and are applied by every `*_by_contract`
+  helper; explicit arguments still win. From the first delivery hour of
+  2026-11-01: `V` is 100 (was 150), and KÜPST tolerance and multiplier depend
+  on the KÜPST category: wind 15% / 0.05, solar 8% / 0.05, generation with
+  storage (`storage_plant`) 5% / 0.10, other 5% / 0.05, transmission-connected
+  unlicensed 20% / 0.02, distribution-connected unlicensed (per participant)
+  25% / 0.01, standalone storage 20% / 0.02. The 0.08 maintenance multiplier
+  applies to wind and solar from 30, other sources from 25 monthly fault
+  entries (`is_kupst_maintenance_penalty_applicable`). `source`/`category`
+  accepts these categories; `unlicensed` maps to `unlicensed_transmission`.
 - `get_org_estimated_activity` composite: a company's estimated hourly activity
   over a date range. Splits day-ahead open / intraday close, intraday day trade
   (`min(idm_long, idm_short)`) and the free quantity to be consumed or
