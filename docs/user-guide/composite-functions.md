@@ -217,7 +217,8 @@ seconds per day (30–50 s for a week).
 |--------|---------|
 | `da_id_close` | Day-ahead position reversed in the intraday market: `min(abs(da_net), abs(idm_net))` when they have opposite signs |
 | `day_trade` | `min(idm_long, idm_short)`, bought and sold back within the intraday market |
-| `free_qty` | `da_net + bi_net + idm_net`; positive must be consumed, negative generated (subtract `bi_net` for DA + IDM only) |
+| `dabi_net` | `da_net + bi_net`: day-ahead (GÖP + İA) net position |
+| `dabi_idm_net` | `dabi_net + idm_net`; positive must be consumed, negative generated (subtract `bi_net` for GÖP + GİP only) |
 | `mcp`, `idm_wap` | With `include_pnl=True`: MCP and the published intraday WAP |
 | `idm_tad` | With `include_day_trade_pnl=True`: TAD (quantity-weighted mean of `abs(price - WAP)`) from the trade log |
 | `da_id_pnl` | `da_id_close * sign(da_net) * (idm_wap - mcp)` |

@@ -72,7 +72,9 @@ def test_org_activity_decomposition(pos_df):
     assert df["day_trade"].tolist() == [20.0, 10.0, 5.0, 15.0]
     assert df["da_id_close"].tolist() == [40.0, 0.0, 30.0, 0.0]
     ## free = da_net + bi_net + idm_net (positive consume, negative generate)
-    assert df["free_qty"].tolist() == [50.0, 80.0, 15.0, 0.0]
+    assert df["dabi_idm_net"].tolist() == [50.0, 80.0, 15.0, 0.0]
+    ## dabi_net: day ahead (GÖP + İA) net position
+    assert df["dabi_net"].tolist() == [90.0, 50.0, -30.0, 0.0]
     assert df["bi_net"].tolist() == [-10.0, 0.0, 0.0, 0.0]
 
 
@@ -101,7 +103,8 @@ def test_org_activity_missing_price_is_nan_not_zero(pos_df):
 def test_org_activity_invariants(pos_df):
     df = calculate_org_activity(pos_df)
     assert np.allclose(df["idm_long"] + df["idm_short"], 2 * df["day_trade"] + df["idm_net"].abs())
-    assert np.allclose(df["free_qty"], df["da_net"] + df["bi_net"] + df["idm_net"])
+    assert np.allclose(df["dabi_net"], df["da_net"] + df["bi_net"])
+    assert np.allclose(df["dabi_idm_net"], df["dabi_net"] + df["idm_net"])
     assert (df["da_id_close"] <= df["da_net"].abs()).all()
     assert (df["da_id_close"] <= df["idm_net"].abs()).all()
 
@@ -114,7 +117,7 @@ def test_org_activity_without_bilateral(pos_df):
 def test_org_activity_without_prices_has_no_pnl(pos_df):
     df = calculate_org_activity(pos_df.drop(columns=["mcp", "idm_wap", "idm_tad"]))
     assert df["day_trade"].tolist() == [20.0, 10.0, 5.0, 15.0]
-    assert df["free_qty"].tolist() == [50.0, 80.0, 15.0, 0.0]
+    assert df["dabi_idm_net"].tolist() == [50.0, 80.0, 15.0, 0.0]
     assert "total_pnl" not in df
 
 

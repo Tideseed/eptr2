@@ -60,7 +60,7 @@ def calculate_idm_contract_stats(log_df: pd.DataFrame) -> pd.DataFrame:
 
 def calculate_org_activity(df: pd.DataFrame) -> pd.DataFrame:
     """
-    Decomposes an organization's hourly positions into day ahead / intraday trades, day trades and free quantity and, if prices are given, adds a fictitious (estimated) PnL.
+    Decomposes an organization's hourly positions into day ahead / intraday trades, day trades and net positions and, if prices are given, adds a fictitious (estimated) PnL.
 
     Required columns: da_long, da_short, idm_long, idm_short. Optional columns: bi_long, bi_short (taken as 0 if missing); mcp and idm_wap (add da_id_pnl and total_pnl); idm_tad (also adds day_trade_pnl).
 
@@ -70,7 +70,8 @@ def calculate_org_activity(df: pd.DataFrame) -> pd.DataFrame:
         bi_net: bi_long - bi_short
         day_trade: min(idm_long, idm_short). Intraday quantity bought and sold back within the intraday market.
         da_id_close: Day ahead position closed (reversed) in the intraday market. min(|da_net|, |idm_net|) if da_net and idm_net have opposite signs, otherwise 0. Always non-negative, direction follows da_net.
-        free_qty: da_net + bi_net + idm_net. Net quantity that shall either be consumed (positive, net buyer) or generated (negative, net seller). Subtract bi_net for the organized market (DA + IDM) only part.
+        dabi_net: da_net + bi_net. Day ahead (GÖP + İA) net position.
+        dabi_idm_net: dabi_net + idm_net. Net quantity that shall either be consumed (positive, net buyer) or generated (negative, net seller). Subtract bi_net for the organized market (GÖP + GİP) only part.
         da_id_pnl: Fictitious PnL of day ahead open / intraday close trades. da_id_close * sign(da_net) * (idm_wap - mcp). Buying in DA and selling in IDM gains when idm_wap > mcp, the reverse for selling in DA.
         day_trade_pnl: Only with idm_tad. Fictitious PnL of day trades. day_trade * idm_tad. Note that this is one sided TAD (not 2 * TAD for a buy and a sell around WAP) by definition.
         total_pnl: da_id_pnl (+ day_trade_pnl when available)
@@ -91,9 +92,10 @@ def calculate_org_activity(df: pd.DataFrame) -> pd.DataFrame:
     df["da_id_close"] = np.where(
         is_opposite, np.minimum(df["da_net"].abs(), df["idm_net"].abs()), 0.0
     )
-    df["free_qty"] = df["da_net"] + df["bi_net"] + df["idm_net"]
+    df["dabi_net"] = df["da_net"] + df["bi_net"]
+    df["dabi_idm_net"] = df["dabi_net"] + df["idm_net"]
 
-    round_cols = ["da_net", "idm_net", "bi_net", "day_trade", "da_id_close", "free_qty"]
+    round_cols = ["da_net", "idm_net", "bi_net", "dabi_net", "dabi_idm_net", "day_trade", "da_id_close"]
     df[round_cols] = df[round_cols].round(2)
 
     if not {"mcp", "idm_wap"} <= set(df.columns):
@@ -128,7 +130,7 @@ def get_org_estimated_activity(
     """
     Estimates an organization's (company's) trading activity for the given period (start_date and end_date inclusive) on an hourly contract basis.
 
-    The activity comes from the organization's own matched quantities only: day ahead (GÖP), bilateral (İA) and intraday (GİP) matchings by organization id (get_dabi_idm_data, a few seconds per week). See calculate_org_activity for the decomposition (day ahead open / intraday close, day trade, free quantity).
+    The activity comes from the organization's own matched quantities only: day ahead (GÖP), bilateral (İA) and intraday (GİP) matchings by organization id (get_dabi_idm_data, a few seconds per week). See calculate_org_activity for the decomposition (day ahead open / intraday close, day trade, dabi_net and dabi_idm_net net positions).
 
     With include_pnl=True a fictitious PnL of day ahead open / intraday close trades is added from MCP and the published intraday WAP (two more calls, fast).
 

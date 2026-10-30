@@ -19,10 +19,11 @@ def test_get_org_estimated_activity():
     )
 
     assert len(df) == 24
-    for col in ["day_trade", "da_id_close", "free_qty"]:
+    for col in ["day_trade", "da_id_close", "dabi_net", "dabi_idm_net"]:
         assert col in df
     assert "total_pnl" not in df and "idm_wap" not in df
-    assert np.allclose(df["free_qty"], df["da_net"] + df["bi_net"] + df["idm_net"])
+    assert np.allclose(df["dabi_net"], df["da_net"] + df["bi_net"])
+    assert np.allclose(df["dabi_idm_net"], df["dabi_net"] + df["idm_net"])
 
 
 def test_get_org_estimated_activity_with_pnl():
