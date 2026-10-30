@@ -929,8 +929,27 @@ class TestKupstCategoryNames:
             ("İletime bağlı lisanssız, santral bazında", "unlicensed_from_transmission"),
             ("Dağıtıma bağlı lisanssız, katılımcı bazında", "unlicensed_from_distribution"),
             ("Müstakil depolama", "battery"),
-            ## Case, abbreviations and English
+            ## The same labels typed without Turkish characters
+            ("ruzgar", "wind"),
+            ("RUZGAR", "wind"),
+            ("gunes", "solar"),
+            ("GUNES", "solar"),
+            ("depolamali uretim tesisi", "plant_w_battery"),
+            ("diger kaynaklar", "other"),
+            ("iletime bagli lisanssiz, santral bazinda", "unlicensed_from_transmission"),
+            ("ILETIME BAGLI LISANSSIZ", "unlicensed_from_transmission"),
+            ("dagitima bagli lisanssiz, katilimci bazinda", "unlicensed_from_distribution"),
+            ("DAGITIMA BAGLI LISANSSIZ", "unlicensed_from_distribution"),
+            ("mustakil depolama", "battery"),
+            ("MUSTAKIL DEPOLAMA", "battery"),
+            ("bataryali res", "plant_w_battery"),
+            ("dogalgaz", "other"),
+            ("komur", "other"),
+            ## Mixed: dotless ı and dotted İ in either case
             ("RÜZGAR", "wind"),
+            ("Müstakİl depolama", "battery"),
+            ("lısanssız", "unlicensed_from_transmission"),
+            ## Case, abbreviations and English
             ("RES", "wind"),
             ("GES", "solar"),
             ("PV", "solar"),

@@ -205,8 +205,9 @@ def normalize_kupst_category(name: str | None, strict: bool = False) -> str:
     Map a source or category name in any common naming convention to one of
     KUPST_CATEGORIES.
 
-    Matching ignores case, Turkish characters and separators, so 'Rüzgar',
-    'RES', 'wind', 'Güneş', 'GES', 'PV', 'Depolamalı üretim tesisi',
+    Matching ignores case, Turkish characters and separators: Turkish
+    characters are folded to ASCII (ı/İ -> i, ş -> s, ğ -> g, ü -> u, ö -> o,
+    ç -> c), so 'Rüzgar', 'ruzgar' and 'RUZGAR' are the same. 'RES', 'wind', 'Güneş', 'GES', 'PV', 'Depolamalı üretim tesisi',
     'wind + battery', 'Müstakil depolama', 'BESS', 'İletime bağlı lisanssız',
     'Dağıtıma bağlı lisanssız', 'unlicensed', 'HES', 'doğalgaz' all resolve.
 
