@@ -412,6 +412,7 @@ dependencies = [
 
 [package.optional-dependencies]
 allextras = [
+    { name = "certifi" },
     { name = "fastmcp" },
     { name = "openpyxl" },
     { name = "pandas" },
@@ -429,6 +430,7 @@ docs = [
     { name = "mkdocstrings", extra = ["python"] },
 ]
 mcp = [
+    { name = "certifi" },
     { name = "fastmcp" },
     { name = "pandas" },
     { name = "xlsxwriter" },
@@ -447,6 +449,8 @@ docs = [
 
 [package.metadata]
 requires-dist = [
+    { name = "certifi", marker = "extra == 'allextras'", specifier = ">=2026.10.19" },
+    { name = "certifi", marker = "extra == 'mcp'", specifier = ">=2026.10.19" },
     { name = "fastmcp", marker = "extra == 'allextras'", specifier = ">=3.4.10" },
     { name = "fastmcp", marker = "extra == 'mcp'", specifier = ">=3.4.10" },
     { name = "mkdocs-autorefs", marker = "extra == 'docs'", specifier = ">=0.5.0" },
