@@ -2897,7 +2897,7 @@ def calculate_kupst_cost_list(
     """
     .. deprecated:: 1.3.3
         Use list comprehension with :func:`calculate_kupsm` instead.
-        This function will be removed in version 1.4.0.
+        This function will be removed in a future version.
 
     Calculate KUPST (Production Plan Deviation Cost) for multiple periods.
 

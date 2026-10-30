@@ -2,7 +2,7 @@
 
 All notable changes to eptr2 are documented here.
 
-## Version 1.4.0 (Development)
+## Version 1.4.0 (2026-10-30)
 
 Endpoint mappings were reviewed against EPİAŞ's technical documentation
 (electricity, natural gas, reporting) and every call key was exercised against
@@ -288,13 +288,6 @@ the live API.
    # New
    eptr = EPTR2(use_dotenv=True)
    ```
-
-## Roadmap
-
-### Version 1.4.0 (Planned)
-- Complete overhaul for EPDK regulatory changes
-- Enhanced composite functions
-- Improved documentation
 
 ## See Also
 

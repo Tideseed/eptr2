@@ -5,9 +5,9 @@ All notable changes are published via GitHub Releases.
 - Repository: [Tideseed/eptr2](https://github.com/Tideseed/eptr2)
 - Auto-generated: 2026-09-06 15:21 UTC
 
-## Unreleased: v1.4.0 (development, currently `1.4.0.dev9`)
+## v1.4.0 (2026-10-30)
 
-These notes are replaced by the GitHub release notes when v1.4.0 is published. Details: [docs/reference/changelog.md](docs/reference/changelog.md).
+These notes are replaced by the GitHub release notes of v1.4.0. Details: [docs/reference/changelog.md](docs/reference/changelog.md).
 
 ### Regulation update from 2026-11-01 (period `26_02`)
 
