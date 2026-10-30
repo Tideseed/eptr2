@@ -72,6 +72,21 @@ the live API.
 - `ren-participant-year-list` — years available for `ren-participant-list`.
 
 ### Breaking
+- Regulation periods: contracts from 2026-11-01 are period `26_02`
+  (`get_regulation_period_by_contract`), `26_01` covers 2026-01-01 to
+  2026-10-31, and `current` means the newest period. Each period label pins
+  its own parameter row (`get_regulation_params`).
+- Contract-free 2026 functions take their defaults from the newest parameter
+  row instead of literals: `V`, `B`, margins and floor/ceiling in
+  `calculate_unit_imbalance_price_2026` / `_cost_2026`, KÜPST multiplier and
+  floor, KÜPST tolerance and the 5% DSG tolerance. Calls without a contract or
+  period now use V=100 (the 2026-11-01 values); pass `V=150`,
+  `regulation_period="26_01"` or a contract to reproduce earlier results.
+  Pre-2026 functions keep their fixed values.
+- Removed `calculate_imb_cost_pre_2026`, `calculate_diff_cost_pre_2026` and
+  `calculate_kupsm_list`, deprecated since 1.3.3 for removal in 1.4.0.
+  (`calculate_kupst_cost_list` stays while the deprecated
+  `calculate_diff_costs_list` uses it.)
 - `capacity-demand` returns different columns (the real endpoint's).
 - `interim-mcp` / `get_interim_mcp` take `start_date` only; the endpoint
   ignored `end_date` and returned the start day.

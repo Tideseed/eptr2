@@ -67,14 +67,17 @@ class TestRegulationPeriod:
         assert get_regulation_period_by_contract("PH20010100") == "pre_2026"
 
     def test_get_regulation_period_by_contract_2026(self):
-        """Test contract codes from 2026 onwards are marked as 26_01."""
+        """Test contract codes from 2026 onwards get the period of their dated row."""
         assert get_regulation_period_by_contract("PH26010100") == "26_01"
         assert get_regulation_period_by_contract("PH26010101") == "26_01"
-        assert get_regulation_period_by_contract("PH27010100") == "26_01"
+        assert get_regulation_period_by_contract("PH26103123") == "26_01"
+        assert get_regulation_period_by_contract("PH26110100") == "26_02"
+        assert get_regulation_period_by_contract("PH27010100") == "26_02"
 
     def test_get_starting_contract_by_regulation_period_current(self):
-        """Test starting contract for current/26_01 period."""
-        assert get_starting_contract_by_regulation_period("current") == "PH26010100"
+        """Test starting contract for current (newest) and labelled periods."""
+        assert get_starting_contract_by_regulation_period("current") == "PH26110100"
+        assert get_starting_contract_by_regulation_period("26_02") == "PH26110100"
         assert get_starting_contract_by_regulation_period("26_01") == "PH26010100"
 
     def test_get_starting_contract_by_regulation_period_pre_2026(self):
@@ -379,7 +382,7 @@ class TestImbalancePrice:
 
     def test_calculate_unit_imbalance_price_2026_mcp_low(self):
         """Test imbalance price when positive imbalance price < V."""
-        prices = calculate_unit_imbalance_price_2026(mcp=100, smp=200)
+        prices = calculate_unit_imbalance_price_2026(mcp=100, smp=200, V=150)
         # min(100, 200) = 100 < 150, so pos_imb_price = -100 * (1 + margin)
         assert prices["pos_imb_price"] < 0  # Should be negative
 
@@ -433,7 +436,7 @@ class TestImbalancePrice:
     def test_calculate_unit_imbalance_price_2026_with_system_direction_positive(self):
         """Test imbalance price with explicit positive system direction (surplus)."""
         # When system_direction=1 (positive/surplus): low_margin for neg, high_margin for pos
-        prices = calculate_unit_imbalance_price_2026(mcp=100, smp=100, sd_sign=1)
+        prices = calculate_unit_imbalance_price_2026(mcp=100, smp=100, sd_sign=1, V=150)
         # pos_imb_price_raw = min(100, 100) = 100 < V(150), so pos = -B * (1 + pos_margin)
         # pos = -100 * (1 + 0.06) = -106
         assert prices["pos_imb_price"] == -106
@@ -443,7 +446,7 @@ class TestImbalancePrice:
     def test_calculate_unit_imbalance_price_2026_with_system_direction_negative(self):
         """Test imbalance price with explicit negative system direction (deficit)."""
         # When system_direction=-1 (negative/deficit): high_margin for neg, low_margin for pos
-        prices = calculate_unit_imbalance_price_2026(mcp=100, smp=100, sd_sign=-1)
+        prices = calculate_unit_imbalance_price_2026(mcp=100, smp=100, sd_sign=-1, V=150)
         # pos_imb_price_raw = min(100, 100) = 100 < V(150), so pos = -B * (1 + pos_margin)
         # pos = -100 * (1 + 0.03) = -103
         assert prices["pos_imb_price"] == -103
@@ -453,7 +456,7 @@ class TestImbalancePrice:
     def test_calculate_unit_imbalance_price_2026_with_system_direction_balanced(self):
         """Test imbalance price with balanced system direction."""
         # When system_direction=0 (balanced): low_margin for both
-        prices = calculate_unit_imbalance_price_2026(mcp=100, smp=100, sd_sign=0)
+        prices = calculate_unit_imbalance_price_2026(mcp=100, smp=100, sd_sign=0, V=150)
         # pos_imb_price_raw = min(100, 100) = 100 < V(150), so pos = -B * (1 + pos_margin)
         # pos = -100 * (1 + 0.03) = -103
         assert prices["pos_imb_price"] == -103
@@ -515,7 +518,7 @@ class TestImbalancePrice:
         """Test floor behavior when MCP==SMP==floor and system_direction=0."""
         # At floor with balanced direction, uses low_margin for both
         prices = calculate_unit_imbalance_price_2026(
-            mcp=0, smp=0, floor_price=0, sd_sign=0
+            mcp=0, smp=0, floor_price=0, sd_sign=0, V=150
         )
         # pos_imb_price_raw = min(0, 0) = 0 < V(150), so pos = -B * (1 + pos_margin)
         # pos = -100 * (1 + 0.03) = -103 (low_margin since balanced)
@@ -1038,7 +1041,7 @@ class TestRegulation2026Specifics:
     def test_imbalance_price_2026_uses_V_threshold(self):
         """Test that 2026 regulation uses V threshold for negative prices."""
         # When min(mcp, smp) < V (150), pos_imb_price becomes negative
-        prices = calculate_unit_imbalance_price_2026(mcp=100, smp=120)
+        prices = calculate_unit_imbalance_price_2026(mcp=100, smp=120, V=150)
         # min(100, 120) = 100 < 150, so pos becomes -B * (1 + margin)
         assert prices["pos_imb_price"] < 0
 

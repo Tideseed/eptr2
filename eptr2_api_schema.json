@@ -188,7 +188,7 @@
   "cost_utilities": {
     "calculate_diff_costs": {
       "module": "eptr2.util.costs",
-      "signature": "(forecast: float, actual: float, is_producer: bool, mcp: float, smp: float, production_source: str | None = None, regulation_period: Optional[Literal['current', '26_01', 'pre_2026']] = 'current', include_quantities: bool = False, **kwargs) -> dict | float",
+      "signature": "(forecast: float, actual: float, is_producer: bool, mcp: float, smp: float, production_source: str | None = None, regulation_period: str | None = 'current', include_quantities: bool = False, **kwargs) -> dict | float",
       "summary": "Calculate total imbalance and KUPST costs for a single period."
     },
     "calculate_diff_costs_by_contract": {
@@ -203,7 +203,7 @@
     },
     "calculate_imbalance_amount": {
       "module": "eptr2.util.costs",
-      "signature": "(actual: float, forecast: float, is_producer: bool, tolerance_multiplier: float = 1.0, just_raw_imbalance: bool = False, regulation_period: Literal['current', '26_01', 'pre_2026'] = 'current', **kwargs) -> dict | float",
+      "signature": "(actual: float, forecast: float, is_producer: bool, tolerance_multiplier: float = 1.0, just_raw_imbalance: bool = False, regulation_period: str = 'current', **kwargs) -> dict | float",
       "summary": "Calculate the imbalance amount and DSG (Balancing Responsible Group) tolerance effects."
     },
     "calculate_imbalance_costs": {
@@ -218,7 +218,7 @@
     },
     "calculate_kupst_cost": {
       "module": "eptr2.util.costs",
-      "signature": "(actual: float, forecast: float, mcp: float, smp: float, tol: float | None = None, source: str | None = None, kupst_multiplier: float | None = None, kupst_floor_price: float | None = None, return_detail: bool = False, regulation_period: Literal['current', '26_01', 'pre_2026'] = 'current', include_maintenance_penalty=False)",
+      "signature": "(actual: float, forecast: float, mcp: float, smp: float, tol: float | None = None, source: str | None = None, kupst_multiplier: float | None = None, kupst_floor_price: float | None = None, return_detail: bool = False, regulation_period: str = 'current', include_maintenance_penalty=False)",
       "summary": "Calculate KUPST (Production Plan Deviation Cost) for a single period."
     },
     "calculate_kupst_cost_by_contract": {
@@ -228,7 +228,7 @@
     },
     "calculate_unit_imbalance_cost": {
       "module": "eptr2.util.costs",
-      "signature": "(mcp: float, smp: float, include_prices: bool = False, regulation_period: Literal['current', '26_01', 'pre_2026'] = 'current', **kwargs)",
+      "signature": "(mcp: float, smp: float, include_prices: bool = False, regulation_period: str = 'current', **kwargs)",
       "summary": "Calculate unit imbalance costs based on regulation period."
     },
     "calculate_unit_imbalance_cost_by_contract": {
@@ -238,7 +238,7 @@
     },
     "calculate_unit_imbalance_price": {
       "module": "eptr2.util.costs",
-      "signature": "(mcp: float, smp: float, regulation_period: Literal['current', '26_01', 'pre_2026'] = 'current', **kwargs)",
+      "signature": "(mcp: float, smp: float, regulation_period: str = 'current', **kwargs)",
       "summary": "Calculate unit imbalance prices based on regulation period."
     },
     "calculate_unit_imbalance_price_by_contract": {
@@ -248,7 +248,7 @@
     },
     "calculate_unit_kupst_cost": {
       "module": "eptr2.util.costs",
-      "signature": "(mcp: float, smp: float, kupst_multiplier: float = None, kupst_floor_price: float = None, include_maintenance_penalty: bool = False, regulation_period: Literal['current', '26_01', 'pre_2026'] = 'current', **kwargs)",
+      "signature": "(mcp: float, smp: float, kupst_multiplier: float = None, kupst_floor_price: float = None, include_maintenance_penalty: bool = False, regulation_period: str = 'current', **kwargs)",
       "summary": "Calculate unit KUPST (Production Plan Deviation Cost) per MWh based on regulation period."
     },
     "calculate_unit_kupst_cost_by_contract": {
@@ -258,7 +258,7 @@
     },
     "calculate_unit_price_and_costs": {
       "module": "eptr2.util.costs",
-      "signature": "(mcp: float, smp: float, include_kupst: bool = True, regulation_period: Literal['current', '26_01', 'pre_2026'] = 'current', **kwargs)",
+      "signature": "(mcp: float, smp: float, include_kupst: bool = True, regulation_period: str = 'current', **kwargs)",
       "summary": "Calculate unit imbalance prices, costs, and optionally KUPST cost by regulation period."
     },
     "calculate_unit_price_and_costs_by_contract": {
@@ -278,13 +278,18 @@
     },
     "get_kupst_tolerance": {
       "module": "eptr2.util.costs",
-      "signature": "(source: Literal['wind', 'solar', 'sun', 'unlicensed', 'other'] = 'other', regulation_period: Literal['current', '26_01', 'pre_2026'] = 'current')",
+      "signature": "(source: Literal['wind', 'solar', 'sun', 'unlicensed', 'other'] = 'other', regulation_period: str = 'current')",
       "summary": "Get KUPST tolerance for a given source and regulation period."
     },
     "get_kupst_tolerance_by_contract": {
       "module": "eptr2.util.costs",
       "signature": "(contract: str, source: str = 'other')",
       "summary": "Get KUPST tolerance for a given source (KUPST category) and contract code."
+    },
+    "get_regulation_params": {
+      "module": "eptr2.util.costs",
+      "signature": "(regulation_period: str = 'current', contract: str | None = None) -> dict | None",
+      "summary": "Regulation parameter row for a contract or a regulation period."
     },
     "is_kupst_maintenance_penalty_applicable": {
       "module": "eptr2.util.costs",

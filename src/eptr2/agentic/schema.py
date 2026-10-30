@@ -22,6 +22,7 @@ COST_UTILITY_NAMES = [
     "get_kupst_tolerance",
     "get_kupst_tolerance_by_contract",
     "get_kupst_params_by_contract",
+    "get_regulation_params",
     "normalize_kupst_category",
     "is_kupst_maintenance_penalty_applicable",
     "calculate_unit_kupst_cost",

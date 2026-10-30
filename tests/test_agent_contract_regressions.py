@@ -668,12 +668,26 @@ class TestDatedRegulationParams:
         )
         assert forced["pos_imb_price"] == pytest.approx(-103.0)
 
-    def test_low_level_function_is_not_wall_clock_dependent(self):
-        """The raw 2026 function keeps literal defaults: a contract-free call
-        cannot know the delivery hour, so it must not drift with the date."""
-        from eptr2.util.costs import calculate_unit_imbalance_price_2026 as p26
+    def test_low_level_defaults_are_the_newest_row(self):
+        """Contract-free calls take the newest row (the latest regulation, even
+        if it starts in the future), never the calendar; explicit values and
+        labelled periods still reproduce older results."""
+        from eptr2.util.costs import (
+            calculate_unit_imbalance_price_2026 as p26,
+            calculate_unit_imbalance_price as by_period,
+        )
 
-        assert p26(mcp=120, smp=130, sd_sign=-1)["pos_imb_price"] == pytest.approx(-103.0)
+        assert p26(mcp=120, smp=130, sd_sign=-1)["pos_imb_price"] == pytest.approx(116.4)
+        assert p26(mcp=120, smp=130, sd_sign=-1, V=150)["pos_imb_price"] == pytest.approx(-103.0)
+        assert by_period(mcp=120, smp=130, regulation_period="26_01", sd_sign=-1)[
+            "pos_imb_price"
+        ] == pytest.approx(-103.0)
+        assert by_period(mcp=120, smp=130, regulation_period="26_02", sd_sign=-1)[
+            "pos_imb_price"
+        ] == pytest.approx(116.4)
+        assert by_period(mcp=120, smp=130, regulation_period="current", sd_sign=-1)[
+            "pos_imb_price"
+        ] == pytest.approx(116.4)
 
     def test_kupst_resolves_from_the_same_dated_row(self):
         """The KUPST side must move with the imbalance side; resolving one by
@@ -1004,3 +1018,56 @@ class TestKupstCategoryNames:
         ) == pytest.approx(100.0)
         ## Pre-2026 resolves through the mapping too
         assert get_kupst_tolerance_by_contract("PH25123123", "Rüzgar") == 0.17
+
+
+class TestRegulationPeriodDefaults:
+    """Defaults come from the parameter rows: 'current' is the newest row and
+    each period label pins its own row."""
+
+    def test_period_labels(self):
+        from eptr2.util.costs import get_regulation_periods, get_regulation_params
+
+        assert get_regulation_periods() == ["pre_2026", "26_01", "26_02"]
+        assert get_regulation_params("current")["period"] == "26_02"
+        assert get_regulation_params("26_01")["V"] == 150
+        assert get_regulation_params("pre_2026") is None
+
+    def test_unknown_period_raises(self):
+        from eptr2.util.costs import calculate_unit_imbalance_price
+
+        with pytest.raises(ValueError):
+            calculate_unit_imbalance_price(mcp=100, smp=110, regulation_period="26_09")
+
+    @pytest.mark.parametrize(
+        "period, unit_kupst, wind_tol, battery_tol",
+        [("26_01", 50.0, 0.15, 0.05), ("26_02", 50.0, 0.15, 0.20), ("current", 50.0, 0.15, 0.20)],
+    )
+    def test_kupst_defaults_follow_period(self, period, unit_kupst, wind_tol, battery_tol):
+        from eptr2.util.costs import calculate_unit_kupst_cost, get_kupst_tolerance
+
+        assert calculate_unit_kupst_cost(mcp=1000, smp=1000, regulation_period=period) == unit_kupst
+        assert get_kupst_tolerance("wind", period) == wind_tol
+        assert get_kupst_tolerance("Müstakil depolama", period) == battery_tol
+
+    def test_contract_free_kupst_and_dsg_defaults(self):
+        from eptr2.util.costs import calculate_unit_kupst_cost_2026, calculate_imbalance_amount
+
+        assert calculate_unit_kupst_cost_2026(mcp=1000, smp=1000) == 50.0
+        assert calculate_unit_kupst_cost_2026(mcp=1000, smp=1000, include_maintenance_penalty=True) == 80.0
+        assert calculate_imbalance_amount(actual=105, forecast=100, is_producer=True)["dsg_raw_tol"] == pytest.approx(5.25)
+        assert calculate_imbalance_amount(
+            actual=105, forecast=100, is_producer=True, regulation_period="pre_2026"
+        )["dsg_raw_tol"] == pytest.approx(10.5)
+
+    def test_contract_paths_report_the_new_period(self):
+        from eptr2.util.costs import calculate_imbalance_prices
+
+        rows = calculate_imbalance_prices(
+            prices=[
+                {"date": "2026-10-31T23:00:00+03:00", "mcp": 120, "smp": 130, "system_direction": -1},
+                {"date": "2026-11-01T00:00:00+03:00", "mcp": 120, "smp": 130, "system_direction": -1},
+            ],
+            return_df=False,
+        )
+        assert [r["regulation_period"] for r in rows] == ["26_01", "26_02"]
+        assert [r["pos_imb_price"] for r in rows] == [-103.0, 116.4]

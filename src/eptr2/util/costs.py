@@ -23,6 +23,8 @@ def get_time_regulation_params_map():
     Returns:
         list: dictionaries containing
             - 'date': first date the values apply (YYYY-MM-DD)
+            - 'period': regulation period label (e.g. '26_01', '26_02')
+            - 'dsg_tolerance': balancing group (DSG) imbalance tolerance
             - 'V': reference/threshold price (TL/MWh)
             - 'B': reference price for positive imbalance (TL/MWh)
             - 'low_margin' / 'high_margin': imbalance margins
@@ -57,11 +59,13 @@ def get_time_regulation_params_map():
             ## Consumption unit categories of the same table start in 2027
             ## and are not included yet.
             "date": "2026-11-01",
+            "period": "26_02",
             "V": 100,
             "B": 100,
             "low_margin": 0.03,
             "high_margin": 0.06,
             "ceil_margin": 0.05,
+            "dsg_tolerance": 0.05,
             "kupst_floor_price": 750.0,
             "kupst": {
                 ## Rüzgar
@@ -97,11 +101,13 @@ def get_time_regulation_params_map():
         },
         {
             "date": "2026-01-01",
+            "period": "26_01",
             "V": 150,
             "B": 100,
             "low_margin": 0.03,
             "high_margin": 0.06,
             "ceil_margin": 0.05,
+            "dsg_tolerance": 0.05,
             "kupst_floor_price": 750.0,
             "kupst": _kupst_2026_01(),
         },
@@ -142,6 +148,83 @@ def contract_to_regulation_params(contract: str | None = None) -> dict | None:
 
     return None
 
+
+
+def get_regulation_periods() -> list[str]:
+    """All regulation period labels, oldest first: 'pre_2026', '26_01', ..."""
+    return ["pre_2026"] + [row["period"] for row in reversed(get_time_regulation_params_map())]
+
+
+def is_dated_regulation_period(regulation_period: str) -> bool:
+    """True for 'current' and the periods of the dated parameter map (2026 on),
+    which share the 2026 formulas. False for 'pre_2026'. Raises for unknown
+    labels."""
+    if regulation_period == "pre_2026":
+        return False
+    if regulation_period == "current" or regulation_period in get_regulation_periods():
+        return True
+    raise ValueError(
+        f"Invalid regulation period {regulation_period!r}. Use 'current' or one of "
+        + ", ".join(get_regulation_periods())
+    )
+
+
+def get_regulation_params(
+    regulation_period: str = "current", contract: str | None = None
+) -> dict | None:
+    """
+    Regulation parameter row for a contract or a regulation period.
+
+    Args:
+        regulation_period: 'current' (the newest row, also when it starts in
+            the future), a period label such as '26_01' or '26_02', or
+            'pre_2026'. Ignored if contract is given.
+        contract: Contract code 'PHYYMMDDhh'; its delivery hour picks the row.
+
+    Returns:
+        dict or None: the row (see get_time_regulation_params_map), or None for
+        pre-2026, which is not parameterized by the map.
+    """
+    if contract is not None:
+        return contract_to_regulation_params(contract)
+    if not is_dated_regulation_period(regulation_period):
+        return None
+    if regulation_period == "current":
+        return contract_to_regulation_params(None)
+    for row in get_time_regulation_params_map():
+        if row["period"] == regulation_period:
+            return row
+
+
+def fill_regulation_params(
+    kwargs: dict, regulation_period: str = "current", keys=None
+) -> dict:
+    """Fill missing (or None) imbalance parameters in kwargs from the row of
+    ``regulation_period``. Explicit values win."""
+    params = get_regulation_params(regulation_period)
+    if params is None:
+        return kwargs
+    for key in keys or IMBALANCE_PARAM_KEYS:
+        if kwargs.get(key) is None:
+            kwargs[key] = params[key]
+    return kwargs
+
+
+def get_kupst_params_by_period(
+    regulation_period: str = "current",
+    category: str | None = "other",
+    include_maintenance_penalty: bool = False,
+) -> dict | None:
+    """Like get_kupst_params_by_contract, for a regulation period ('current'
+    is the newest row). None for 'pre_2026'."""
+    params = get_regulation_params(regulation_period)
+    if params is None:
+        return None
+    return get_kupst_params_by_contract(
+        regulation_date_to_contract(params["date"]),
+        category=category,
+        include_maintenance_penalty=include_maintenance_penalty,
+    )
 
 ## KUPST categories of the dated map. A category is not exactly the source:
 ## storage and unlicensed plants have their own categories.
@@ -381,7 +464,8 @@ def get_regulation_period_by_contract(contract: str):
     Returns
     -------
     str
-        Either 'pre_2026' for contracts before 2026-01-01, or '26_01' for 2026 onwards.
+        'pre_2026' for contracts before 2026-01-01, otherwise the period of the
+        dated parameter row ('26_01' from 2026-01-01, '26_02' from 2026-11-01).
 
     Examples
     --------
@@ -389,32 +473,34 @@ def get_regulation_period_by_contract(contract: str):
     'pre_2026'
     >>> get_regulation_period_by_contract('PH26010100')
     '26_01'
+    >>> get_regulation_period_by_contract('PH26110100')
+    '26_02'
     """
 
-    if contract < "PH26010100":
+    params = contract_to_regulation_params(contract)
+    if params is None:
         return "pre_2026"
-    elif contract >= "PH26010100":
-        return "26_01"
-    else:
-        return "pre_2026"
+    return params["period"]
 
 
 def get_starting_contract_by_regulation_period(
-    regulation_period: Literal["current", "26_01", "pre_2026"] = "current",
+    regulation_period: str = "current",
 ):
     """
     Get the first contract code for a given regulation period.
 
     Parameters
     ----------
-    regulation_period : {'current', '26_01', 'pre_2026'}, default 'current'
-        The regulation period. 'current' and '26_01' both refer to 2026 regulation.
+    regulation_period : str, default 'current'
+        'current' (the newest period), a period label such as '26_01' or
+        '26_02', or 'pre_2026'.
 
     Returns
     -------
     str
-        The first contract code of the period:
-        - '26_01'/'current': 'PH26010100' (2026 regulation)
+        The first contract code of the period, e.g.:
+        - '26_01': 'PH26010100'
+        - '26_02' / 'current': 'PH26110100'
         - 'pre_2026': 'PH15010100' (pre-2026 regulation)
 
     Raises
@@ -424,20 +510,16 @@ def get_starting_contract_by_regulation_period(
 
     Examples
     --------
-    >>> get_starting_contract_by_regulation_period('current')
+    >>> get_starting_contract_by_regulation_period('26_01')
     'PH26010100'
     >>> get_starting_contract_by_regulation_period('pre_2026')
     'PH15010100'
     """
 
-    if regulation_period in ["current", "26_01"]:
-        return "PH26010100"
-    elif regulation_period == "pre_2026":
+    params = get_regulation_params(regulation_period)
+    if params is None:
         return "PH15010100"
-    else:
-        raise ValueError(
-            "Invalid period specified. Use 'current', '26_01' or 'pre_2026'."
-        )
+    return regulation_date_to_contract(params["date"])
 
 
 ### KUPST TOLERANCE FUNCTIONS ###
@@ -510,7 +592,7 @@ def get_kupst_tolerance_by_contract(
 
 def get_kupst_tolerance(
     source: Literal["wind", "solar", "sun", "unlicensed", "other"] = "other",
-    regulation_period: Literal["current", "26_01", "pre_2026"] = "current",
+    regulation_period: str = "current",
 ):
     """
     Get KUPST tolerance for a given source and regulation period.
@@ -542,13 +624,13 @@ def get_kupst_tolerance(
     >>> get_kupst_tolerance('wind', 'pre_2026')
     0.17
     """
-    if regulation_period in ["current", "26_01"]:
-        return get_kupst_tolerance_2026(source)
+    if is_dated_regulation_period(regulation_period):
+        return get_kupst_tolerance_2026(source, regulation_period=regulation_period)
     elif regulation_period == "pre_2026":
         return get_kupst_tolerance_pre_2026(source)
     else:
         raise ValueError(
-            "Invalid period specified. Use 'current', '26_01' or 'pre_2026'."
+            f"Invalid period specified. Use 'current' or one of {', '.join(get_regulation_periods())}."
         )
 
 
@@ -582,35 +664,27 @@ def get_kupst_tolerance_pre_2026(
 
 
 def get_kupst_tolerance_2026(
-    source: Literal["wind", "solar", "sun", "unlicensed", "other"] = "other",
+    source: str = "other",
+    regulation_period: str = "current",
 ):
     """
-    Get KUPST tolerance for 2026 EPDK regulation (effective 2026-01-01).
+    Get KUPST tolerance under the 2026 EPDK regulation.
 
     Parameters
     ----------
-    source : {'wind', 'solar', 'sun', 'unlicensed', 'other'}, default 'other'
-        Energy source type.
+    source : str, default 'other'
+        Source or KUPST category in any naming convention (see
+        normalize_kupst_category).
+    regulation_period : str, default 'current'
+        'current' (newest parameter row) or a period label ('26_01', '26_02').
 
     Returns
     -------
     float
-        Tolerance value as decimal:
-        - Wind: 15% (0.15)
-        - Solar/Sun: 8% (0.08)
-        - Unlicensed: 20% (0.20)
-        - Other sources: 5% (0.05, default)
-
-    Notes
-    -----
-    Source 'sun' is aliased to 'solar' for convenience.
-    The 2026 regulation tightened tolerances for wind and solar,
-    while introducing a higher tolerance for unlicensed production.
+        Tolerance value as decimal, from the parameter row of the period
+        (e.g. wind 0.15, solar 0.08, unlicensed 0.20, other 0.05).
     """
-    alias_map = {"sun": "solar"}
-
-    tol_source_map = {"wind": 0.15, "solar": 0.08, "unlicensed": 0.2}
-    return tol_source_map.get(alias_map.get(source, source), 0.05)
+    return get_kupst_params_by_period(regulation_period, category=source)["tolerance"]
 
 
 ### KUPST TOLERANCE FUNCTIONS END###
@@ -661,7 +735,7 @@ def calculate_unit_kupst_cost(
     kupst_multiplier: float = None,
     kupst_floor_price: float = None,
     include_maintenance_penalty: bool = False,
-    regulation_period: Literal["current", "26_01", "pre_2026"] = "current",
+    regulation_period: str = "current",
     **kwargs,
 ):
     """
@@ -687,8 +761,9 @@ def calculate_unit_kupst_cost(
     include_maintenance_penalty : bool, default False
         If True, applies higher multiplier (maintenance penalty rate) to reflect
         additional deviation costs from lack of maintenance.
-    regulation_period : {'current', '26_01', 'pre_2026'}, default 'current'
-        Regulation period. 'current' and '26_01' both refer to 2026 regulation.
+    regulation_period : str, default 'current'
+        Regulation period: 'current' (newest), a label such as '26_01' or
+        '26_02', or 'pre_2026'.
     **kwargs
         Additional keyword arguments (unused, for compatibility).
 
@@ -725,12 +800,15 @@ def calculate_unit_kupst_cost(
     if mcp is None or smp is None:
         return None
 
-    if regulation_period in ["current", "26_01"]:
+    if is_dated_regulation_period(regulation_period):
+        kupst_d = get_kupst_params_by_period(
+            regulation_period, include_maintenance_penalty=include_maintenance_penalty
+        )
         if kupst_multiplier is None:
-            kupst_multiplier = 0.08 if include_maintenance_penalty else 0.05
+            kupst_multiplier = kupst_d["multiplier"]
 
         if kupst_floor_price is None:
-            kupst_floor_price = 750.0
+            kupst_floor_price = kupst_d["floor_price"]
 
         ## The maintenance penalty is already in kupst_multiplier
         return calculate_unit_kupst_cost_2026(
@@ -754,7 +832,7 @@ def calculate_unit_kupst_cost(
         )
     else:
         raise ValueError(
-            "Invalid period specified. Use 'current', '26_01' or 'pre_2026'."
+            f"Invalid period specified. Use 'current' or one of {', '.join(get_regulation_periods())}."
         )
 
 
@@ -790,22 +868,29 @@ def calculate_unit_kupst_cost_2026(
     mcp: float,
     smp: float,
     source: str | None = None,
-    kupst_multiplier_default: float = 0.05,
-    kupst_floor_price: float = 750.0,
+    kupst_multiplier_default: float | None = None,
+    kupst_floor_price: float | None = None,
     include_maintenance_penalty: bool = False,
 ):
     """
     Calculate unit KUPST costs according to the EPDK regulation (2026).
 
-    Contract-free, so it keeps literal defaults. Multipliers per KUPST category
-    and their changes over time (e.g. from 2026-11-01) are resolved by
+    Missing multiplier and floor price are taken from the newest regulation
+    parameter row ('other' category). For a specific hour or category use
     calculate_unit_kupst_cost_by_contract (see get_kupst_params_by_contract).
     The source shortcut below is from the draft regulation of 22 Sep 2025
     and its names are not the KUPST categories (its 'battery' rate is the
     plant_w_battery multiplier).
     """
 
-    kupst_multiplier = 0.08 if include_maintenance_penalty else kupst_multiplier_default
+    latest_d = get_kupst_params_by_period(
+        "current", include_maintenance_penalty=include_maintenance_penalty
+    )
+    if kupst_floor_price is None:
+        kupst_floor_price = latest_d["floor_price"]
+    kupst_multiplier = (
+        latest_d["multiplier"] if kupst_multiplier_default is None else kupst_multiplier_default
+    )
     if source is not None:
         source_map = {"battery": 0.1, "aggregator": 0.05, "unlicensed": 0.02}
         kupst_multiplier = source_map.get(source, kupst_multiplier_default)
@@ -958,7 +1043,7 @@ def calculate_kupst_cost(
     kupst_multiplier: float | None = None,
     kupst_floor_price: float | None = None,
     return_detail: bool = False,
-    regulation_period: Literal["current", "26_01", "pre_2026"] = "current",
+    regulation_period: str = "current",
     include_maintenance_penalty=False,
 ):
     """
@@ -1147,7 +1232,7 @@ def calculate_unit_imbalance_price_by_contract(
 def calculate_unit_imbalance_price(
     mcp: float,
     smp: float,
-    regulation_period: Literal["current", "26_01", "pre_2026"] = "current",
+    regulation_period: str = "current",
     **kwargs,
 ):
     """
@@ -1162,8 +1247,9 @@ def calculate_unit_imbalance_price(
         Market Clearing Price in TL/MWh.
     smp : float
         System Marginal Price in TL/MWh.
-    regulation_period : {'current', '26_01', 'pre_2026'}, default 'current'
-        Regulation period. 'current' and '26_01' both refer to 2026 regulation.
+    regulation_period : str, default 'current'
+        Regulation period: 'current' (newest), a label such as '26_01' or
+        '26_02', or 'pre_2026'.
     **kwargs
         Regulation-specific parameters passed to underlying functions:
         - For 2026 regulation: floor_price, ceil_price, V, B, low_margin, high_margin, ceil_margin
@@ -1192,7 +1278,8 @@ def calculate_unit_imbalance_price(
     {'pos': 94.0, 'neg': 116.5}
     """
 
-    if regulation_period in ["current", "26_01"]:
+    if is_dated_regulation_period(regulation_period):
+        kwargs = fill_regulation_params(dict(kwargs), regulation_period)
         d = calculate_unit_imbalance_price_2026(mcp=mcp, smp=smp, **kwargs)
     elif regulation_period == "pre_2026":
         d = calculate_unit_imbalance_price_pre_2026(
@@ -1254,13 +1341,13 @@ def normalize_system_direction(value):
 def calculate_unit_imbalance_price_2026(
     mcp: float,
     smp: float,
-    floor_price: float = 0.0,
+    floor_price: float | None = None,
     ceil_price: float | None = None,
-    V: float = 150,
-    B: float = 100,
-    low_margin: float = 0.03,
-    high_margin: float = 0.06,
-    ceil_margin: float = 0.05,
+    V: float | None = None,
+    B: float | None = None,
+    low_margin: float | None = None,
+    high_margin: float | None = None,
+    ceil_margin: float | None = None,
     sd_sign: int | None = None,
     strict: bool = True,
     **kwargs,
@@ -1277,8 +1364,9 @@ def calculate_unit_imbalance_price_2026(
         Market Clearing Price (day-ahead price) in TL/MWh.
     smp : float
         System Marginal Price (real-time balancing price) in TL/MWh.
-    floor_price : float, default 0.0
+    floor_price : float or None, default None
         Minimum price floor in TL/MWh. Prices cannot fall below this value.
+        If None, the newest floor from contract_to_floor_ceil_prices.
     ceil_price : float or None, default None
         Maximum price ceiling in TL/MWh. When this is reached, additional margins apply.
         If None, the ceiling currently in force is resolved at call time from
@@ -1286,29 +1374,27 @@ def calculate_unit_imbalance_price_2026(
         previously 3400.0 from 2025-04-05), so the default tracks EPDK revisions.
         For a historical hour pass the applicable value explicitly, or use the
         ``*_by_contract`` helpers, which resolve floor and ceiling from the contract date.
-    V : float, default 150
+    V : float or None, default None
         Reference/threshold price in TL/MWh. Used for:
         - Calculating negative imbalance price (floor for price calculation)
         - Determining positive imbalance price threshold
-        These literal defaults are the values in force from 2026-01-01.
-        They are deliberately NOT resolved from the calendar: a call
-        without a contract cannot know the delivery hour, so resolving
-        'today's value' would silently change results on a regulation
-        boundary. The ``*_by_contract`` and ``*_by_datetime`` helpers
-        resolve the applicable set from
-        :func:`get_time_regulation_params_map` (V is 100 from 2026-11-01).
-    B : float, default 100
+        V, B and the margins default to None: they are taken from the newest
+        row of :func:`get_time_regulation_params_map` (the latest regulation,
+        also when it starts in the future; V is 100 from 2026-11-01). This
+        follows the library version, not the calendar. For a given hour use
+        the ``*_by_contract`` / ``*_by_datetime`` helpers, or pass the values.
+    B : float or None, default None
         Reference price for positive imbalance in TL/MWh. Applied when imbalance price
         would fall below V.
-    low_margin : float, default 0.03
+    low_margin : float or None, default None (newest row, 0.03 so far)
         Margin (3%) applied to the opposite side of system imbalance.
         - If SMP > MCP (negative system imbalance), applied to positive imbalance price
         - If MCP > SMP (positive system imbalance), applied to negative imbalance price
-    high_margin : float, default 0.06
+    high_margin : float or None, default None (newest row, 0.06 so far)
         Margin (6%) applied to the same side as system imbalance.
         - If SMP > MCP, applied to negative imbalance price
         - If MCP > SMP, applied to positive imbalance price
-    ceil_margin : float, default 0.05
+    ceil_margin : float or None, default None (newest row, 0.05 so far)
         Additional margin (5%) applied when max(MCP, SMP) equals ceil_price,
         only to negative imbalance price.
     sd_sign : int or None, optional
@@ -1362,10 +1448,20 @@ def calculate_unit_imbalance_price_2026(
     mcp = round(mcp, 2)
     smp = round(smp, 2)
 
-    ## Resolve the ceiling in force today when not given explicitly, so the
-    ## default tracks EPDK revisions instead of going stale in the signature.
-    if ceil_price is None:
-        ceil_price = contract_to_floor_ceil_prices()["max"]
+    ## Missing values come from the newest parameter rows (price limits and
+    ## regulation parameters), so defaults track regulation changes instead of
+    ## going stale in the signature. For a given hour use the *_by_contract
+    ## helpers, which resolve the values of that hour.
+    if floor_price is None or ceil_price is None:
+        limits_d = contract_to_floor_ceil_prices()
+        floor_price = limits_d["min"] if floor_price is None else floor_price
+        ceil_price = limits_d["max"] if ceil_price is None else ceil_price
+    latest_d = get_regulation_params("current")
+    V = latest_d["V"] if V is None else V
+    B = latest_d["B"] if B is None else B
+    low_margin = latest_d["low_margin"] if low_margin is None else low_margin
+    high_margin = latest_d["high_margin"] if high_margin is None else high_margin
+    ceil_margin = latest_d["ceil_margin"] if ceil_margin is None else ceil_margin
 
     if strict:
         if mcp < floor_price:
@@ -1577,7 +1673,7 @@ def calculate_unit_imbalance_cost(
     mcp: float,
     smp: float,
     include_prices: bool = False,
-    regulation_period: Literal["current", "26_01", "pre_2026"] = "current",
+    regulation_period: str = "current",
     **kwargs,
 ):
     """
@@ -1595,8 +1691,9 @@ def calculate_unit_imbalance_cost(
     include_prices : bool, default False
         If True, returned dictionary includes both prices and costs.
         If False, returns only costs.
-    regulation_period : {'current', '26_01', 'pre_2026'}, default 'current'
-        Regulation period. 'current' and '26_01' both refer to 2026 regulation.
+    regulation_period : str, default 'current'
+        Regulation period: 'current' (newest), a label such as '26_01' or
+        '26_02', or 'pre_2026'.
     **kwargs
         Regulation-specific parameters passed to underlying functions.
 
@@ -1632,7 +1729,8 @@ def calculate_unit_imbalance_cost(
         else:
             return {"unit_pos_imb_cost": None, "unit_neg_imb_cost": None}
 
-    if regulation_period in ["current", "26_01"]:
+    if is_dated_regulation_period(regulation_period):
+        kwargs = fill_regulation_params(dict(kwargs), regulation_period)
         d = calculate_unit_imbalance_cost_2026(
             mcp=mcp, smp=smp, include_prices=include_prices, **kwargs
         )
@@ -1650,13 +1748,13 @@ def calculate_unit_imbalance_cost(
 def calculate_unit_imbalance_cost_2026(
     mcp: float,
     smp: float,
-    floor_price: float = 0.0,
+    floor_price: float | None = None,
     ceil_price: float | None = None,
-    V: float = 150,
-    B: float = 100,
-    low_margin: float = 0.03,
-    high_margin: float = 0.06,
-    ceil_margin: float = 0.05,
+    V: float | None = None,
+    B: float | None = None,
+    low_margin: float | None = None,
+    high_margin: float | None = None,
+    ceil_margin: float | None = None,
     include_prices: bool = False,
     strict: bool = True,
     **kwargs,
@@ -1689,11 +1787,11 @@ def calculate_unit_imbalance_cost_2026(
         :func:`get_time_regulation_params_map` (V is 100 from 2026-11-01).
     B : float, default 100
         Reference price for positive imbalance in TL/MWh.
-    low_margin : float, default 0.03
+    low_margin : float or None, default None (newest row, 0.03 so far)
         Margin for opposite imbalance side (3%).
-    high_margin : float, default 0.06
+    high_margin : float or None, default None (newest row, 0.06 so far)
         Margin for same imbalance side (6%).
-    ceil_margin : float, default 0.05
+    ceil_margin : float or None, default None (newest row, 0.05 so far)
         Additional margin when max(MCP, SMP) equals ceil_price (5%).
     include_prices : bool, default False
         If True, returned dictionary includes both prices and costs.
@@ -1950,7 +2048,7 @@ def calculate_unit_price_and_costs(
     mcp: float,
     smp: float,
     include_kupst: bool = True,
-    regulation_period: Literal["current", "26_01", "pre_2026"] = "current",
+    regulation_period: str = "current",
     **kwargs,
 ):
     """
@@ -1967,8 +2065,9 @@ def calculate_unit_price_and_costs(
         System Marginal Price in TL/MWh.
     include_kupst : bool, default True
         If True, includes unit KUPST cost in the result dictionary.
-    regulation_period : {'current', '26_01', 'pre_2026'}, default 'current'
-        Regulation period. 'current' and '26_01' both refer to 2026 regulation.
+    regulation_period : str, default 'current'
+        Regulation period: 'current' (newest), a label such as '26_01' or
+        '26_02', or 'pre_2026'.
     **kwargs
         Regulation-specific parameters and KUPST parameters:
         - kupst_floor_price : float, default 750.0
@@ -2004,20 +2103,26 @@ def calculate_unit_price_and_costs(
     {'pos_price': 94.0, 'neg_price': 116.5, 'pos_cost': 6.0, 'neg_cost': 16.5, 'unit_kupst': 5.5}
     """
 
-    if regulation_period in ["current", "26_01"]:
+    if is_dated_regulation_period(regulation_period):
+        kwargs = fill_regulation_params(dict(kwargs), regulation_period)
         d = calculate_unit_imbalance_cost_2026(
             mcp=mcp, smp=smp, include_prices=True, **kwargs
         )
         if include_kupst:
+            kupst_d = get_kupst_params_by_period(
+                regulation_period,
+                include_maintenance_penalty=kwargs.get("include_maintenance_penalty", False),
+            )
             kupst_multiplier = kwargs.get("kupst_multiplier")
             if kupst_multiplier is None:
-                kupst_multiplier = (
-                    0.08 if kwargs.get("include_maintenance_penalty", False) else 0.05
-                )
+                kupst_multiplier = kupst_d["multiplier"]
+            kupst_floor_price = kwargs.get("kupst_floor_price")
+            if kupst_floor_price is None:
+                kupst_floor_price = kupst_d["floor_price"]
             unit_kupst = calculate_unit_kupst_cost_2026(
                 mcp=mcp,
                 smp=smp,
-                kupst_floor_price=kwargs.get("kupst_floor_price", 750.0),
+                kupst_floor_price=kupst_floor_price,
                 kupst_multiplier_default=kupst_multiplier,
             )
             d["unit_kupst"] = unit_kupst
@@ -2052,7 +2157,7 @@ def calculate_imbalance_amount(
     is_producer: bool,
     tolerance_multiplier: float = 1.0,
     just_raw_imbalance: bool = False,
-    regulation_period: Literal["current", "26_01", "pre_2026"] = "current",
+    regulation_period: str = "current",
     **kwargs,
 ) -> dict | float:
     """
@@ -2121,8 +2226,8 @@ def calculate_imbalance_amount(
     if kwargs.get("dsg_tolerance") is not None:
         dsg_tolerance = kwargs.get("dsg_tolerance")
     else:
-        if regulation_period in ["current", "26_01"]:
-            dsg_tolerance = 0.05
+        if is_dated_regulation_period(regulation_period):
+            dsg_tolerance = get_regulation_params(regulation_period)["dsg_tolerance"]
         elif regulation_period == "pre_2026":
             dsg_tolerance = 0.1
 
@@ -2321,7 +2426,7 @@ def calculate_diff_costs(
     mcp: float,
     smp: float,
     production_source: str | None = None,
-    regulation_period: Literal["current", "26_01", "pre_2026"] | None = "current",
+    regulation_period: str | None = "current",
     include_quantities: bool = False,
     **kwargs,
 ) -> dict | float:
@@ -2477,67 +2582,6 @@ def calculate_diff_costs(
 #####
 
 
-def calculate_imb_cost_pre_2026(
-    actual: float,
-    forecast: float,
-    mcp: float,
-    smp: float,
-    is_producer: bool,
-    imb_tol: float = 0.1,
-    return_detail: bool = False,
-    dsg_absorption_rate: float = 0.0,
-):
-    """
-    .. deprecated:: 1.3.3
-        This function will be removed in version 1.4.0.
-        Use :func:`calculate_unit_imbalance_cost_pre_2026` and :func:`calculate_imbalance_amounts_pre_2026` instead.
-    """
-    warnings.warn(
-        "calculate_imb_cost_pre_2026 is deprecated and will be removed in version 1.4.0. "
-        "Use calculate_unit_imbalance_cost_pre_2026 and calculate_imbalance_amounts_pre_2026 instead.",
-        DeprecationWarning,
-        stacklevel=2,
-    )
-
-    ## Get the net costs of per imbalance MWh
-    unit_cost_d = calculate_unit_imbalance_cost_pre_2026(mcp=mcp, smp=smp)
-
-    ## Calculate the imbalance amounts
-    res_d = calculate_imbalance_amounts_pre_2026(
-        actual=actual,
-        forecast=forecast,
-        is_producer=is_producer,
-        imb_tol=imb_tol,
-        dsg_absorption_rate=dsg_absorption_rate,
-    )
-
-    dsg_imbalance = res_d["dsg_imbalance"]
-    net_dsg_imbalance = res_d["net_dsg_imbalance"]
-    individual_imbalance = res_d["individual_imbalance"]
-
-    imb_side = "unit_neg_imb_cost" if individual_imbalance < 0 else "unit_pos_imb_cost"
-    unit_cost = unit_cost_d[imb_side]
-
-    dsg_imb_cost = abs(dsg_imbalance) * unit_cost
-    net_dsg_imb_cost = abs(net_dsg_imbalance) * unit_cost
-    individual_imb_cost = abs(individual_imbalance) * unit_cost
-    total_imb_cost = individual_imb_cost + net_dsg_imb_cost
-
-    if return_detail:
-        return {
-            "imbalances": res_d,
-            "imb_side": imb_side,
-            "costs": {
-                "ind_imbalance_cost": individual_imb_cost,
-                "dsg_imb_cost": dsg_imb_cost,
-                "net_dsg_imb_cost": net_dsg_imb_cost,
-                "total_imb_cost": total_imb_cost,
-            },
-        }
-    else:
-        return total_imb_cost
-
-
 def calculate_imbalance_amounts_pre_2026(
     actual: float,
     forecast: float,
@@ -2571,61 +2615,6 @@ def calculate_imbalance_amounts_pre_2026(
         "individual_imbalance": individual_imbalance,
         "imb_tol_value": imb_tol_value,
     }
-
-    return res_d
-
-
-def calculate_diff_cost_pre_2026(
-    actual: float,
-    forecast: float,
-    mcp: float,
-    smp: float,
-    prod_source: str | None = None,
-    imb_tol: float = 0.1,
-    **kwargs,
-):
-    """
-    .. deprecated:: 1.3.3
-        This function will be removed in version 1.4.0.
-        Use :func:`calculate_imb_cost_pre_2026` and :func:`calculate_kupst_cost` instead.
-    """
-    warnings.warn(
-        "calculate_diff_cost_pre_2026 is deprecated and will be removed in version 1.4.0. "
-        "Use calculate_imb_cost_pre_2026 and calculate_kupst_cost instead.",
-        DeprecationWarning,
-        stacklevel=2,
-    )
-
-    is_producer = prod_source is not None
-
-    res_d = calculate_imb_cost_pre_2026(
-        actual=actual,
-        forecast=forecast,
-        mcp=mcp,
-        smp=smp,
-        is_producer=is_producer,
-        imb_tol=imb_tol,
-        dsg_absorption_rate=kwargs.get("dsg_absorption_rate", 0.0),
-        return_detail=kwargs.get("return_detail", True),
-    )
-
-    if not kwargs.get("return_detail", True):
-        res_d = {"total_imb_cost": res_d}
-
-    if is_producer:
-        kupst_d = calculate_kupst_cost(
-            actual=actual,
-            forecast=forecast,
-            mcp=mcp,
-            smp=smp,
-            source=prod_source,
-            tol=kwargs.get("kupst_tol", None),
-            kupst_multiplier=kwargs.get("kupst_multiplier", 0.03),
-            kupst_floor_price=kwargs.get("kupst_floor_price", 750.0),
-            return_detail=kwargs.get("return_detail", True),
-        )
-
-        res_d["kupst"] = kupst_d
 
     return res_d
 
@@ -2783,13 +2772,13 @@ def temp_get_draft_kupst_tolerance(source: str):
 def temp_calculate_imbalance_price_and_costs_new(
     mcp: float,
     smp: float,
-    floor_price: float = 0.0,
+    floor_price: float | None = None,
     ceil_price: float | None = None,
-    V: float = 150,
-    B: float = 100,
-    low_margin: float = 0.03,
-    high_margin: float = 0.06,
-    ceil_margin: float = 0.05,
+    V: float | None = None,
+    B: float | None = None,
+    low_margin: float | None = None,
+    high_margin: float | None = None,
+    ceil_margin: float | None = None,
     regulation: Literal["up", "down", "balanced"] = "balanced",
 ):
     """
@@ -2819,13 +2808,13 @@ def temp_calculate_imbalance_price_and_costs_new(
 def calculate_imbalance_price_and_costs_2026(
     mcp: float,
     smp: float,
-    floor_price: float = 0.0,
+    floor_price: float | None = None,
     ceil_price: float | None = None,
-    V: float = 150,
-    B: float = 100,
-    low_margin: float = 0.03,
-    high_margin: float = 0.06,
-    ceil_margin: float = 0.05,
+    V: float | None = None,
+    B: float | None = None,
+    low_margin: float | None = None,
+    high_margin: float | None = None,
+    ceil_margin: float | None = None,
     regulation: Literal["up", "down", "balanced"] = "balanced",
 ):
     """
@@ -2893,26 +2882,6 @@ def calculate_imbalance_prices_list_pre_2026(mcp: list, smp: list):
     return d
 
 
-def calculate_kupsm_list(actual_values: list, forecast_values: list, tol: float):
-    """
-    .. deprecated:: 1.3.3
-        Use list comprehension with :func:`calculate_kupsm` instead.
-        This function will be removed in version 1.4.0.
-
-    Calculate the KÜPSM (Kesinleşmiş Üretim Planından Sapma Miktarı) list given actual and forecast values and tolerance value.
-    """
-    warnings.warn(
-        "calculate_kupsm_list is deprecated and will be removed in version 1.4.0. "
-        "Use list comprehension with calculate_kupsm instead.",
-        DeprecationWarning,
-        stacklevel=2,
-    )
-    kupsm_list = []
-    for a, f in zip(actual_values, forecast_values):
-        kupsm_list.append(calculate_kupsm(a, f, tol))
-    return kupsm_list
-
-
 def calculate_kupst_cost_list(
     actual_values: list,
     forecast_values: list,
@@ -2922,7 +2891,7 @@ def calculate_kupst_cost_list(
     source: str | None = None,
     kupst_multiplier: float | None = None,
     kupst_floor_price: float | None = None,
-    regulation_period: Literal["current", "26_01", "pre_2026"] = "current",
+    regulation_period: str = "current",
     **kwargs,
 ):
     """

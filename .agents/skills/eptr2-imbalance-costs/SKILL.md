@@ -5,7 +5,7 @@ description: Calculate Turkish electricity imbalance and KÜPST deviation costs 
 
 # Imbalance and KÜPST costs
 
-Use contract-aware utilities for historical analysis. The library distinguishes pre-2026 and 2026 rules; do not apply a timeless 3% margin or one tolerance to a range crossing a rule boundary.
+Use contract-aware utilities for historical analysis. The library distinguishes regulation periods (`pre_2026`, `26_01` from 2026-01-01, `26_02` from 2026-11-01); do not apply a timeless 3% margin or one tolerance to a range crossing a rule boundary. Functions called without a contract use the newest parameters (`regulation_period="current"`); pass a contract or a period label to reproduce a specific period.
 
 ```python
 from eptr2.util.costs import calculate_unit_price_and_costs_by_contract
