@@ -19,6 +19,8 @@ SCHEMA_FORMAT_VERSION = "2.0"
 COST_UTILITY_NAMES = [
     "get_kupst_tolerance",
     "get_kupst_tolerance_by_contract",
+    "get_kupst_params_by_contract",
+    "is_kupst_maintenance_penalty_applicable",
     "calculate_unit_kupst_cost",
     "calculate_unit_kupst_cost_by_contract",
     "calculate_kupst_cost",

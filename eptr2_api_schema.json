@@ -261,6 +261,11 @@
       "signature": "(dt: str | datetime.datetime, mcp: float, smp: float, include_kupst: bool = True, include_dynamic_floor_ceil: bool = True, **kwargs)",
       "summary": "Calculate unit imbalance prices, costs, and optionally KUPST cost using a datetime."
     },
+    "get_kupst_params_by_contract": {
+      "module": "eptr2.util.costs",
+      "signature": "(contract: str | None, category: str | None = 'other', include_maintenance_penalty: bool = False) -> dict | None",
+      "summary": "Resolve KUPST tolerance, multiplier and floor price for a category and contract."
+    },
     "get_kupst_tolerance": {
       "module": "eptr2.util.costs",
       "signature": "(source: Literal['wind', 'solar', 'sun', 'unlicensed', 'other'] = 'other', regulation_period: Literal['current', '26_01', 'pre_2026'] = 'current')",
@@ -270,6 +275,11 @@
       "module": "eptr2.util.costs",
       "signature": "(contract: str, source: str = 'other')",
       "summary": "Get KUPST tolerance for a given source (KUPST category) and contract code."
+    },
+    "is_kupst_maintenance_penalty_applicable": {
+      "module": "eptr2.util.costs",
+      "signature": "(contract: str | None, category: str | None, monthly_fault_entries: int) -> bool",
+      "summary": "Whether the KUPST maintenance multiplier applies, given the number of fault"
     }
   },
   "date_format": "YYYY-MM-DD (ISO 8601); market timezone is Europe/Istanbul",
