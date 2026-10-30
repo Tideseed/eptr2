@@ -5,6 +5,48 @@ All notable changes are published via GitHub Releases.
 - Repository: [Tideseed/eptr2](https://github.com/Tideseed/eptr2)
 - Auto-generated: 2026-09-06 15:21 UTC
 
+## Unreleased: v1.4.0 (development, currently `1.4.0.dev8`)
+
+These notes are replaced by the GitHub release notes when v1.4.0 is published. Details: [docs/reference/changelog.md](docs/reference/changelog.md).
+
+### Regulation update from 2026-11-01 (period `26_02`)
+
+- `V` drops from 150 to 100 from the first delivery hour of 2026-11-01. The imbalance formula is unchanged.
+- KÜPST tolerance and multiplier now depend on the KÜPST category: wind 15% / 0.05, solar 8% / 0.05, generation plant with battery (`plant_w_battery`) 5% / 0.10, other sources 5% / 0.05, transmission-connected unlicensed (`unlicensed_from_transmission`) 20% / 0.02, distribution-connected unlicensed, per participant (`unlicensed_from_distribution`) 25% / 0.01, standalone battery (`battery`) 20% / 0.02. The 0.08 maintenance multiplier applies from 30 monthly fault entries for wind and solar and from 25 for other sources (`is_kupst_maintenance_penalty_applicable`).
+- `normalize_kupst_category` maps source names in any common convention to these categories: Turkish labels with or without Turkish characters (`Rüzgar` / `ruzgar`, `Müstakil depolama`), abbreviations (`RES`, `GES`, `HES`, `BESS`) and English names.
+- All regulation values that change over time live in one dated table, `get_time_regulation_params_map()`. A future value-only change is one new row. Every `*_by_contract` function resolves the row of the contract's delivery hour; explicit arguments still win.
+
+### New main cost functions
+
+- `calculate_imbalance_prices(start_date, end_date, ...)`: hourly imbalance prices, unit costs and every parameter used (regulation period, floor/ceiling, V, B, margins, KÜPST tolerance, multiplier and floor). MCP, SMP and system direction are fetched from `mcp-smp-imb` unless `prices` is given; fetched hours also carry the published imbalance prices to compare against.
+- `calculate_imbalance_costs(data, category=..., ...)`: imbalance and KÜPST costs of actual vs forecast rows. Category and producer/consumer can be set per row, so a portfolio can mix plant types.
+- Both work without pandas (lists of dicts) and return a DataFrame when pandas is installed.
+
+### New composite and calls
+
+- `get_org_estimated_activity(start_date, end_date, org_id, eptr=...)`: a company's estimated hourly activity: day-ahead open / intraday close, intraday day trade (`min(IDM buy, IDM sell)`), free quantity to be consumed or generated, and an estimated (fictitious) PnL from MCP and the intraday WAP and TAD of the trade log.
+- `ren-capacity-old` and `ren-participant-year-list` calls.
+- `get_dabi_idm_data` documents its columns and signs and adds `net_sales` (positive = net seller).
+
+### Breaking changes
+
+- Regulation periods: `pre_2026`, `26_01` (2026-01-01 to 2026-10-31) and `26_02` (from 2026-11-01). `current` means the newest period.
+- Cost functions called without a contract or period take their defaults from the newest parameter row instead of fixed values (V, B, margins, floor/ceiling, KÜPST multiplier, floor and tolerance, DSG tolerance). From now on such calls use V=100; pass `V=150`, `regulation_period="26_01"` or a contract to reproduce earlier results.
+- Removed `calculate_imb_cost_pre_2026`, `calculate_diff_cost_pre_2026` and `calculate_kupsm_list` (deprecated since 1.3.3 for removal in 1.4.0).
+- `capacity-demand` returns the capacity-auction columns of its real endpoint; `interim-mcp` takes `start_date` only; `eligible-consumer-count` drops filters the endpoint never applied.
+
+### Fixes
+
+- KÜPST tolerance and multiplier were taken from the regulation period's base table instead of the contract's date on several `*_by_contract` paths, and `include_maintenance_penalty` overrode an explicit multiplier.
+- `*_by_contract` imbalance helpers used today's price ceiling instead of the contract date's (January–March 2026 hours at the 3400 cap missed the ceiling surcharge).
+- Price map: the 3,000 TL/MWh cap starts 2024-07-01; the GİP caps are 3,760 (2023-02) and 3,142 (2023-03).
+- Endpoint mapping fixes found by a review against EPİAŞ's technical documentation (`capacity-demand`, `eligible-consumer-quantity`, `ra-meters`, `ra-meter-volumes-*`, `page-update-date`), and optional parameters left as `None` are no longer sent.
+- `get_uevcb_ids` uses today's date in Istanbul instead of the host's local date.
+
+### Security
+
+- Patched minimum versions declared in `pyproject.toml`: `urllib3>=2.8.0` (runtime); in the `mcp` / `allextras` extras `fastmcp>=3.4.10`, `mcp>=1.30.0`, `pyjwt>=2.15.0`, `anyio>=4.14.2`, `opentelemetry-api>=1.45.1`; and `certifi>=2026.10.19` (compromised emSign intermediate CAs, GHSA-6q48-6c7w-9gw2) in the `mcp` / `allextras` / `docs` extras.
+
 ## Releases
 
 ### [v1.3.9 - Major Agentic Updates and Improvements (Penultimate Release)](https://github.com/Tideseed/eptr2/releases/tag/v1.3.9) - 2026-09-06

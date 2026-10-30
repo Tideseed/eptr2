@@ -19,9 +19,8 @@ the live API.
   lock file), in the `mcp` / `allextras` extras: `mcp>=1.30.0`,
   `pyjwt>=2.15.0`, `anyio>=4.14.2`, `opentelemetry-api>=1.45.1`.
 - `certifi>=2026.10.19` in the `mcp` / `allextras` / `docs` extras and the docs
-  dependency group: earlier bundles
-  trust emSign roots whose intermediate CA keys were compromised
-  (GHSA-6q48-6c7w-9gw2, critical). certifi reaches eptr2 only through the MCP
+  dependency group: earlier bundles trust emSign roots whose intermediate CA
+  keys were compromised (GHSA-6q48-6c7w-9gw2, critical). certifi reaches eptr2 only through the MCP
   stack (httpx); eptr2's own API calls use the system trust store.
 
 ### Fixed
@@ -57,7 +56,6 @@ the live API.
   2025-01..2026-10 differed from `mcp-smp-imb`; 0 after the fix). They now
   resolve floor and ceiling from the contract like the other `*_by_contract`
   helpers; explicit `floor_price` / `ceil_price` still win.
-
 - `get_time_min_max_price_map`: the 3,000 TL/MWh cap (GİP 3,090) starts on
   **2024-07-01**, not 2024-06-01. In June 2024 PTF and SMF topped out at exactly
   2,700 and GİP trades at exactly 2,781 (= 2,700 × 1.03); the first 3,000 / 3,090
