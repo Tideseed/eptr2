@@ -18,7 +18,7 @@ These notes are replaced by the GitHub release notes when v1.4.0 is published. D
 
 ### New main cost functions
 
-- `calculate_imbalance_prices(start_date, end_date, ...)`: hourly imbalance prices, unit costs and every parameter used (regulation period, floor/ceiling, V, B, margins, KÜPST tolerance, multiplier and floor). MCP, SMP and system direction are fetched from `mcp-smp-imb` unless `prices` is given; fetched hours also carry the published imbalance prices to compare against.
+- `calculate_imbalance_prices(start_date, end_date, ...)`: hourly imbalance prices, unit costs and every parameter used (regulation period, floor/ceiling, V, B, margins, KÜPST tolerance, multiplier and floor). MCP, SMP and system direction are fetched from `mcp-smp-imb` unless `prices` is given. EPİAŞ's published imbalance prices are used where available (`imb_price_source`) and calculated only for hours without them (scenarios, offline use, unpublished hours); `include_calculated=True` adds the calculated prices for comparison.
 - `calculate_imbalance_costs(data, category=..., ...)`: imbalance and KÜPST costs of actual vs forecast rows. Category and producer/consumer can be set per row, so a portfolio can mix plant types.
 - Both work without pandas (lists of dicts) and return a DataFrame when pandas is installed.
 

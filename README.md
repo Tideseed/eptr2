@@ -131,7 +131,8 @@ The main functions resolve every regulation parameter (floor/ceiling, V, B, marg
 ```python
 from eptr2.util.costs import calculate_imbalance_prices, calculate_imbalance_costs
 
-## Hourly prices, unit costs, all parameters used, and the published prices to compare
+## Hourly prices, unit costs and all parameters used. Published imbalance prices are
+## used where available (imb_price_source); offline, pass prices=... to calculate them
 prices = calculate_imbalance_prices("2026-10-01", "2026-10-07", eptr=eptr)
 
 ## Costs of actual vs forecast; category in any convention ("wind", "Rüzgar", "GES", "BESS", ...)

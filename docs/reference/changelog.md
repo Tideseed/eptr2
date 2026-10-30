@@ -78,8 +78,10 @@ the live API.
     prices, unit costs and every parameter used (regulation period,
     floor/ceiling, V, B, margins, KÜPST tolerance, multiplier and floor),
     resolved per hour. MCP, SMP and system direction are fetched from
-    `mcp-smp-imb` unless `prices` is given; fetched rows carry the published
-    imbalance prices for comparison.
+    `mcp-smp-imb` unless `prices` is given. EPİAŞ's published imbalance
+    prices are used where available (`imb_price_source`); they are calculated
+    only for hours without them (scenarios, offline use, unpublished hours).
+    `include_calculated=True` adds the calculated prices for comparison.
   - `calculate_imbalance_costs(data, category=..., ...)`: imbalance and KÜPST
     costs of actual vs forecast rows, using `calculate_imbalance_prices`; the
     category (any naming convention) and producer/consumer can be set per row.

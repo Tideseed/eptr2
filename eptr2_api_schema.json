@@ -213,7 +213,7 @@
     },
     "calculate_imbalance_prices": {
       "module": "eptr2.util.costs",
-      "signature": "(start_date=None, end_date=None, prices=None, eptr=None, kupst_category: str = 'other', include_maintenance_penalty: bool = False, return_df: bool = True, **kwargs)",
+      "signature": "(start_date=None, end_date=None, prices=None, eptr=None, kupst_category: str = 'other', include_maintenance_penalty: bool = False, return_df: bool = True, include_calculated: bool = False, **kwargs)",
       "summary": "Hourly imbalance prices, unit costs and every regulation parameter used to"
     },
     "calculate_kupst_cost": {

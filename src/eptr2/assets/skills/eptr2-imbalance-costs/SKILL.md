@@ -17,7 +17,7 @@ costs = calculate_unit_price_and_costs_by_contract(
 print(costs)
 ```
 
-For ranges or plant data, prefer the main functions: they resolve floor/ceiling, V, B, margins and KÜPST tolerance and multiplier (by category) for each hour, and fetch MCP, SMP and `systemStatus` when `prices` is not given. Fetched rows include `published_pos_imb_price` / `published_neg_imb_price` to check the calculation.
+For ranges or plant data, prefer the main functions: they resolve floor/ceiling, V, B, margins and KÜPST tolerance and multiplier (by category) for each hour, and fetch MCP, SMP and `systemStatus` when `prices` is not given. Where EPİAŞ's published imbalance prices are available (fetched rows, or `positiveImbalance` / `negativeImbalance` in `prices`) they are used, and `imb_price_source` says `published`; otherwise the prices are calculated. KÜPST unit cost is always calculated. Pass `include_calculated=True` to also get the calculated prices for a check against the published ones.
 
 ```python
 from eptr2.util.costs import calculate_imbalance_costs

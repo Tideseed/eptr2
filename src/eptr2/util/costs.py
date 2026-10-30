@@ -3015,8 +3015,8 @@ _PRICE_FIELD_NAMES = {
     "mcp": ("mcp", "ptf"),
     "smp": ("smp", "smf"),
     "system_direction": ("system_direction", "systemStatus", "sd_sign"),
-    "published_pos_imb_price": ("published_pos_imb_price", "positiveImbalance"),
-    "published_neg_imb_price": ("published_neg_imb_price", "negativeImbalance"),
+    "published_pos_imb_price": ("positiveImbalance", "published_pos_imb_price"),
+    "published_neg_imb_price": ("negativeImbalance", "published_neg_imb_price"),
 }
 
 
@@ -3134,6 +3134,7 @@ def calculate_imbalance_prices(
     kupst_category: str = "other",
     include_maintenance_penalty: bool = False,
     return_df: bool = True,
+    include_calculated: bool = False,
     **kwargs,
 ):
     """
@@ -3147,9 +3148,12 @@ def calculate_imbalance_prices(
     priced correctly hour by hour.
 
     Market prices come from ``prices`` if given, otherwise they are fetched
-    from EPİAŞ (mcp-smp-imb) for the range. Fetched hours also carry the
-    published imbalance prices, so calculated and published prices can be
-    compared.
+    from EPİAŞ (mcp-smp-imb) for the range. Where the published imbalance
+    prices are available (always for fetched hours, or 'positiveImbalance' /
+    'negativeImbalance' in ``prices``) they are used as pos_imb_price and
+    neg_imb_price, and the unit costs follow from them. Otherwise the prices
+    are calculated from MCP, SMP, system direction and the resolved
+    parameters, e.g. for scenarios, hours not yet published, or offline use.
 
     Args:
         start_date: Start of the range: 'YYYY-MM-DD', ISO datetime, contract
@@ -3166,6 +3170,9 @@ def calculate_imbalance_prices(
         include_maintenance_penalty: Use the KUPST maintenance multiplier.
         return_df: Return a pandas DataFrame if pandas is installed, otherwise
             (or if False) a list of dicts.
+        include_calculated: Also return calculated_pos_imb_price and
+            calculated_neg_imb_price, to check the resolved parameters against
+            the published prices.
         **kwargs: Explicit parameter overrides that win over the resolved ones:
             floor_price, ceil_price, V, B, low_margin, high_margin,
             ceil_margin, kupst_multiplier, kupst_floor_price.
@@ -3174,16 +3181,18 @@ def calculate_imbalance_prices(
         One row per hour with: date, contract, regulation_period, mcp, smp,
         system_direction, floor_price, ceil_price, V, B, low_margin,
         high_margin, ceil_margin (None before 2026, whose formula does not use
-        them), pos_imb_price, neg_imb_price, unit_pos_imb_cost,
-        unit_neg_imb_cost, kupst_category, kupst_tolerance, kupst_multiplier,
-        kupst_floor_price, unit_kupst_cost and, when available,
-        published_pos_imb_price and published_neg_imb_price.
+        them), pos_imb_price, neg_imb_price, imb_price_source ('published' or
+        'calculated'), unit_pos_imb_cost, unit_neg_imb_cost, kupst_category,
+        kupst_tolerance, kupst_multiplier, kupst_floor_price, unit_kupst_cost
+        and, with include_calculated, calculated_pos_imb_price and
+        calculated_neg_imb_price. KUPST is not published per hour, so its unit
+        cost is always calculated.
 
     Notes:
         When MCP equals SMP the system direction cannot be inferred from
-        prices. Fetched data carries the published direction; for given prices
-        without a direction such hours are priced as balanced and a warning is
-        raised.
+        prices. Fetched data carries the published prices and direction; for
+        given prices without published prices or a direction such hours are
+        priced as balanced and a warning is raised.
 
     Examples:
         >>> calculate_imbalance_prices("2026-10-01", "2026-10-07", eptr=eptr)
@@ -3219,7 +3228,10 @@ def calculate_imbalance_prices(
         mcp = _get_field(row, "mcp")
         smp = _get_field(row, "smp")
         system_direction = normalize_system_direction(_get_field(row, "system_direction"))
-        if system_direction is None and mcp == smp:
+        published_pos = _get_field(row, "published_pos_imb_price")
+        published_neg = _get_field(row, "published_neg_imb_price")
+        is_published = published_pos is not None and published_neg is not None
+        if system_direction is None and mcp == smp and not is_published:
             n_ambiguous += 1
 
         regulation_period = get_regulation_period_by_contract(contract)
@@ -3251,6 +3263,16 @@ def calculate_imbalance_prices(
             **{k: v for k, v in params.items() if v is not None},
         )
 
+        ## Published prices are the settlement prices; calculate only without them
+        if is_published:
+            pos_imb_price, neg_imb_price = published_pos, published_neg
+            unit_pos_imb_cost = round(mcp - pos_imb_price, 2)
+            unit_neg_imb_cost = round(neg_imb_price - mcp, 2)
+        else:
+            pos_imb_price, neg_imb_price = cost_d["pos_imb_price"], cost_d["neg_imb_price"]
+            unit_pos_imb_cost = cost_d["unit_pos_imb_cost"]
+            unit_neg_imb_cost = cost_d["unit_neg_imb_cost"]
+
         out = {
             "date": row.get("date"),
             "contract": contract,
@@ -3261,20 +3283,20 @@ def calculate_imbalance_prices(
             "floor_price": params.get("floor_price"),
             "ceil_price": params.get("ceil_price"),
             **{key: params[key] for key in IMBALANCE_PARAM_KEYS},
-            "pos_imb_price": cost_d["pos_imb_price"],
-            "neg_imb_price": cost_d["neg_imb_price"],
-            "unit_pos_imb_cost": cost_d["unit_pos_imb_cost"],
-            "unit_neg_imb_cost": cost_d["unit_neg_imb_cost"],
+            "pos_imb_price": pos_imb_price,
+            "neg_imb_price": neg_imb_price,
+            "imb_price_source": "published" if is_published else "calculated",
+            "unit_pos_imb_cost": unit_pos_imb_cost,
+            "unit_neg_imb_cost": unit_neg_imb_cost,
             "kupst_category": kupst_d["category"],
             "kupst_tolerance": kupst_d["tolerance"],
             "kupst_multiplier": kupst_d["multiplier"],
             "kupst_floor_price": kupst_d["floor_price"],
             "unit_kupst_cost": cost_d["unit_kupst"],
         }
-        for field in ("published_pos_imb_price", "published_neg_imb_price"):
-            value = _get_field(row, field)
-            if value is not None:
-                out[field] = value
+        if include_calculated:
+            out["calculated_pos_imb_price"] = cost_d["pos_imb_price"]
+            out["calculated_neg_imb_price"] = cost_d["neg_imb_price"]
         result.append(out)
 
     if n_ambiguous > 0:
@@ -3308,7 +3330,8 @@ def calculate_imbalance_costs(
 
     The hours of ``data`` define the range; calculate_imbalance_prices supplies
     the hourly prices, unit costs and parameters (fetched from EPİAŞ unless
-    ``prices`` is given). KUPST tolerance and multiplier follow each row's
+    ``prices`` is given). Published imbalance prices are used where available,
+    calculated ones otherwise (see imb_price_source). KUPST tolerance and multiplier follow each row's
     category and date.
 
     Args:
@@ -3332,7 +3355,7 @@ def calculate_imbalance_costs(
     Returns:
         One row per input row with the input columns and contract, category,
         is_producer, mcp, smp, system_direction, pos_imb_price, neg_imb_price,
-        imb_qty (positive surplus, negative deficit), unit_imb_cost, imb_cost,
+        imb_price_source, imb_qty (positive surplus, negative deficit), unit_imb_cost, imb_cost,
         kupst_tolerance, kupsm, unit_kupst_cost, kupst_cost (0 for consumers)
         and total_cost, in TL.
 
@@ -3423,6 +3446,7 @@ def calculate_imbalance_costs(
                 "system_direction": price["system_direction"],
                 "pos_imb_price": price["pos_imb_price"],
                 "neg_imb_price": price["neg_imb_price"],
+                "imb_price_source": price["imb_price_source"],
                 "imb_qty": imb_qty,
                 "unit_imb_cost": unit_imb_cost,
                 "imb_cost": imb_cost,

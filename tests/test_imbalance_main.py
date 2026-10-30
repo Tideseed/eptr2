@@ -71,12 +71,39 @@ class TestCalculateImbalancePrices:
             assert row["neg_imb_price"] == ref["neg_imb_price"]
             assert row["unit_kupst_cost"] == ref["unit_kupst"]
 
-    def test_raw_api_columns_accepted(self):
+    def test_published_prices_are_used(self):
+        """mcp-smp-imb rows carry the settlement prices; they replace the
+        calculated ones and the unit costs follow from them."""
         raw = [{"date": NOV, "ptf": 120, "smf": 130, "systemStatus": "Enerji Açığı",
-                "positiveImbalance": 116.4, "negativeImbalance": 137.8}]
-        row = calculate_imbalance_prices(prices=raw, return_df=False)[0]
-        assert row["pos_imb_price"] == row["published_pos_imb_price"]
-        assert row["neg_imb_price"] == row["published_neg_imb_price"]
+                "positiveImbalance": 110.0, "negativeImbalance": 140.0}]
+        row = calculate_imbalance_prices(prices=raw, include_calculated=True, return_df=False)[0]
+        assert row["imb_price_source"] == "published"
+        assert (row["pos_imb_price"], row["neg_imb_price"]) == (110.0, 140.0)
+        assert (row["unit_pos_imb_cost"], row["unit_neg_imb_cost"]) == (10.0, 20.0)
+        ## The calculation is still available for comparison
+        assert (row["calculated_pos_imb_price"], row["calculated_neg_imb_price"]) == (116.4, 137.8)
+        assert "published_pos_imb_price" not in row
+
+    def test_calculated_without_published(self, prices):
+        for row in calculate_imbalance_prices(prices=prices, return_df=False):
+            assert row["imb_price_source"] == "calculated"
+            assert "calculated_pos_imb_price" not in row
+
+    def test_published_hours_do_not_warn_on_equal_prices(self):
+        raw = [{"date": NOV, "ptf": 100, "smf": 100, "positiveImbalance": 97.0, "negativeImbalance": 106.0}]
+        with warnings.catch_warnings():
+            warnings.simplefilter("error")
+            row = calculate_imbalance_prices(prices=raw, return_df=False)[0]
+        assert row["neg_imb_price"] == 106.0
+
+    def test_costs_use_published_prices(self):
+        raw = [{"date": NOV, "ptf": 120, "smf": 130, "systemStatus": "Enerji Açığı",
+                "positiveImbalance": 110.0, "negativeImbalance": 140.0}]
+        row = calculate_imbalance_costs(
+            actual=80, forecast=100, date=NOV, prices=raw, return_df=False
+        )[0]
+        assert row["imb_price_source"] == "published"
+        assert row["imb_cost"] == pytest.approx(20 * 20.0)
 
     def test_overrides_win(self, prices):
         row = by_contract(
@@ -163,8 +190,11 @@ def test_calculated_prices_match_published():
     load_dotenv(".env")
     eptr = EPTR2(recycle_tgt=True)
     for start, end in (("2026-10-01", "2026-10-07"), ("2026-02-01", "2026-02-07"), ("2025-11-01", "2025-11-07")):
-        rows = calculate_imbalance_prices(start, end, eptr=eptr, return_df=False)
+        rows = calculate_imbalance_prices(
+            start, end, eptr=eptr, include_calculated=True, return_df=False
+        )
         assert len(rows) == 7 * 24
         for row in rows:
-            assert abs(row["pos_imb_price"] - row["published_pos_imb_price"]) <= 0.01, row
-            assert abs(row["neg_imb_price"] - row["published_neg_imb_price"]) <= 0.01, row
+            assert row["imb_price_source"] == "published"
+            assert abs(row["calculated_pos_imb_price"] - row["pos_imb_price"]) <= 0.01, row
+            assert abs(row["calculated_neg_imb_price"] - row["neg_imb_price"]) <= 0.01, row
