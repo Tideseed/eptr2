@@ -19,9 +19,9 @@ def test_get_org_estimated_activity():
     )
 
     assert len(df) == 24
-    for col in ["day_trade", "da_id_close", "dabi_net", "dabi_idm_net"]:
+    for col in ["day_trade", "dabi_idm_close", "dabi_net", "dabi_idm_net"]:
         assert col in df
-    assert "total_pnl" not in df and "idm_wap" not in df
+    assert "dabi_idm_pnl" not in df and "idm_wap" not in df
     assert np.allclose(df["dabi_net"], df["da_net"] + df["bi_net"])
     assert np.allclose(df["dabi_idm_net"], df["dabi_net"] + df["idm_net"])
 
@@ -41,15 +41,14 @@ def test_get_org_estimated_activity_with_pnl():
     )
 
     assert len(df) == 24
-    for col in ["mcp", "idm_wap", "da_id_pnl", "total_pnl"]:
+    for col in ["mcp", "idm_wap", "dabi_idm_pnl"]:
         assert col in df
-    assert "idm_tad" not in df and "day_trade_pnl" not in df
+    assert "idm_tad" not in df and "day_trade_tad" not in df
     assert df["idm_wap"].notna().all()
-    assert np.allclose(df["total_pnl"], df["da_id_pnl"])
 
 
-def test_get_org_estimated_activity_with_day_trade_pnl():
-    """include_day_trade_pnl adds TAD from the trade log and the day trade PnL"""
+def test_get_org_estimated_activity_with_tad():
+    """include_tad adds TAD from the trade log and day_trade_tad, without MCP and WAP"""
     is_env_ok = load_dotenv(".env")
     assert is_env_ok
 
@@ -59,10 +58,11 @@ def test_get_org_estimated_activity_with_day_trade_pnl():
         end_date="2026-10-20",
         org_id=104000,
         eptr=eptr,
-        include_day_trade_pnl=True,
+        include_tad=True,
     )
 
-    for col in ["mcp", "idm_wap", "idm_tad", "da_id_pnl", "day_trade_pnl", "total_pnl"]:
+    for col in ["idm_tad", "day_trade_tad"]:
         assert col in df
+    assert "mcp" not in df and "dabi_idm_pnl" not in df
     assert df["idm_tad"].notna().all()
-    assert np.allclose(df["total_pnl"], df["da_id_pnl"] + df["day_trade_pnl"])
+    assert np.allclose(df["day_trade_tad"], df["day_trade"] * df["idm_tad"])

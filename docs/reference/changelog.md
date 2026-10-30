@@ -80,7 +80,8 @@ the live API.
     resolved per hour. MCP, SMP and system direction are fetched from
     `mcp-smp-imb` unless `prices` is given. EPİAŞ's published imbalance
     prices are used where available (`imb_price_source`); they are calculated
-    only for hours without them (scenarios, offline use, unpublished hours).
+    only for hours without them (scenarios, offline use). Hours without SMP,
+    such as the rest of the current day, are skipped with a warning.
     `include_calculated=True` adds the calculated prices for comparison.
   - `calculate_imbalance_costs(data, category=..., ...)`: imbalance and KÜPST
     costs of actual vs forecast rows, using `calculate_imbalance_prices`; the
@@ -99,15 +100,21 @@ the live API.
   conventions (Turkish labels, RES/GES/HES, BESS, ...) to them, and
   `unlicensed` maps to `unlicensed_from_transmission`.
 - `get_org_estimated_activity` composite: a company's estimated hourly activity
-  over a date range. Splits day-ahead open / intraday close, intraday day trade
+  over a date range. Splits day-ahead (GÖP + İA) open / intraday close (`dabi_idm_close`), intraday day trade
   (`min(idm_long, idm_short)`), the day-ahead (GÖP + İA) net position
   `dabi_net` and the total net position `dabi_idm_net` (to be consumed or
   generated), from the organization's GÖP, İA and GİP matchings only.
   `include_pnl=True` adds a fictitious PnL of day-ahead open / intraday close
-  trades from MCP and the published intraday WAP. `include_day_trade_pnl=True`
-  also adds a day-trade PnL from the TAD (quantity-weighted mean |price − WAP|)
-  of the market-wide trade log (`idm_log_longer`), which is much slower.
-  `verbose=True` logs each step with timings. Helpers
+  trades (`dabi_idm_pnl`) from MCP and the published intraday WAP.
+  `include_tad=True` adds volatility metrics, not PnL: the TAD (total absolute
+  deviation, quantity-weighted mean |price − WAP|) of each contract from the
+  market-wide trade log (`idm_log_longer`) and `day_trade_tad = day_trade × TAD`.
+  The log is much slower.
+  `verbose=True` logs each step with timings. `export_to_csv=True` writes the
+  raw data (positions, MCP, WAP, trade log, per-contract WAP/TAD) and the
+  result to `export_dir` as CSV; `check_existing=True` reads files of the same
+  period instead of fetching them. `end_date` must be before today
+  (Europe/Istanbul). Helpers
   `calculate_idm_contract_stats` and `calculate_org_activity` are pure.
 - `idm_log_longer(verbose=True)` logs the trade count and duration of each
   request.

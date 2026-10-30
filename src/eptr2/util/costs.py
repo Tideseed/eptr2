@@ -3060,8 +3060,12 @@ def _to_records(data) -> list[dict]:
 def _get_field(row: dict, field: str):
     for name in _PRICE_FIELD_NAMES[field]:
         value = row.get(name)
-        if value is not None and not (isinstance(value, float) and math.isnan(value)):
-            return value
+        if value is None or (isinstance(value, float) and math.isnan(value)):
+            continue
+        ## EPİAŞ leaves systemStatus empty for hours not published yet
+        if isinstance(value, str) and value.strip() == "":
+            continue
+        return value
     return None
 
 
@@ -3153,7 +3157,13 @@ def calculate_imbalance_prices(
     'negativeImbalance' in ``prices``) they are used as pos_imb_price and
     neg_imb_price, and the unit costs follow from them. Otherwise the prices
     are calculated from MCP, SMP, system direction and the resolved
-    parameters, e.g. for scenarios, hours not yet published, or offline use.
+    parameters, e.g. for scenarios or offline use.
+
+    Hours without SMP and published prices cannot be priced and are skipped
+    with a warning. EPİAŞ returns every hour of the current day, those after
+    the latest published hour without SMP, so a range ending today returns its
+    published hours only. If no hour has SMP, ValueError is raised. For future
+    hours pass ``prices`` with an SMP scenario.
 
     Args:
         start_date: Start of the range: 'YYYY-MM-DD', ISO datetime, contract
@@ -3218,6 +3228,7 @@ def calculate_imbalance_prices(
 
     result = []
     n_ambiguous = 0
+    unpublished = []
     for row in rows:
         contract = _row_contract(row)
         if start_contract is not None and contract < start_contract:
@@ -3227,10 +3238,14 @@ def calculate_imbalance_prices(
 
         mcp = _get_field(row, "mcp")
         smp = _get_field(row, "smp")
-        system_direction = normalize_system_direction(_get_field(row, "system_direction"))
         published_pos = _get_field(row, "published_pos_imb_price")
         published_neg = _get_field(row, "published_neg_imb_price")
         is_published = published_pos is not None and published_neg is not None
+        ## Hours whose SMP is not published yet (e.g. the rest of today) cannot be priced
+        if smp is None and not is_published:
+            unpublished.append(contract)
+            continue
+        system_direction = normalize_system_direction(_get_field(row, "system_direction"))
         if system_direction is None and mcp == smp and not is_published:
             n_ambiguous += 1
 
@@ -3298,6 +3313,19 @@ def calculate_imbalance_prices(
             out["calculated_pos_imb_price"] = cost_d["pos_imb_price"]
             out["calculated_neg_imb_price"] = cost_d["neg_imb_price"]
         result.append(out)
+
+    if unpublished:
+        if not result:
+            raise ValueError(
+                "No hour of the period has SMP yet. SMP and system direction are "
+                "published after delivery; for future hours pass prices explicitly."
+            )
+        warnings.warn(
+            f"{len(unpublished)} hour(s) without SMP are skipped ({min(unpublished)} to "
+            f"{max(unpublished)}): SMP is published after delivery. Pass prices "
+            "explicitly to price them.",
+            stacklevel=2,
+        )
 
     if n_ambiguous > 0:
         warnings.warn(
@@ -3392,7 +3420,10 @@ def calculate_imbalance_costs(
     for row, contract in zip(rows, contracts):
         price = price_by_contract.get(contract)
         if price is None:
-            raise ValueError(f"No prices for {contract}")
+            raise ValueError(
+                f"No prices for {contract}. SMP is published after delivery; for hours "
+                "not published yet pass prices explicitly."
+            )
 
         row_category = row.get("category", row.get("source")) or category
         row_is_producer = row.get("is_producer")

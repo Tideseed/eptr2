@@ -204,31 +204,57 @@ df = get_org_estimated_activity(
     end_date="2026-10-07",
     org_id=104000,
     eptr=eptr,
-    include_pnl=True,   # + MCP, published WAP and da_id_pnl (fast)
+    include_pnl=True,   # + MCP, published WAP and dabi_idm_pnl (fast)
     verbose=True,       # progress with timings on stderr
 )
 ```
 
-`include_day_trade_pnl=True` also adds `idm_tad` and `day_trade_pnl`. TAD needs
+`include_tad=True` adds `idm_tad` and `day_trade_tad`, volatility metrics rather
+than PnL; it doesn't need `include_pnl`. TAD needs
 the market-wide intraday trade log (about 20k trades a day), fetched by
 `idm_log_longer` in multi-day chunks, so it is much slower: roughly 30–70 s for
 a week, depending on EPİAŞ. `idm_log_days_interval` sets the chunk length.
 
 | Column | Meaning |
 |--------|---------|
-| `da_id_close` | Day-ahead position reversed in the intraday market: `min(abs(da_net), abs(idm_net))` when they have opposite signs |
 | `day_trade` | `min(idm_long, idm_short)`, bought and sold back within the intraday market |
 | `dabi_net` | `da_net + bi_net`: day-ahead (GÖP + İA) net position |
 | `dabi_idm_net` | `dabi_net + idm_net`; positive must be consumed, negative generated (subtract `bi_net` for GÖP + GİP only) |
+| `dabi_idm_close` | Day-ahead (GÖP + İA) position reversed in the intraday market: `min(abs(dabi_net), abs(idm_net))` when they have opposite signs |
 | `mcp`, `idm_wap` | With `include_pnl=True`: MCP and the published intraday WAP |
-| `idm_tad` | With `include_day_trade_pnl=True`: TAD (quantity-weighted mean of `abs(price - WAP)`) from the trade log |
-| `da_id_pnl` | `da_id_close * sign(da_net) * (idm_wap - mcp)` |
-| `day_trade_pnl` | `day_trade * idm_tad` (with `include_day_trade_pnl=True`) |
-| `total_pnl` | Sum of the PnL columns present |
+| `idm_tad` | With `include_tad=True`: TAD (total absolute deviation), the quantity-weighted mean of `abs(price - WAP)` over the contract's trades in the log |
+| `dabi_idm_pnl` | `dabi_idm_close * sign(dabi_net) * (idm_wap - mcp)`; bilateral quantities are valued at MCP too |
+| `day_trade_tad` | With `include_tad=True`: `day_trade * idm_tad` (TL), the price room around WAP the day-trade volume was traded in; a volatility metric, not a PnL |
 
 The PnL is fictitious: the company's own trade prices are not public. To
-analyse several companies with day-trade PnL, fetch the log once with
-`idm_log_longer` and pass it as `idm_log_df`.
+analyse several companies with TAD, fetch the log once with
+`idm_log_longer` and pass it as `idm_log_df`, or use the CSV export:
+
+```python
+for org_id in [104000, 105000]:
+    df = get_org_estimated_activity(
+        start_date="2026-10-01",
+        end_date="2026-10-07",
+        org_id=org_id,
+        eptr=eptr,
+        include_pnl=True,
+        include_tad=True,
+        export_to_csv=True,   # write raw data and result to export_dir
+        check_existing=True,  # read files of the same period instead of fetching
+        export_dir="data",
+    )
+```
+
+`export_to_csv=True` writes `{name}_{start_date}_{end_date}.csv` files:
+`org_{org_id}_positions`, `mcp`, `wap`, `idm_log`, `idm_contract_stats` (WAP,
+TAD, trade count and volume per contract) and `org_{org_id}_activity`, for the
+steps that ran. With `check_existing=True` files of the same name are read
+instead of fetched, so the second organization above reuses the market-wide
+MCP, WAP and trade log. The files are CSV because the trade log can exceed
+Excel's row limit.
+
+`end_date` must be before today (Europe/Istanbul); the function raises
+`ValueError` otherwise, because data of the current day isn't final.
 
 ## MMS (Market Management System) Data
 

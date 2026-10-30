@@ -5,7 +5,7 @@ All notable changes are published via GitHub Releases.
 - Repository: [Tideseed/eptr2](https://github.com/Tideseed/eptr2)
 - Auto-generated: 2026-09-06 15:21 UTC
 
-## Unreleased: v1.4.0 (development, currently `1.4.0.dev8`)
+## Unreleased: v1.4.0 (development, currently `1.4.0.dev9`)
 
 These notes are replaced by the GitHub release notes when v1.4.0 is published. Details: [docs/reference/changelog.md](docs/reference/changelog.md).
 
@@ -18,13 +18,13 @@ These notes are replaced by the GitHub release notes when v1.4.0 is published. D
 
 ### New main cost functions
 
-- `calculate_imbalance_prices(start_date, end_date, ...)`: hourly imbalance prices, unit costs and every parameter used (regulation period, floor/ceiling, V, B, margins, KÜPST tolerance, multiplier and floor). MCP, SMP and system direction are fetched from `mcp-smp-imb` unless `prices` is given. EPİAŞ's published imbalance prices are used where available (`imb_price_source`) and calculated only for hours without them (scenarios, offline use, unpublished hours); `include_calculated=True` adds the calculated prices for comparison.
+- `calculate_imbalance_prices(start_date, end_date, ...)`: hourly imbalance prices, unit costs and every parameter used (regulation period, floor/ceiling, V, B, margins, KÜPST tolerance, multiplier and floor). MCP, SMP and system direction are fetched from `mcp-smp-imb` unless `prices` is given. EPİAŞ's published imbalance prices are used where available (`imb_price_source`) and calculated only for hours without them (scenarios, offline use); hours without SMP, such as the rest of the current day, are skipped with a warning; `include_calculated=True` adds the calculated prices for comparison.
 - `calculate_imbalance_costs(data, category=..., ...)`: imbalance and KÜPST costs of actual vs forecast rows. Category and producer/consumer can be set per row, so a portfolio can mix plant types.
 - Both work without pandas (lists of dicts) and return a DataFrame when pandas is installed.
 
 ### New composite and calls
 
-- `get_org_estimated_activity(start_date, end_date, org_id, eptr=...)`: a company's estimated hourly activity: day-ahead open / intraday close, intraday day trade (`min(IDM buy, IDM sell)`), day-ahead (GÖP + İA) net position `dabi_net` and total net position `dabi_idm_net` (to be consumed or generated), from the organization's GÖP, İA and GİP matchings only (about a second per week). `include_pnl=True` adds an estimated (fictitious) PnL of day-ahead open / intraday close trades from MCP and the published intraday WAP; `include_day_trade_pnl=True` also adds a day-trade PnL from the TAD of the market-wide trade log, which is much slower (roughly 30–70 s per week, depending on EPİAŞ). `verbose=True` reports each step with timings.
+- `get_org_estimated_activity(start_date, end_date, org_id, eptr=...)`: a company's estimated hourly activity: day-ahead (GÖP + İA) open / intraday close (`dabi_idm_close`), intraday day trade (`min(IDM buy, IDM sell)`), day-ahead (GÖP + İA) net position `dabi_net` and total net position `dabi_idm_net` (to be consumed or generated), from the organization's GÖP, İA and GİP matchings only (about a second per week). `include_pnl=True` adds an estimated (fictitious) PnL of day-ahead open / intraday close trades (`dabi_idm_pnl`) from MCP and the published intraday WAP. `include_tad=True` adds volatility metrics, not PnL: the TAD (total absolute deviation, quantity-weighted mean of |price − WAP|) of each contract from the market-wide trade log and `day_trade_tad = day_trade × TAD`; the log is much slower (roughly 30–70 s per week, depending on EPİAŞ). `verbose=True` reports each step with timings. `export_to_csv=True` writes the raw data (positions, MCP, WAP, trade log, per-contract WAP/TAD) and the result to `export_dir` as CSV; `check_existing=True` reads files of the same period instead of fetching them, so the market-wide data is reused for other organizations. `end_date` must be before today (Europe/Istanbul).
 - `ren-capacity-old` and `ren-participant-year-list` calls.
 - `get_dabi_idm_data` documents its columns and signs and adds `net_sales` (positive = net seller).
 

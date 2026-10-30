@@ -4,13 +4,18 @@ from eptr2.main import (
     DEFAULT_COMPOSITE_TIMEOUT,
 )
 import logging
+import os
 import time
 from eptr2 import EPTR2
 import numpy as np
 import pandas as pd
 from eptr2.composite.dabi_idm import get_dabi_idm_data
 from eptr2.composite.idm_log import idm_log_longer
-from eptr2.util.time import iso_to_contract, get_hourly_contract_range_list
+from eptr2.util.time import (
+    iso_to_contract,
+    get_hourly_contract_range_list,
+    get_today_utc3,
+)
 
 
 logger = logging.getLogger(__name__)
@@ -37,7 +42,7 @@ def calculate_idm_contract_stats(log_df: pd.DataFrame) -> pd.DataFrame:
     Returns a DataFrame with columns:
         contract: Hourly contract name (PHyyMMddhh)
         idm_wap: Weighted average price of all trades in the contract
-        idm_tad: Trade absolute deviation. Quantity weighted average of |price - idm_wap| over all trades in the contract
+        idm_tad: TAD (total absolute deviation), a volatility metric. Quantity weighted average of |price - idm_wap| over all trades in the contract
         idm_trade_count: Number of trades
         idm_volume_mwh: Total traded quantity in MWh (log quantities are lots of 0.1 MWh)
 
@@ -73,21 +78,20 @@ def calculate_org_activity(df: pd.DataFrame) -> pd.DataFrame:
     """
     Decomposes an organization's hourly positions into day ahead / intraday trades, day trades and net positions and, if prices are given, adds a fictitious (estimated) PnL.
 
-    Required columns: da_long, da_short, idm_long, idm_short. Optional columns: bi_long, bi_short (taken as 0 if missing); mcp and idm_wap (add da_id_pnl and total_pnl); idm_tad (also adds day_trade_pnl).
+    Required columns: da_long, da_short, idm_long, idm_short. Optional columns: bi_long, bi_short (taken as 0 if missing); mcp and idm_wap (add dabi_idm_pnl); idm_tad (adds day_trade_tad).
 
     Added columns (all quantities in MWh, positive is buy / long):
         da_net: da_long - da_short
-        idm_net: idm_long - idm_short
         bi_net: bi_long - bi_short
-        day_trade: min(idm_long, idm_short). Intraday quantity bought and sold back within the intraday market.
-        da_id_close: Day ahead position closed (reversed) in the intraday market. min(|da_net|, |idm_net|) if da_net and idm_net have opposite signs, otherwise 0. Always non-negative, direction follows da_net.
         dabi_net: da_net + bi_net. Day ahead (GÖP + İA) net position.
+        idm_net: idm_long - idm_short
         dabi_idm_net: dabi_net + idm_net. Net quantity that shall either be consumed (positive, net buyer) or generated (negative, net seller). Subtract bi_net for the organized market (GÖP + GİP) only part.
-        da_id_pnl: Fictitious PnL of day ahead open / intraday close trades. da_id_close * sign(da_net) * (idm_wap - mcp). Buying in DA and selling in IDM gains when idm_wap > mcp, the reverse for selling in DA.
-        day_trade_pnl: Only with idm_tad. Fictitious PnL of day trades. day_trade * idm_tad. Note that this is one sided TAD (not 2 * TAD for a buy and a sell around WAP) by definition.
-        total_pnl: da_id_pnl (+ day_trade_pnl when available)
+        day_trade: min(idm_long, idm_short). Intraday quantity bought and sold back within the intraday market.
+        dabi_idm_close: Day ahead (GÖP + İA) position closed (reversed) in the intraday market. min(|dabi_net|, |idm_net|) if dabi_net and idm_net have opposite signs, otherwise 0. Always non-negative, direction follows dabi_net.
+        dabi_idm_pnl: Fictitious PnL of day ahead open / intraday close trades. dabi_idm_close * sign(dabi_net) * (idm_wap - mcp). Buying day ahead and selling in IDM gains when idm_wap > mcp, the reverse for selling day ahead. Bilateral quantities are valued at mcp as well.
+        day_trade_tad: Only with idm_tad. day_trade * idm_tad (TL). A volatility metric of the day trade volume, the price room around WAP it was traded in; it is not a PnL. Note that this is one sided TAD (not 2 * TAD for a buy and a sell around WAP) by definition.
 
-    The PnL is an estimate: actual trade prices of the organization are not public, so intraday trades are assumed to be at idm_wap and day trades to capture the average TAD. If a price is missing, the related PnL is NaN.
+    The PnL is an estimate: actual trade prices of the organization are not public, so intraday trades are assumed to be at idm_wap. If a price is missing, the related PnL is NaN.
     """
     df = df.copy()
     for col in ["bi_long", "bi_short"]:
@@ -95,16 +99,16 @@ def calculate_org_activity(df: pd.DataFrame) -> pd.DataFrame:
             df[col] = 0.0
 
     df["da_net"] = df["da_long"] - df["da_short"]
-    df["idm_net"] = df["idm_long"] - df["idm_short"]
     df["bi_net"] = df["bi_long"] - df["bi_short"]
+    df["dabi_net"] = df["da_net"] + df["bi_net"]
+    df["idm_net"] = df["idm_long"] - df["idm_short"]
+    df["dabi_idm_net"] = df["dabi_net"] + df["idm_net"]
 
     df["day_trade"] = np.minimum(df["idm_long"], df["idm_short"])
-    is_opposite = np.sign(df["da_net"]) * np.sign(df["idm_net"]) < 0
-    df["da_id_close"] = np.where(
-        is_opposite, np.minimum(df["da_net"].abs(), df["idm_net"].abs()), 0.0
+    is_opposite = np.sign(df["dabi_net"]) * np.sign(df["idm_net"]) < 0
+    df["dabi_idm_close"] = np.where(
+        is_opposite, np.minimum(df["dabi_net"].abs(), df["idm_net"].abs()), 0.0
     )
-    df["dabi_net"] = df["da_net"] + df["bi_net"]
-    df["dabi_idm_net"] = df["dabi_net"] + df["idm_net"]
 
     round_cols = [
         "da_net",
@@ -113,24 +117,22 @@ def calculate_org_activity(df: pd.DataFrame) -> pd.DataFrame:
         "dabi_net",
         "dabi_idm_net",
         "day_trade",
-        "da_id_close",
+        "dabi_idm_close",
     ]
     df[round_cols] = df[round_cols].round(2)
+
+    if "idm_tad" in df.columns:
+        df["day_trade_tad"] = df["day_trade"] * df["idm_tad"]
+        df.loc[df["day_trade"] == 0, "day_trade_tad"] = 0.0
 
     if not {"mcp", "idm_wap"} <= set(df.columns):
         return df
 
-    df["da_id_pnl"] = (
-        df["da_id_close"] * np.sign(df["da_net"]) * (df["idm_wap"] - df["mcp"])
+    df["dabi_idm_pnl"] = (
+        df["dabi_idm_close"] * np.sign(df["dabi_net"]) * (df["idm_wap"] - df["mcp"])
     )
     ## No closed quantity means no PnL even if a price is missing
-    df.loc[df["da_id_close"] == 0, "da_id_pnl"] = 0.0
-    df["total_pnl"] = df["da_id_pnl"]
-
-    if "idm_tad" in df.columns:
-        df["day_trade_pnl"] = df["day_trade"] * df["idm_tad"]
-        df.loc[df["day_trade"] == 0, "day_trade_pnl"] = 0.0
-        df["total_pnl"] = df["total_pnl"] + df["day_trade_pnl"]
+    df.loc[df["dabi_idm_close"] == 0, "dabi_idm_pnl"] = 0.0
 
     return df
 
@@ -138,11 +140,14 @@ def calculate_org_activity(df: pd.DataFrame) -> pd.DataFrame:
 def get_org_estimated_activity(
     start_date: str,
     end_date: str,
-    org_id: str,
+    org_id: str | int,
     eptr: EPTR2 | None = None,
     include_pnl: bool = False,
-    include_day_trade_pnl: bool = False,
+    include_tad: bool = False,
     idm_log_df: pd.DataFrame | None = None,
+    export_to_csv: bool = False,
+    export_dir: str = "data",
+    check_existing: bool = True,
     verbose: bool = True,
     **kwargs,
 ) -> pd.DataFrame:
@@ -153,31 +158,64 @@ def get_org_estimated_activity(
 
     With include_pnl=True a fictitious PnL of day ahead open / intraday close trades is added from MCP and the published intraday WAP (two more calls, fast).
 
-    With include_day_trade_pnl=True a fictitious day trade PnL (day_trade * TAD) is added as well. TAD can only be calculated from the market wide intraday trade log (idm_log_longer), which is large (about 20k trades a day), so this is much slower. The log is fetched in multi-day chunks by idm_log_longer; pass idm_log_days_interval to change the chunk length (days_interval of idm_log_longer).
+    With include_tad=True the TAD (total absolute deviation) of each contract (idm_tad) and day_trade_tad = day_trade * TAD are added. These are volatility metrics, not PnL. TAD can only be calculated from the market wide intraday trade log (idm_log_longer), which is large (about 20k trades a day), so this is much slower. The log is fetched in multi-day chunks by idm_log_longer; pass idm_log_days_interval to change the chunk length (days_interval of idm_log_longer).
+
+    With export_to_csv=True the raw data and the result are written to export_dir as CSV files named {name}_{start_date}_{end_date}.csv: org_{org_id}_positions (get_dabi_idm_data output), mcp and wap (raw mcp and wap calls), idm_log (the market wide trade log), idm_contract_stats (per contract WAP, TAD, trade count and volume from the log) and org_{org_id}_activity (the returned frame). Only the data of the requested steps is written. With check_existing=True, files of the same name (same period) are read from export_dir instead of being fetched, so the market wide files (mcp, wap, idm_log) are recycled for other organizations of the same period. CSV is used because the trade log can exceed the Excel row limit.
+
+    end_date must be before today (Europe/Istanbul): data of the current day is not final, so neither the result nor the exported files would be.
 
     Args:
         start_date: Start date in 'YYYY-MM-DD' format
-        end_date: End date in 'YYYY-MM-DD' format (inclusive)
+        end_date: End date in 'YYYY-MM-DD' format (inclusive), before today
         org_id: Organization ID
         eptr: EPTR2 object. Created from .env if not provided.
-        include_pnl: Add mcp, idm_wap, da_id_pnl and total_pnl (fetches MCP and WAP).
-        include_day_trade_pnl: Also add idm_tad and day_trade_pnl (fetches the IDM trade log). Implies include_pnl=True.
-        idm_log_df: Previously fetched IDM trade log covering the period (e.g. idm_log_longer output). The log is market wide, so it can be reused for several organizations to avoid fetching it again. Implies include_day_trade_pnl=True.
+        include_pnl: Add mcp, idm_wap and dabi_idm_pnl (fetches MCP and WAP).
+        include_tad: Add idm_tad and day_trade_tad (fetches the IDM trade log). Independent of include_pnl.
+        idm_log_df: Previously fetched IDM trade log covering the period (e.g. idm_log_longer output). The log is market wide, so it can be reused for several organizations to avoid fetching it again. Implies include_tad=True.
+        export_to_csv: Write the raw data and the result to export_dir as CSV files (see above).
+        export_dir: Directory of the CSV files, created if missing.
+        check_existing: Read the raw data from existing CSV files of the same period in export_dir instead of fetching it.
         verbose: Log each step and each IDM log chunk with row counts and elapsed time (to stderr)
 
     Returns:
-        pd.DataFrame: One row per hourly contract with quantity and decomposition columns, and the price and PnL columns that were requested. Prices (mcp, idm_wap, idm_tad) are left NaN if they could not be retrieved, they are not filled with 0.
+        pd.DataFrame: One row per hourly contract with quantity and decomposition columns, and the price, PnL and TAD columns that were requested. Prices (mcp, idm_wap, idm_tad) are left NaN if they could not be retrieved, they are not filled with 0.
     """
+    today = get_today_utc3()
+    if end_date >= today:
+        raise ValueError(
+            f"end_date must be before today ({today}, Europe/Istanbul): data of the current day is not final. Got end_date={end_date}."
+        )
+
     t_start = time.time()
 
     def log_step(message, *args):
         if verbose:
             logger.info("[%5.1fs] " + message, time.time() - t_start, *args)
 
+    if export_to_csv:
+        os.makedirs(export_dir, exist_ok=True)
+
+    ## Files read with check_existing are not written again
+    loaded = set()
+
+    def csv_path(name):
+        return os.path.join(export_dir, f"{name}_{start_date}_{end_date}.csv")
+
+    def load_existing(name):
+        path = csv_path(name)
+        if not (check_existing and os.path.exists(path)):
+            return None
+        log_step("Reading %s from %s", name, path)
+        loaded.add(name)
+        return pd.read_csv(path, dtype={"contract": str, "contractName": str})
+
+    def export(df, name):
+        if export_to_csv and name not in loaded:
+            df.to_csv(csv_path(name), index=False)
+            log_step("Wrote %d rows to %s", len(df), csv_path(name))
+
     if idm_log_df is not None:
-        include_day_trade_pnl = True
-    if include_day_trade_pnl:
-        include_pnl = True
+        include_tad = True
 
     if eptr is None:
         eptr = EPTR2(dotenv_path=kwargs.get("dotenv_path", ".env"))
@@ -197,15 +235,19 @@ def get_org_estimated_activity(
         start_date,
         end_date,
     )
-    pos_df = get_dabi_idm_data(
-        start_date=start_date,
-        end_date=end_date,
-        eptr=eptr,
-        org_id=org_id,
-        verbose=verbose,
-        **kwargs,
-    )
+    pos_name = f"org_{org_id}_positions"
+    pos_df = load_existing(pos_name)
+    if pos_df is None:
+        pos_df = get_dabi_idm_data(
+            start_date=start_date,
+            end_date=end_date,
+            eptr=eptr,
+            org_id=org_id,
+            verbose=verbose,
+            **kwargs,
+        )
     log_step("Got matchings for %d hour(s).", len(pos_df))
+    export(pos_df, pos_name)
 
     ## All hourly contracts of the period, so that missing rows of any source do not drop contracts
     df = pd.DataFrame(
@@ -225,14 +267,17 @@ def get_org_estimated_activity(
         df[col] = df[col].fillna(0.0)
 
     if include_pnl:
-        log_step("Getting MCP...")
-        mcp_df = eptr.call(
-            "mcp",
-            start_date=start_date,
-            end_date=end_date,
-            request_kwargs={"timeout": DEFAULT_COMPOSITE_TIMEOUT},
-            **retry_kwargs,
-        )
+        mcp_df = load_existing("mcp")
+        if mcp_df is None:
+            log_step("Getting MCP...")
+            mcp_df = eptr.call(
+                "mcp",
+                start_date=start_date,
+                end_date=end_date,
+                request_kwargs={"timeout": DEFAULT_COMPOSITE_TIMEOUT},
+                **retry_kwargs,
+            )
+        export(mcp_df, "mcp")
         mcp_df = pd.DataFrame(
             {
                 "contract": mcp_df["date"].apply(lambda x: iso_to_contract(x)),
@@ -240,14 +285,17 @@ def get_org_estimated_activity(
             }
         )
 
-        log_step("Getting intraday WAP...")
-        wap_df = eptr.call(
-            "wap",
-            start_date=start_date,
-            end_date=end_date,
-            request_kwargs={"timeout": DEFAULT_COMPOSITE_TIMEOUT},
-            **retry_kwargs,
-        )
+        wap_df = load_existing("wap")
+        if wap_df is None:
+            log_step("Getting intraday WAP...")
+            wap_df = eptr.call(
+                "wap",
+                start_date=start_date,
+                end_date=end_date,
+                request_kwargs={"timeout": DEFAULT_COMPOSITE_TIMEOUT},
+                **retry_kwargs,
+            )
+        export(wap_df, "wap")
         wap_df = pd.DataFrame(
             {
                 "contract": wap_df["date"].apply(lambda x: iso_to_contract(x)),
@@ -260,37 +308,42 @@ def get_org_estimated_activity(
             wap_df, on="contract", how="left"
         )
 
-        if include_day_trade_pnl:
-            if idm_log_df is None:
-                log_step(
-                    "Getting the IDM trade log for TAD (market wide, about 20k trades a day)..."
-                )
-                ## idm_log_longer fetches wide ranges in chunks of days_interval (+1) days
-                log_kwargs = (
-                    {"days_interval": kwargs["idm_log_days_interval"]}
-                    if "idm_log_days_interval" in kwargs
-                    else {}
-                )
-                idm_log_df = idm_log_longer(
-                    start_date=start_date,
-                    end_date=end_date,
-                    eptr=eptr,
-                    contract_wise=True,
-                    verbose=verbose,
-                    **log_kwargs,
-                )
-                log_step("Got %d IDM trades.", len(idm_log_df))
-            stats_df = calculate_idm_contract_stats(idm_log_df)
-            df = df.merge(stats_df[["contract", "idm_tad"]], on="contract", how="left")
-
         if df["idm_wap"].isna().any():
             logger.warning(
                 "IDM WAP is missing for %d contract(s), their intraday PnL is NaN.",
                 int(df["idm_wap"].isna().sum()),
             )
 
+    if include_tad:
+        if idm_log_df is None:
+            idm_log_df = load_existing("idm_log")
+        if idm_log_df is None:
+            log_step(
+                "Getting the IDM trade log for TAD (market wide, about 20k trades a day)..."
+            )
+            ## idm_log_longer fetches wide ranges in chunks of days_interval (+1) days
+            log_kwargs = (
+                {"days_interval": kwargs["idm_log_days_interval"]}
+                if "idm_log_days_interval" in kwargs
+                else {}
+            )
+            idm_log_df = idm_log_longer(
+                start_date=start_date,
+                end_date=end_date,
+                eptr=eptr,
+                contract_wise=True,
+                verbose=verbose,
+                **log_kwargs,
+            )
+            log_step("Got %d IDM trades.", len(idm_log_df))
+        export(idm_log_df, "idm_log")
+        stats_df = calculate_idm_contract_stats(idm_log_df)
+        export(stats_df, "idm_contract_stats")
+        df = df.merge(stats_df[["contract", "idm_tad"]], on="contract", how="left")
+
     df = calculate_org_activity(df)
     df["org_id"] = org_id
+    export(df, f"org_{org_id}_activity")
     log_step("Done.")
 
     return df

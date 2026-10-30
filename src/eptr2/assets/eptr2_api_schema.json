@@ -136,7 +136,7 @@
     },
     "get_org_estimated_activity": {
       "module": "eptr2.composite.org_activity",
-      "signature": "(start_date: str, end_date: str, org_id: str, eptr: eptr2.main.EPTR2 | None = None, include_pnl: bool = False, include_day_trade_pnl: bool = False, idm_log_df: pandas.DataFrame | None = None, verbose: bool = True, **kwargs) -> pandas.DataFrame",
+      "signature": "(start_date: str, end_date: str, org_id: str | int, eptr: eptr2.main.EPTR2 | None = None, include_pnl: bool = False, include_tad: bool = False, idm_log_df: pandas.DataFrame | None = None, export_to_csv: bool = False, export_dir: str = 'data', check_existing: bool = True, verbose: bool = True, **kwargs) -> pandas.DataFrame",
       "summary": "Estimates an organization's (company's) trading activity for the given period (start_date and end_date inclusive) on an hourly contract basis."
     },
     "get_periodic_generation_organization_lists": {
@@ -4780,7 +4780,7 @@
       "url": "https://seffaflik.epias.com.tr/electricity/electricity-transmission/zero-balance-adjustment/monthly-zero-balance-adjustment"
     }
   },
-  "eptr2_version": "1.4.0.dev8",
+  "eptr2_version": "1.4.0.dev9",
   "schema_format_version": "2.0",
   "usage": {
     "cli": "eptr2 call <key> --start-date ... --end-date ...",

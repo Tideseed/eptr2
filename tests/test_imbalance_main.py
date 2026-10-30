@@ -105,6 +105,30 @@ class TestCalculateImbalancePrices:
         assert row["imb_price_source"] == "published"
         assert row["imb_cost"] == pytest.approx(20 * 20.0)
 
+    def test_hours_without_smp_are_skipped(self):
+        """mcp-smp-imb returns every hour of today, those not published yet with
+        an empty systemStatus and no SMP; they are skipped with a warning."""
+        later = "2026-11-01T01:00:00+03:00"
+        raw = [
+            {"date": NOV, "ptf": 120, "smf": 130, "systemStatus": "Enerji Açığı",
+             "positiveImbalance": 110.0, "negativeImbalance": 140.0},
+            {"date": later, "ptf": 120, "smf": float("nan"), "systemStatus": "",
+             "positiveImbalance": float("nan"), "negativeImbalance": float("nan")},
+        ]
+        with pytest.warns(UserWarning, match="1 hour.*PH26110101"):
+            rows = calculate_imbalance_prices(prices=raw, return_df=False)
+        assert [r["contract"] for r in rows] == ["PH26110100"]
+
+        with pytest.raises(ValueError, match="No hour of the period has SMP"):
+            calculate_imbalance_prices(prices=raw[1:], return_df=False)
+
+        with pytest.warns(UserWarning), pytest.raises(ValueError, match="No prices for PH26110101"):
+            calculate_imbalance_costs(
+                data=[{"date": NOV, "actual": 80, "forecast": 100},
+                      {"date": later, "actual": 80, "forecast": 100}],
+                prices=raw, return_df=False,
+            )
+
     def test_overrides_win(self, prices):
         row = by_contract(
             calculate_imbalance_prices(prices=prices, V=150, kupst_multiplier=0.1, return_df=False)
