@@ -8,6 +8,14 @@ Endpoint mappings were reviewed against EPİAŞ's technical documentation
 (electricity, natural gas, reporting) and every call key was exercised against
 the live API.
 
+### Security
+- Minimum versions raised to patched releases: `urllib3>=2.8.0` (runtime
+  dependency; chunked-response memory and HTTPS-proxy TLS advisories) and
+  `fastmcp>=3.4.10` in the `mcp` / `allextras` extras (component authorization
+  advisory). The lock file also moves `mcp` 1.30.0, `PyJWT` 2.15.1, `anyio`
+  4.14.2 and `opentelemetry-api` 1.45.2 to their patched versions, staying on
+  the same major versions.
+
 ### Fixed
 - `calculate_kupst_cost_by_contract`, `calculate_diff_costs_by_contract`
   and `calculate_unit_price_and_costs_by_contract` took KÜPST tolerance or
