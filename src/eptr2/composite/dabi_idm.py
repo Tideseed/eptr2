@@ -16,8 +16,16 @@ def process_idm_data(
     eptr: EPTR2, start_date: str, end_date: str, org_id: str, **kwargs
 ) -> pd.DataFrame:
     """
-    This function processes IDM data and includes it in the DataFrame.
-    It fetches day ahead and bilateral matches, and merges them with IDM data.
+    Fetch one organisation's intraday (GİP / IDM) matched quantities per contract (call key ``idm-qty`` with ``org_id``).
+
+    EPİAŞ's column names are swapped on this endpoint: ``clearingQuantityAsk`` is the quantity the organisation BOUGHT and
+    ``clearingQuantityBid`` the quantity it SOLD. The returned frame uses unambiguous names instead:
+
+    - ``idm_long``: GİP purchases (MWh), from ``clearingQuantityAsk``
+    - ``idm_short``: GİP sales (MWh), from ``clearingQuantityBid``
+
+    The day before ``start_date`` is fetched too, because the contracts of ``start_date`` start trading at 18:00 the
+    previous day.
     """
     retry_kwargs = {
         "retry_attempts": kwargs.get("lives", DEFAULT_COMPOSITE_RETRIES),
@@ -37,6 +45,7 @@ def process_idm_data(
     )
 
     ### Due to naming confusion by EPIAS, ask is mapped to buy and bid is mapped to sell.
+    ### (checked on behaviour too: solar-only organisations have "Ask" quantities at night, when they cannot sell)
 
     if df.empty:
         df = pd.DataFrame(columns=["contract", "idm_long", "idm_short"])
@@ -69,7 +78,34 @@ def get_day_ahead_and_bilateral_matches(
     **kwargs,
 ):
     """
-    This composite function gets day ahead and bilateral matches for the whole market or for a single organization. You can also include IDM data if you provide an org_id.
+    Day-ahead (GÖP) and bilateral (İA) matched quantities per hour, optionally with one organisation's GİP quantities.
+
+    For the whole market or for one organisation; with ``org_id`` and ``include_idm_data=True`` this is the organisation's
+    market positions in one frame.
+
+    Columns (MWh per hour):
+
+    - ``da_long`` / ``da_short``: GÖP purchases / sales (``matchedBids`` / ``matchedOffers`` of ``dam-clearing``)
+    - ``bi_long`` / ``bi_short``: bilateral purchases / sales (``bi-long`` / ``bi-short``)
+    - ``idm_long`` / ``idm_short``: GİP purchases / sales (``idm-qty``; EPİAŞ's ask/bid names are swapped there, see
+      :func:`process_idm_data`), only with ``include_idm_data=True``
+    - ``dabi_net`` = ``da_long - da_short + bi_long - bi_short``; ``idm_net`` = ``idm_long - idm_short``;
+      ``dabi_idm_net`` = ``dabi_net + idm_net``. All nets are LONG minus SHORT, i.e. **net purchases**.
+    - ``net_sales``: the opposite sign, **net sales** (positive = net seller), of ``dabi_idm_net`` when IDM data is
+      included, otherwise of ``dabi_net``.
+
+    Args:
+        start_date, end_date: delivery days, ``YYYY-MM-DD`` (both included).
+        eptr: an ``EPTR2`` client; created from ``.env`` when omitted.
+        include_contract_symbol: add the hourly contract code (``PHyyMMddhh``); forced on with IDM data.
+        org_id: the organisation id; IDM data needs it.
+        include_idm_data: add the GİP columns.
+        include_org_id: add an ``org_id`` column.
+
+    Example:
+        >>> from eptr2.composite import get_dabi_idm_data
+        >>> df = get_dabi_idm_data("2026-10-19", "2026-10-19", eptr=eptr, org_id="103940")  # doctest: +SKIP
+        >>> df[["date", "da_short", "bi_short", "idm_short", "net_sales"]]  # doctest: +SKIP
     """
 
     if eptr is None:
@@ -137,7 +173,7 @@ def get_day_ahead_and_bilateral_matches(
     if include_idm_data:
         if verbose:
             logger.info("Getting IDM data...")
-        df_idm = process_idm_data(eptr, start_date, end_date, org_id)
+        df_idm = process_idm_data(eptr, start_date, end_date, org_id, **kwargs)
         df = (
             df.merge(df_idm, on=["contract"], how="left")
             .fillna(0.0)
@@ -147,6 +183,9 @@ def get_day_ahead_and_bilateral_matches(
         df["idm_net"] = df["idm_long"] - df["idm_short"]
         df["dabi_idm_net"] = df["dabi_net"] + df["idm_net"]
         df["dabi_idm_net"] = df["dabi_idm_net"].round(2)
+        df["net_sales"] = -df["dabi_idm_net"]
+    else:
+        df["net_sales"] = -df["dabi_net"]
 
     if include_org_id and org_id is not None:
         df["org_id"] = org_id
@@ -163,7 +202,10 @@ def get_dabi_idm_data(
     **kwargs,
 ):
     """
-    This function retrieves DABI IDM data for a specific organization. It is a wrapper around the `process_idm_data` function.
+    An organisation's hourly market positions (GÖP, bilateral and GİP purchases, sales, nets and net_sales).
+
+    A wrapper around :func:`get_day_ahead_and_bilateral_matches` with ``include_idm_data=True``; see there
+    for the columns and signs (the nets are purchases; ``net_sales`` is positive for a net seller).
     """
 
     return get_day_ahead_and_bilateral_matches(
@@ -202,6 +244,7 @@ def get_dabi_idm_data_period(
         eptr=eptr,
         org_id=org_id,
         verbose=verbose,
+        **kwargs,
     )
 
 

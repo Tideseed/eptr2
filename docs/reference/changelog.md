@@ -15,6 +15,10 @@ the live API.
   date; `include_maintenance_penalty` overrode a multiplier passed in.
 - `gather_and_calculate_plant_costs` applied today's tolerance to every hour
   and the `other` multiplier to every plant type.
+- `get_dabi_idm_data` / `get_day_ahead_and_bilateral_matches`: documented columns and signs (nets are long minus short =
+  net purchases), the per-organization GİP bid/ask swap (`clearingQuantityAsk` = bought, `clearingQuantityBid` = sold), and
+  a new `net_sales` column (positive = net seller). `get_dabi_idm_data_period` and the GİP fetch now pass `**kwargs`
+  (retry and timeout options were dropped). Offline regression test with a stubbed client.
 - `capacity-demand` and `intl-capacity-demand-direction-list` called the
   line-capacities endpoints ([#6](https://github.com/Tideseed/eptr2/issues/6));
   they now return capacity-auction requests (`auctionCode`,
@@ -37,6 +41,22 @@ the live API.
   2025-01..2026-10 differed from `mcp-smp-imb`; 0 after the fix). They now
   resolve floor and ceiling from the contract like the other `*_by_contract`
   helpers; explicit `floor_price` / `ceil_price` still win.
+
+- `get_time_min_max_price_map`: the 3,000 TL/MWh cap (GİP 3,090) starts on
+  **2024-07-01**, not 2024-06-01. In June 2024 PTF and SMF topped out at exactly
+  2,700 and GİP trades at exactly 2,781 (= 2,700 × 1.03); the first 3,000 / 3,090
+  prices are on 2024-07-01. June 2024 contracts now resolve to the 2,700 cap
+  (`contract_to_floor_ceil_prices`, the `*_by_contract` imbalance helpers).
+- `get_time_min_max_price_map`: the GİP (IDM) ceiling is **3,760** TL/MWh from
+  2023-02-01 (was 3,759.5) and **3,142** from 2023-03-01 (was 3,141.5). EPİAŞ
+  rounds 1.03 × the PTF cap up to the lira: February 2023 PH contracts traded at
+  most 3,760.00 (121 trades at exactly that price, none above) and March 2023 at
+  most 3,142.00 (142 trades, none above).
+- `get_uevcb_ids` (and the `periodic_orgs` wrappers that call it) capped the
+  current month at the process's local date instead of today's date in
+  Istanbul: on a host behind Turkey (e.g. Europe/Berlin, UTC) the last day
+  queried was yesterday between Istanbul midnight and local midnight. It now
+  uses Istanbul wall-clock time.
 
 ### Added
 - Main cost functions in `eptr2.util.costs`, working with or without pandas:

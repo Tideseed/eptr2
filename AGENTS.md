@@ -155,7 +155,7 @@ These combine multiple API calls for convenience:
 from eptr2.composite import (
     get_hourly_consumption_and_forecast_data,
     get_hourly_price_and_cost_data,
-    get_dabi_idm_data,     # DAM + bilateral + intraday volumes
+    get_dabi_idm_data,     # one organization's positions: DAM + bilateral + intraday (nets = purchases; net_sales)
     get_bpm_range,         # Balancing market (YAL/YAT + SMP)
     get_kgup_bulk_range,   # Bulk per-plant production PLANS (KGÜP, by UEVCB id)
     get_rt_gen_bulk_range, # Bulk per-plant REALIZED generation (by powerplant id)
@@ -168,6 +168,10 @@ df = get_hourly_consumption_and_forecast_data(
     eptr=eptr,
 )
 ```
+
+**Per-organization GİP quantities have EPİAŞ's bid/ask names swapped:** in `idm-qty` with `org_id`,
+`clearingQuantityAsk` = BOUGHT and `clearingQuantityBid` = SOLD. `get_dabi_idm_data` maps them to `idm_long` (purchases) and
+`idm_short` (sales); its nets are long minus short (net purchases) and `net_sales` has the opposite sign.
 
 Note: composite functions take `start_date`/`end_date` first and the client as the `eptr` keyword argument.
 

@@ -74,9 +74,8 @@ def get_uevcb_ids(org_df: pd.DataFrame, period: str, **kwargs):
     start_date = transform_date(period, key="start_of_month", to_str=True)
     end_date = transform_date(period, key="end_of_month", to_str=False)
 
-    now_dt = get_utc3_now()
-    now_ts = now_dt.timestamp()
-    now_dt = datetime.fromtimestamp(now_ts)
+    # Istanbul wall-clock time, naive like end_date; never converted to the process's local zone
+    now_dt = get_utc3_now().replace(tzinfo=None)
     if end_date > now_dt:
         end_date = now_dt
 
