@@ -101,9 +101,15 @@ the live API.
 - `get_org_estimated_activity` composite: a company's estimated hourly activity
   over a date range. Splits day-ahead open / intraday close, intraday day trade
   (`min(idm_long, idm_short)`) and the free quantity to be consumed or
-  generated, and adds a fictitious PnL from MCP and the intraday WAP and TAD
-  (quantity-weighted mean |price − WAP|) of the trade log. Helpers
+  generated, from the organization's GÖP, İA and GİP matchings only.
+  `include_pnl=True` adds a fictitious PnL of day-ahead open / intraday close
+  trades from MCP and the published intraday WAP. `include_day_trade_pnl=True`
+  also adds a day-trade PnL from the TAD (quantity-weighted mean |price − WAP|)
+  of the market-wide trade log, fetched day by day (a few seconds per day).
+  `verbose=True` logs each step with timings. Helpers
   `calculate_idm_contract_stats` and `calculate_org_activity` are pure.
+- `idm_log_longer(verbose=True)` logs the trade count and duration of each
+  request.
 - `ren-capacity-old` — YEKDEM installed capacity up to the YEKDEM deadline.
 - `ren-participant-year-list` — years available for `ren-participant-list`.
 

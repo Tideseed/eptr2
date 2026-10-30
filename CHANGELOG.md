@@ -24,7 +24,7 @@ These notes are replaced by the GitHub release notes when v1.4.0 is published. D
 
 ### New composite and calls
 
-- `get_org_estimated_activity(start_date, end_date, org_id, eptr=...)`: a company's estimated hourly activity: day-ahead open / intraday close, intraday day trade (`min(IDM buy, IDM sell)`), free quantity to be consumed or generated, and an estimated (fictitious) PnL from MCP and the intraday WAP and TAD of the trade log.
+- `get_org_estimated_activity(start_date, end_date, org_id, eptr=...)`: a company's estimated hourly activity: day-ahead open / intraday close, intraday day trade (`min(IDM buy, IDM sell)`), free quantity to be consumed or generated, from the organization's GÖP, İA and GİP matchings only (about a second per week). `include_pnl=True` adds an estimated (fictitious) PnL of day-ahead open / intraday close trades from MCP and the published intraday WAP; `include_day_trade_pnl=True` also adds a day-trade PnL from the TAD of the market-wide trade log, which is much slower (a few seconds per day). `verbose=True` reports each step with timings.
 - `ren-capacity-old` and `ren-participant-year-list` calls.
 - `get_dabi_idm_data` documents its columns and signs and adds `net_sales` (positive = net seller).
 

@@ -114,7 +114,7 @@ from eptr2.composite import (
     get_bpm_range,                         # balancing market (YAL/YAT) with SMP
     get_kgup_bulk_range,                   # bulk production PLANS (by UEVCB id)
     get_rt_gen_bulk_range,                 # bulk REALIZED generation (by powerplant id)
-    get_org_estimated_activity,            # company DA/IDM activity, free qty, estimated PnL
+    get_org_estimated_activity,            # company DA/IDM activity, free qty (+ estimated PnL)
 )
 
 df = get_hourly_price_and_cost_data(

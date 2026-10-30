@@ -109,3 +109,17 @@ def test_org_activity_invariants(pos_df):
 def test_org_activity_without_bilateral(pos_df):
     df = calculate_org_activity(pos_df.drop(columns=["bi_long", "bi_short"]))
     assert (df["bi_net"] == 0).all()
+
+
+def test_org_activity_without_prices_has_no_pnl(pos_df):
+    df = calculate_org_activity(pos_df.drop(columns=["mcp", "idm_wap", "idm_tad"]))
+    assert df["day_trade"].tolist() == [20.0, 10.0, 5.0, 15.0]
+    assert df["free_qty"].tolist() == [50.0, 80.0, 15.0, 0.0]
+    assert "total_pnl" not in df
+
+
+def test_org_activity_wap_only_pnl(pos_df):
+    df = calculate_org_activity(pos_df.drop(columns=["idm_tad"]))
+    assert "day_trade_pnl" not in df
+    assert df["total_pnl"].tolist() == df["da_id_pnl"].tolist()
+    assert df.set_index("contract").loc["A", "da_id_pnl"] == pytest.approx(4000.0)

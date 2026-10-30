@@ -3,6 +3,7 @@ from eptr2 import EPTR2
 import pandas as pd
 from datetime import datetime, timedelta
 import logging
+import time
 from eptr2.util.time import get_hourly_contract_range_list
 
 
@@ -58,6 +59,7 @@ def idm_log_longer(
                 period_start_date,
                 period_end_date,
             )
+        chunk_start = time.time()
 
         try:
             df = eptr.call(
@@ -80,6 +82,11 @@ def idm_log_longer(
             )
             logger.warning("%s", e)
             break
+
+        if verbose:
+            logger.info(
+                "  %d trades in %.1f s", len(df), time.time() - chunk_start
+            )
 
         main_df = pd.concat([main_df, df], ignore_index=True)
 
