@@ -15,7 +15,11 @@ the live API.
   advisory). The lock file also moves `mcp` 1.30.0, `PyJWT` 2.15.1, `anyio`
   4.14.2 and `opentelemetry-api` 1.45.2 to their patched versions, staying on
   the same major versions.
-- `certifi>=2026.10.19` in the `mcp` / `allextras` extras: earlier bundles
+- The patched versions are also minimums in `pyproject.toml` (not only in the
+  lock file), in the `mcp` / `allextras` extras: `mcp>=1.30.0`,
+  `pyjwt>=2.15.0`, `anyio>=4.14.2`, `opentelemetry-api>=1.45.1`.
+- `certifi>=2026.10.19` in the `mcp` / `allextras` / `docs` extras and the docs
+  dependency group: earlier bundles
   trust emSign roots whose intermediate CA keys were compromised
   (GHSA-6q48-6c7w-9gw2, critical). certifi reaches eptr2 only through the MCP
   stack (httpx); eptr2's own API calls use the system trust store.

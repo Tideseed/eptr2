@@ -412,10 +412,14 @@ dependencies = [
 
 [package.optional-dependencies]
 allextras = [
+    { name = "anyio" },
     { name = "certifi" },
     { name = "fastmcp" },
+    { name = "mcp" },
     { name = "openpyxl" },
+    { name = "opentelemetry-api" },
     { name = "pandas" },
+    { name = "pyjwt" },
     { name = "xlsxwriter" },
 ]
 dataframe = [
@@ -425,14 +429,19 @@ dev = [
     { name = "pytest" },
 ]
 docs = [
+    { name = "certifi" },
     { name = "mkdocs-autorefs" },
     { name = "mkdocs-material" },
     { name = "mkdocstrings", extra = ["python"] },
 ]
 mcp = [
+    { name = "anyio" },
     { name = "certifi" },
     { name = "fastmcp" },
+    { name = "mcp" },
+    { name = "opentelemetry-api" },
     { name = "pandas" },
+    { name = "pyjwt" },
     { name = "xlsxwriter" },
 ]
 
@@ -442,6 +451,7 @@ dev = [
     { name = "python-dotenv" },
 ]
 docs = [
+    { name = "certifi" },
     { name = "mkdocs-autorefs" },
     { name = "mkdocs-material" },
     { name = "mkdocstrings", extra = ["python"] },
@@ -449,17 +459,26 @@ docs = [
 
 [package.metadata]
 requires-dist = [
+    { name = "anyio", marker = "extra == 'allextras'", specifier = ">=4.14.2" },
+    { name = "anyio", marker = "extra == 'mcp'", specifier = ">=4.14.2" },
     { name = "certifi", marker = "extra == 'allextras'", specifier = ">=2026.10.19" },
+    { name = "certifi", marker = "extra == 'docs'", specifier = ">=2026.10.19" },
     { name = "certifi", marker = "extra == 'mcp'", specifier = ">=2026.10.19" },
     { name = "fastmcp", marker = "extra == 'allextras'", specifier = ">=3.4.10" },
     { name = "fastmcp", marker = "extra == 'mcp'", specifier = ">=3.4.10" },
+    { name = "mcp", marker = "extra == 'allextras'", specifier = ">=1.30.0" },
+    { name = "mcp", marker = "extra == 'mcp'", specifier = ">=1.30.0" },
     { name = "mkdocs-autorefs", marker = "extra == 'docs'", specifier = ">=0.5.0" },
     { name = "mkdocs-material", marker = "extra == 'docs'", specifier = ">=9.5.0" },
     { name = "mkdocstrings", extras = ["python"], marker = "extra == 'docs'", specifier = ">=0.24.0" },
     { name = "openpyxl", marker = "extra == 'allextras'", specifier = ">=3.1.5" },
+    { name = "opentelemetry-api", marker = "extra == 'allextras'", specifier = ">=1.45.1" },
+    { name = "opentelemetry-api", marker = "extra == 'mcp'", specifier = ">=1.45.1" },
     { name = "pandas", marker = "extra == 'allextras'", specifier = ">=2.1.3" },
     { name = "pandas", marker = "extra == 'dataframe'", specifier = ">=2.1.3" },
     { name = "pandas", marker = "extra == 'mcp'", specifier = ">=2.1.3" },
+    { name = "pyjwt", marker = "extra == 'allextras'", specifier = ">=2.15.0" },
+    { name = "pyjwt", marker = "extra == 'mcp'", specifier = ">=2.15.0" },
     { name = "pytest", marker = "extra == 'dev'", specifier = ">=9.0.3" },
     { name = "pytz", specifier = ">=2024.1" },
     { name = "urllib3", specifier = ">=2.8.0" },
@@ -474,6 +493,7 @@ dev = [
     { name = "python-dotenv", specifier = ">=1.1.1" },
 ]
 docs = [
+    { name = "certifi", specifier = ">=2026.10.19" },
     { name = "mkdocs-autorefs", specifier = ">=1.4.3" },
     { name = "mkdocs-material", specifier = ">=9.7.1" },
     { name = "mkdocstrings", extras = ["python"], specifier = ">=1.0.0" },
