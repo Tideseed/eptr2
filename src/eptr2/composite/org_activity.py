@@ -1,4 +1,8 @@
-from eptr2.main import DEFAULT_COMPOSITE_BACKOFF, DEFAULT_COMPOSITE_RETRIES, DEFAULT_COMPOSITE_TIMEOUT
+from eptr2.main import (
+    DEFAULT_COMPOSITE_BACKOFF,
+    DEFAULT_COMPOSITE_RETRIES,
+    DEFAULT_COMPOSITE_TIMEOUT,
+)
 import logging
 import time
 from eptr2 import EPTR2
@@ -16,7 +20,14 @@ logger = logging.getLogger(__name__)
 ## log-derived WAP equals the wap endpoint to the cent.
 IDM_LOT_MWH = 0.1
 
-QUANTITY_COLUMNS = ["da_long", "da_short", "bi_long", "bi_short", "idm_long", "idm_short"]
+QUANTITY_COLUMNS = [
+    "da_long",
+    "da_short",
+    "bi_long",
+    "bi_short",
+    "idm_long",
+    "idm_short",
+]
 
 
 def calculate_idm_contract_stats(log_df: pd.DataFrame) -> pd.DataFrame:
@@ -95,7 +106,15 @@ def calculate_org_activity(df: pd.DataFrame) -> pd.DataFrame:
     df["dabi_net"] = df["da_net"] + df["bi_net"]
     df["dabi_idm_net"] = df["dabi_net"] + df["idm_net"]
 
-    round_cols = ["da_net", "idm_net", "bi_net", "dabi_net", "dabi_idm_net", "day_trade", "da_id_close"]
+    round_cols = [
+        "da_net",
+        "idm_net",
+        "bi_net",
+        "dabi_net",
+        "dabi_idm_net",
+        "day_trade",
+        "da_id_close",
+    ]
     df[round_cols] = df[round_cols].round(2)
 
     if not {"mcp", "idm_wap"} <= set(df.columns):
@@ -124,7 +143,7 @@ def get_org_estimated_activity(
     include_pnl: bool = False,
     include_day_trade_pnl: bool = False,
     idm_log_df: pd.DataFrame | None = None,
-    verbose: bool = False,
+    verbose: bool = True,
     **kwargs,
 ) -> pd.DataFrame:
     """
@@ -134,7 +153,7 @@ def get_org_estimated_activity(
 
     With include_pnl=True a fictitious PnL of day ahead open / intraday close trades is added from MCP and the published intraday WAP (two more calls, fast).
 
-    With include_day_trade_pnl=True a fictitious day trade PnL (day_trade * TAD) is added as well. TAD can only be calculated from the market wide intraday trade log (idm_log_longer), which is large (about 20k trades a day, a few seconds per day to fetch), so this is much slower.
+    With include_day_trade_pnl=True a fictitious day trade PnL (day_trade * TAD) is added as well. TAD can only be calculated from the market wide intraday trade log (idm_log_longer), which is large (about 20k trades a day), so this is much slower. The log is fetched in multi-day chunks by idm_log_longer; pass idm_log_days_interval to change the chunk length (days_interval of idm_log_longer).
 
     Args:
         start_date: Start date in 'YYYY-MM-DD' format
@@ -172,7 +191,12 @@ def get_org_estimated_activity(
         "retry_jitter": kwargs.get("retry_jitter", 0.0),
     }
 
-    log_step("Getting GÖP, İA and GİP matchings of organization %s for %s to %s...", org_id, start_date, end_date)
+    log_step(
+        "Getting GÖP, İA and GİP matchings of organization %s for %s to %s...",
+        org_id,
+        start_date,
+        end_date,
+    )
     pos_df = get_dabi_idm_data(
         start_date=start_date,
         end_date=end_date,
@@ -185,9 +209,15 @@ def get_org_estimated_activity(
 
     ## All hourly contracts of the period, so that missing rows of any source do not drop contracts
     df = pd.DataFrame(
-        {"contract": get_hourly_contract_range_list(start_date=start_date, end_date=end_date)}
+        {
+            "contract": get_hourly_contract_range_list(
+                start_date=start_date, end_date=end_date
+            )
+        }
     )
-    pos_cols = ["contract", "date"] + [c for c in QUANTITY_COLUMNS if c in pos_df.columns]
+    pos_cols = ["contract", "date"] + [
+        c for c in QUANTITY_COLUMNS if c in pos_df.columns
+    ]
     df = df.merge(pos_df[pos_cols], on="contract", how="left")
     for col in QUANTITY_COLUMNS:
         if col not in df.columns:
@@ -226,19 +256,28 @@ def get_org_estimated_activity(
         )
 
         ## Missing prices stay NaN so that PnL is not silently zeroed
-        df = df.merge(mcp_df, on="contract", how="left").merge(wap_df, on="contract", how="left")
+        df = df.merge(mcp_df, on="contract", how="left").merge(
+            wap_df, on="contract", how="left"
+        )
 
         if include_day_trade_pnl:
             if idm_log_df is None:
-                log_step("Getting the IDM trade log for TAD (market wide, a few seconds per day)...")
+                log_step(
+                    "Getting the IDM trade log for TAD (market wide, about 20k trades a day)..."
+                )
+                ## idm_log_longer fetches wide ranges in chunks of days_interval (+1) days
+                log_kwargs = (
+                    {"days_interval": kwargs["idm_log_days_interval"]}
+                    if "idm_log_days_interval" in kwargs
+                    else {}
+                )
                 idm_log_df = idm_log_longer(
                     start_date=start_date,
                     end_date=end_date,
                     eptr=eptr,
                     contract_wise=True,
                     verbose=verbose,
-                    ## Daily requests: one 7-day request took ~72 s, seven daily ones ~3 s each
-                    days_interval=kwargs.get("idm_log_days_interval", 0),
+                    **log_kwargs,
                 )
                 log_step("Got %d IDM trades.", len(idm_log_df))
             stats_df = calculate_idm_contract_stats(idm_log_df)

@@ -106,7 +106,7 @@ the live API.
   `include_pnl=True` adds a fictitious PnL of day-ahead open / intraday close
   trades from MCP and the published intraday WAP. `include_day_trade_pnl=True`
   also adds a day-trade PnL from the TAD (quantity-weighted mean |price − WAP|)
-  of the market-wide trade log, fetched day by day (a few seconds per day).
+  of the market-wide trade log (`idm_log_longer`), which is much slower.
   `verbose=True` logs each step with timings. Helpers
   `calculate_idm_contract_stats` and `calculate_org_activity` are pure.
 - `idm_log_longer(verbose=True)` logs the trade count and duration of each

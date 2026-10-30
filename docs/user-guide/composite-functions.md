@@ -210,8 +210,9 @@ df = get_org_estimated_activity(
 ```
 
 `include_day_trade_pnl=True` also adds `idm_tad` and `day_trade_pnl`. TAD needs
-the market-wide intraday trade log, fetched day by day, which takes a few
-seconds per day (30–50 s for a week).
+the market-wide intraday trade log (about 20k trades a day), fetched by
+`idm_log_longer` in multi-day chunks, so it is much slower: roughly 30–70 s for
+a week, depending on EPİAŞ. `idm_log_days_interval` sets the chunk length.
 
 | Column | Meaning |
 |--------|---------|
