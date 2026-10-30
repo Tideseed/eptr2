@@ -280,6 +280,11 @@
       "module": "eptr2.util.costs",
       "signature": "(contract: str | None, category: str | None, monthly_fault_entries: int) -> bool",
       "summary": "Whether the KUPST maintenance multiplier applies, given the number of fault"
+    },
+    "normalize_kupst_category": {
+      "module": "eptr2.util.costs",
+      "signature": "(name: str | None, strict: bool = False) -> str",
+      "summary": "Map a source or category name in any common naming convention to one of"
     }
   },
   "date_format": "YYYY-MM-DD (ISO 8601); market timezone is Europe/Istanbul",

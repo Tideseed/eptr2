@@ -44,12 +44,14 @@ the live API.
   helper; explicit arguments still win. From the first delivery hour of
   2026-11-01: `V` is 100 (was 150), and KÜPST tolerance and multiplier depend
   on the KÜPST category: wind 15% / 0.05, solar 8% / 0.05, generation with
-  storage (`storage_plant`) 5% / 0.10, other 5% / 0.05, transmission-connected
+  storage (`plant_w_battery`) 5% / 0.10, other 5% / 0.05, transmission-connected
   unlicensed 20% / 0.02, distribution-connected unlicensed (per participant)
-  25% / 0.01, standalone storage 20% / 0.02. The 0.08 maintenance multiplier
+  25% / 0.01, standalone storage (`battery`) 20% / 0.02. The 0.08 maintenance multiplier
   applies to wind and solar from 30, other sources from 25 monthly fault
   entries (`is_kupst_maintenance_penalty_applicable`). `source`/`category`
-  accepts these categories; `unlicensed` maps to `unlicensed_transmission`.
+  accepts these categories; `normalize_kupst_category` maps other naming
+  conventions (Turkish labels, RES/GES/HES, BESS, ...) to them, and
+  `unlicensed` maps to `unlicensed_from_transmission`.
 - `get_org_estimated_activity` composite: a company's estimated hourly activity
   over a date range. Splits day-ahead open / intraday close, intraday day trade
   (`min(idm_long, idm_short)`) and the free quantity to be consumed or

@@ -818,11 +818,11 @@ class TestKupstCategories:
         [
             ("wind", 0.15, 0.05),
             ("solar", 0.08, 0.05),
-            ("storage_plant", 0.05, 0.10),
+            ("plant_w_battery", 0.05, 0.10),
             ("other", 0.05, 0.05),
-            ("unlicensed_transmission", 0.20, 0.02),
-            ("unlicensed_distribution", 0.25, 0.01),
-            ("standalone_storage", 0.20, 0.02),
+            ("unlicensed_from_transmission", 0.20, 0.02),
+            ("unlicensed_from_distribution", 0.25, 0.01),
+            ("battery", 0.20, 0.02),
             ("unlicensed", 0.20, 0.02),
             ("sun", 0.08, 0.05),
             ("hydro", 0.05, 0.05),
@@ -834,7 +834,7 @@ class TestKupstCategories:
         assert res["unit"] == {round(1000 * multiplier, 4)}
 
     def test_new_categories_are_other_before_november(self):
-        res = self._all_paths(self.OCT, "standalone_storage")
+        res = self._all_paths(self.OCT, "battery")
         assert res["tol"] == {0.05}
         assert res["unit"] == {50.0}
         ## unlicensed kept its 20% tolerance, the multiplier was 0.05
@@ -848,9 +848,9 @@ class TestKupstCategories:
             ("PH26110100", "wind", 0.08),
             ("PH26110100", "other", 0.08),
             ## No maintenance multiplier for these categories
-            ("PH26110100", "storage_plant", 0.10),
-            ("PH26110100", "unlicensed_transmission", 0.02),
-            ("PH26103123", "storage_plant", 0.08),
+            ("PH26110100", "plant_w_battery", 0.10),
+            ("PH26110100", "unlicensed_from_transmission", 0.02),
+            ("PH26103123", "plant_w_battery", 0.08),
         ],
     )
     def test_maintenance_penalty_does_not_clobber_category(
@@ -883,7 +883,7 @@ class TestKupstCategories:
         assert applies(self.NOV, "wind", 30) and not applies(self.NOV, "wind", 29)
         assert applies(self.NOV, "sun", 30)
         assert applies(self.NOV, "hydro", 25) and not applies(self.NOV, "hydro", 24)
-        assert not applies(self.NOV, "storage_plant", 100)
+        assert not applies(self.NOV, "plant_w_battery", 100)
         ## No threshold recorded before November
         assert not applies(self.OCT, "wind", 100)
 
@@ -896,7 +896,7 @@ class TestKupstCategories:
             forecast=100,
             mcp=1000,
             smp=1000,
-            source="standalone_storage",
+            source="battery",
             tol=0.1,
             kupst_multiplier=0.03,
             return_detail=True,
@@ -908,6 +908,80 @@ class TestKupstCategories:
         from eptr2.util.costs import get_kupst_params_by_contract
 
         assert (
-            get_kupst_params_by_contract(None, "standalone_storage")["tolerance"]
+            get_kupst_params_by_contract(None, "battery")["tolerance"]
             == 0.20
         )
+
+
+class TestKupstCategoryNames:
+    """Source names come in many conventions (Turkish, abbreviations, EPİAŞ
+    labels). They must land on the right KUPST category, or the category
+    silently gets the 'other' rate."""
+
+    @pytest.mark.parametrize(
+        "name, category",
+        [
+            ## Labels of the regulation table
+            ("Rüzgar", "wind"),
+            ("Güneş", "solar"),
+            ("Depolamalı üretim tesisi", "plant_w_battery"),
+            ("Diğer kaynaklar", "other"),
+            ("İletime bağlı lisanssız, santral bazında", "unlicensed_from_transmission"),
+            ("Dağıtıma bağlı lisanssız, katılımcı bazında", "unlicensed_from_distribution"),
+            ("Müstakil depolama", "battery"),
+            ## Case, abbreviations and English
+            ("RÜZGAR", "wind"),
+            ("RES", "wind"),
+            ("GES", "solar"),
+            ("PV", "solar"),
+            ("sun", "solar"),
+            ("wind + battery", "plant_w_battery"),
+            ("Bataryalı RES", "plant_w_battery"),
+            ("BESS", "battery"),
+            ("standalone storage", "battery"),
+            ("unlicensed", "unlicensed_from_transmission"),
+            ("unlicensed-distribution", "unlicensed_from_distribution"),
+            ("HES", "other"),
+            ("Doğalgaz", "other"),
+            ("coal", "other"),
+            (None, "other"),
+            ## Canonical and earlier names
+            ("plant_w_battery", "plant_w_battery"),
+            ("unlicensed_from_transmission", "unlicensed_from_transmission"),
+            ("storage_plant", "plant_w_battery"),
+            ("standalone_storage", "battery"),
+            ## 'res' must not match inside other words
+            ("resource", "other"),
+        ],
+    )
+    def test_names_map_to_categories(self, name, category):
+        from eptr2.util.costs import normalize_kupst_category
+
+        assert normalize_kupst_category(name) == category
+
+    def test_every_category_maps_to_itself(self):
+        from eptr2.util.costs import KUPST_CATEGORIES, normalize_kupst_category
+
+        for category in KUPST_CATEGORIES:
+            assert normalize_kupst_category(category) == category
+
+    def test_strict_rejects_unknown_names(self):
+        from eptr2.util.costs import normalize_kupst_category
+
+        with pytest.raises(ValueError):
+            normalize_kupst_category("xyz", strict=True)
+        assert normalize_kupst_category("xyz") == "other"
+        assert normalize_kupst_category("hydro", strict=True) == "other"
+
+    def test_cost_paths_use_the_mapping(self):
+        from eptr2.util.costs import (
+            get_kupst_tolerance_by_contract,
+            calculate_unit_kupst_cost_by_contract,
+        )
+
+        assert get_kupst_tolerance_by_contract("PH26110100", "Müstakil depolama") == 0.20
+        assert calculate_unit_kupst_cost_by_contract(
+            contract="PH26110100", mcp=1000, smp=1000, category="Depolamalı üretim tesisi"
+        ) == pytest.approx(100.0)
+        ## Pre-2026 resolves through the mapping too
+        assert get_kupst_tolerance_by_contract("PH25123123", "Rüzgar") == 0.17

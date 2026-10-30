@@ -118,7 +118,7 @@ def get_hourly_price_and_cost_data(
             ]
         }
         ## KUPST multipliers depend on the KUPST category (e.g. 'wind',
-        ## 'storage_plant') from 2026-11-01. Default is 'other'.
+        ## 'plant_w_battery') from 2026-11-01. Default is 'other'.
         if kwargs.get("kupst_category") is not None:
             added_params["category"] = kwargs["kupst_category"]
 

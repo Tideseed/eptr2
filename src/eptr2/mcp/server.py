@@ -468,9 +468,11 @@ if MCP_AVAILABLE:
         Pure calculation, no API call. contract is 'PHYYMMDDhh'; actual and
         forecast are production in MWh; mcp_price/smp_price in TL/MWh.
         source is the KUPST category, which sets the tolerance band and, from
-        2026-11-01, the multiplier: 'wind', 'solar', 'storage_plant',
-        'unlicensed_transmission', 'unlicensed_distribution',
-        'standalone_storage' or 'other' (unknown values count as 'other').
+        2026-11-01, the multiplier: 'wind', 'solar', 'plant_w_battery',
+        'unlicensed_from_transmission', 'unlicensed_from_distribution',
+        'battery' or 'other'. Turkish and other names ('Rüzgar', 'GES',
+        'Müstakil depolama', 'BESS', ...) are mapped; unknown values count as
+        'other'.
         An explicit tolerance (decimal, e.g. 0.15) overrides the band. Returns
         the cost breakdown including deviation amount and unit KUPST price."""
         from eptr2.util.costs import calculate_kupst_cost_by_contract

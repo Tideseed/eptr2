@@ -42,7 +42,7 @@ def get_time_regulation_params_map():
         return {
             "wind": {"tolerance": 0.15, **rate},
             "solar": {"tolerance": 0.08, **rate},
-            "unlicensed_transmission": {"tolerance": 0.20, **rate},
+            "unlicensed_from_transmission": {"tolerance": 0.20, **rate},
             "other": {"tolerance": 0.05, **rate},
         }
 
@@ -79,7 +79,7 @@ def get_time_regulation_params_map():
                     "maintenance_fault_threshold": 30,
                 },
                 ## Depolamalı üretim tesisi
-                "storage_plant": {"tolerance": 0.05, "multiplier": 0.10},
+                "plant_w_battery": {"tolerance": 0.05, "multiplier": 0.10},
                 ## Diğer kaynaklar
                 "other": {
                     "tolerance": 0.05,
@@ -88,11 +88,11 @@ def get_time_regulation_params_map():
                     "maintenance_fault_threshold": 25,
                 },
                 ## İletime bağlı lisanssız, santral bazında
-                "unlicensed_transmission": {"tolerance": 0.20, "multiplier": 0.02},
+                "unlicensed_from_transmission": {"tolerance": 0.20, "multiplier": 0.02},
                 ## Dağıtıma bağlı lisanssız, katılımcı bazında
-                "unlicensed_distribution": {"tolerance": 0.25, "multiplier": 0.01},
+                "unlicensed_from_distribution": {"tolerance": 0.25, "multiplier": 0.01},
                 ## Müstakil depolama
-                "standalone_storage": {"tolerance": 0.20, "multiplier": 0.02},
+                "battery": {"tolerance": 0.20, "multiplier": 0.02},
             },
         },
         {
@@ -148,13 +148,116 @@ def contract_to_regulation_params(contract: str | None = None) -> dict | None:
 KUPST_CATEGORIES = (
     "wind",
     "solar",
-    "storage_plant",
+    "plant_w_battery",
     "other",
-    "unlicensed_transmission",
-    "unlicensed_distribution",
-    "standalone_storage",
+    "unlicensed_from_transmission",
+    "unlicensed_from_distribution",
+    "battery",
 )
-KUPST_CATEGORY_ALIASES = {"sun": "solar", "unlicensed": "unlicensed_transmission"}
+
+## Exact names (after normalization) that map to a category
+KUPST_CATEGORY_ALIASES = {
+    "sun": "solar",
+    "unlicensed": "unlicensed_from_transmission",
+    "lisanssiz": "unlicensed_from_transmission",
+    "storage": "battery",
+    "depolama": "battery",
+    "default": "other",
+    "diger": "other",
+    "diger_kaynaklar": "other",
+    ## Earlier names
+    "storage_plant": "plant_w_battery",
+    "unlicensed_transmission": "unlicensed_from_transmission",
+    "unlicensed_distribution": "unlicensed_from_distribution",
+    "standalone_storage": "battery",
+}
+
+## Keywords (normalized tokens) used when the name is not an exact match.
+## Keywords of 5+ characters also match as prefixes for Turkish suffixes
+## (e.g. 'dagitima', 'lisanssizlar', 'bataryali').
+_KUPST_UNLICENSED_KEYS = ("unlicensed", "lisanssiz", "licenceless", "licenseless")
+_KUPST_DISTRIBUTION_KEYS = ("distribution", "dagitim", "dist", "dso")
+_KUPST_BATTERY_KEYS = ("battery", "batteries", "batarya", "bess", "storage", "depolama", "ess")
+_KUPST_PLANT_W_BATTERY_KEYS = (
+    "depolamali", "plant", "uretim", "tesis", "tesisi", "hybrid", "hibrit", "with",
+    "w", "integrated", "entegre", "wind", "ruzgar", "solar", "gunes", "res", "ges",
+    "pv", "hes", "hydro",
+)
+_KUPST_BATTERY_ONLY_KEYS = ("mustakil", "standalone", "stand", "alone", "only")
+_KUPST_WIND_KEYS = ("wind", "ruzgar", "res", "wpp", "onshore", "offshore")
+_KUPST_SOLAR_KEYS = ("solar", "sun", "gunes", "ges", "pv", "photovoltaic", "fotovoltaik", "spp")
+_KUPST_OTHER_KEYS = (
+    "other", "diger", "hydro", "hes", "dam", "baraj", "river", "akarsu", "coal",
+    "komur", "linyit", "lignite", "gas", "dogalgaz", "natural", "ngcc", "dgkc",
+    "geothermal", "jeotermal", "jes", "biomass", "biyokutle", "biogas", "biyogaz",
+    "fuel", "fueloil", "nuclear", "nukleer", "thermal", "termik", "import", "ithal",
+)
+_TR_FOLD = str.maketrans("ıİşŞğĞüÜöÖçÇâÂîÎûÛ", "iissgguuooccaaiiuu")
+
+
+def _kupst_tokens(name: str) -> list[str]:
+    folded = name.translate(_TR_FOLD).lower()
+    return [t for t in "".join(c if c.isalnum() else " " for c in folded).split() if t]
+
+
+def normalize_kupst_category(name: str | None, strict: bool = False) -> str:
+    """
+    Map a source or category name in any common naming convention to one of
+    KUPST_CATEGORIES.
+
+    Matching ignores case, Turkish characters and separators, so 'Rüzgar',
+    'RES', 'wind', 'Güneş', 'GES', 'PV', 'Depolamalı üretim tesisi',
+    'wind + battery', 'Müstakil depolama', 'BESS', 'İletime bağlı lisanssız',
+    'Dağıtıma bağlı lisanssız', 'unlicensed', 'HES', 'doğalgaz' all resolve.
+
+    Rules, in order: an exact category name or alias; unlicensed (distribution
+    if a distribution keyword is present, transmission otherwise); battery
+    (plant_w_battery if it is a generation plant with storage, battery if it is
+    standalone storage); wind; solar; other sources.
+
+    Args:
+        name: Source or category name. None gives 'other'.
+        strict: If True, raise ValueError for names that match no rule instead
+            of returning 'other'.
+
+    Returns:
+        str: One of KUPST_CATEGORIES.
+    """
+    if name is None:
+        return "other"
+
+    tokens = _kupst_tokens(str(name))
+    key = "_".join(tokens)
+    if key in KUPST_CATEGORIES:
+        return key
+    if key in KUPST_CATEGORY_ALIASES:
+        return KUPST_CATEGORY_ALIASES[key]
+
+    def has(keys):
+        return any(
+            t == k or (len(k) >= 5 and t.startswith(k)) for t in tokens for k in keys
+        )
+
+    if has(_KUPST_UNLICENSED_KEYS):
+        if has(_KUPST_DISTRIBUTION_KEYS):
+            return "unlicensed_from_distribution"
+        return "unlicensed_from_transmission"
+    if has(_KUPST_BATTERY_KEYS):
+        if has(_KUPST_BATTERY_ONLY_KEYS):
+            return "battery"
+        if has(_KUPST_PLANT_W_BATTERY_KEYS):
+            return "plant_w_battery"
+        return "battery"
+    if has(_KUPST_WIND_KEYS):
+        return "wind"
+    if has(_KUPST_SOLAR_KEYS):
+        return "solar"
+    if has(_KUPST_OTHER_KEYS) or not strict:
+        return "other"
+
+    raise ValueError(
+        f"Unknown KUPST category {name!r}. Use one of {', '.join(KUPST_CATEGORIES)}."
+    )
 
 
 def get_kupst_params_by_contract(
@@ -168,11 +271,12 @@ def get_kupst_params_by_contract(
     Args:
         contract: Contract code 'PHYYMMDDhh'. If None, the newest regulation row
             is used (the latest regulation).
-        category: KUPST category, one of KUPST_CATEGORIES. 'sun' is an alias of
-            'solar' and 'unlicensed' of 'unlicensed_transmission' (per plant, the
-            20% tolerance unlicensed plants had before). Any other value
-            (e.g. 'hydro', 'coal') falls back to 'other'. Note that
-            'unlicensed_distribution' is applied per participant, so the
+        category: KUPST category or source name in any common convention,
+            mapped by normalize_kupst_category (e.g. 'Rüzgar', 'GES', 'BESS').
+            'unlicensed' maps to 'unlicensed_from_transmission' (per plant, the
+            20% tolerance unlicensed plants had before). Unrecognized names
+            (e.g. 'hydro', 'coal') fall back to 'other'. Note that
+            'unlicensed_from_distribution' is applied per participant, so the
             deviation should be the participant's aggregate.
         include_maintenance_penalty: Use the maintenance multiplier. Categories
             without one keep their plain multiplier.
@@ -185,7 +289,7 @@ def get_kupst_params_by_contract(
     if params is None:
         return None
 
-    category = KUPST_CATEGORY_ALIASES.get(category, category)
+    category = normalize_kupst_category(category)
     if category not in params["kupst"]:
         category = "other"
     cat_d = params["kupst"][category]
@@ -214,7 +318,7 @@ def is_kupst_maintenance_penalty_applicable(
     params = contract_to_regulation_params(contract)
     if params is None:
         return False
-    category = KUPST_CATEGORY_ALIASES.get(category, category)
+    category = normalize_kupst_category(category)
     cat_d = params["kupst"].get(category, params["kupst"]["other"])
     threshold = cat_d.get("maintenance_fault_threshold")
     return threshold is not None and monthly_fault_entries >= threshold
@@ -364,8 +468,8 @@ def get_kupst_tolerance_by_contract(
     ----------
     source : str, default 'other'
         KUPST category from 2026 (see KUPST_CATEGORIES and
-        get_kupst_params_by_contract), e.g. 'wind', 'solar', 'storage_plant',
-        'unlicensed_transmission', 'standalone_storage'. Before 2026 one of
+        get_kupst_params_by_contract), e.g. 'wind', 'solar', 'plant_w_battery',
+        'unlicensed_from_transmission', 'battery'. Before 2026 one of
         'wind', 'solar', 'other'. 'sun' is aliased to 'solar'; unknown
         values fall back to 'other'.
     contract : str
@@ -398,7 +502,9 @@ def get_kupst_tolerance_by_contract(
     kupst_d = get_kupst_params_by_contract(contract, category=source)
     if kupst_d is not None:
         return kupst_d["tolerance"]
-    return get_kupst_tolerance(source, regulation_period=regulation_period)
+    return get_kupst_tolerance(
+        normalize_kupst_category(source), regulation_period=regulation_period
+    )
 
 
 def get_kupst_tolerance(
@@ -693,7 +799,9 @@ def calculate_unit_kupst_cost_2026(
     Contract-free, so it keeps literal defaults. Multipliers per KUPST category
     and their changes over time (e.g. from 2026-11-01) are resolved by
     calculate_unit_kupst_cost_by_contract (see get_kupst_params_by_contract).
-    The source shortcut below is from the draft regulation of 22 Sep 2025.
+    The source shortcut below is from the draft regulation of 22 Sep 2025
+    and its names are not the KUPST categories (its 'battery' rate is the
+    plant_w_battery multiplier).
     """
 
     kupst_multiplier = 0.08 if include_maintenance_penalty else kupst_multiplier_default
@@ -775,7 +883,7 @@ def calculate_kupst_cost_by_contract(
         If True, applies maintenance penalty to multiplier.
     category : str, optional
         KUPST category from 2026 (see get_kupst_params_by_contract). Defaults to
-        source, so source='standalone_storage' sets both tolerance and
+        source, so source='battery' sets both tolerance and
         multiplier.
 
     Returns
