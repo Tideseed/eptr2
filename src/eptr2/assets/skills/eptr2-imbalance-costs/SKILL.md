@@ -17,7 +17,22 @@ costs = calculate_unit_price_and_costs_by_contract(
 print(costs)
 ```
 
-No credentials are required for pure calculations. Fetch `systemStatus` from `mcp-smp-imb` for API-based analyses. Pass direction explicitly, especially when MCP equals SMP: -1 / `Enerji Açığı` means deficit, +1 / `Enerji Fazlası` means surplus, and 0 / `Dengede` means balanced. The MCP calculation tool accepts `system_direction` and requires it for equal prices.
+For ranges or plant data, prefer the main functions: they resolve floor/ceiling, V, B, margins and KÜPST tolerance and multiplier (by category) for each hour, and fetch MCP, SMP and `systemStatus` when `prices` is not given. Fetched rows include `published_pos_imb_price` / `published_neg_imb_price` to check the calculation.
+
+```python
+from eptr2.util.costs import calculate_imbalance_costs
+
+rows = calculate_imbalance_costs(
+    data=[{"date": "2026-11-01T10:00:00+03:00", "actual": 80, "forecast": 100}],
+    category="Rüzgar",
+    prices=[{"date": "2026-11-01T10:00:00+03:00", "mcp": 3000, "smp": 3200,
+             "system_direction": "Enerji Açığı"}],
+    return_df=False,
+)
+print(rows[0]["imb_cost"], rows[0]["kupst_cost"], rows[0]["total_cost"])
+```
+
+No credentials are required for pure calculations or when `prices` are given. Fetch `systemStatus` from `mcp-smp-imb` for API-based analyses. Pass direction explicitly, especially when MCP equals SMP: -1 / `Enerji Açığı` means deficit, +1 / `Enerji Fazlası` means surplus, and 0 / `Dengede` means balanced. The MCP calculation tool accepts `system_direction` and requires it for equal prices.
 
 Output `unit_pos_imb_cost` and `unit_neg_imb_cost` are TL/MWh; multiplying by the corresponding imbalance energy gives TL. `unit_kupst` is not the plant's total charge. Distinguish positive/negative imbalance energy, unit prices, unit opportunity costs, and total costs.
 

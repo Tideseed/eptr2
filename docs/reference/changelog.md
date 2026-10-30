@@ -39,6 +39,16 @@ the live API.
   helpers; explicit `floor_price` / `ceil_price` still win.
 
 ### Added
+- Main cost functions in `eptr2.util.costs`, working with or without pandas:
+  - `calculate_imbalance_prices(start_date, end_date, ...)`: hourly imbalance
+    prices, unit costs and every parameter used (regulation period,
+    floor/ceiling, V, B, margins, KÜPST tolerance, multiplier and floor),
+    resolved per hour. MCP, SMP and system direction are fetched from
+    `mcp-smp-imb` unless `prices` is given; fetched rows carry the published
+    imbalance prices for comparison.
+  - `calculate_imbalance_costs(data, category=..., ...)`: imbalance and KÜPST
+    costs of actual vs forecast rows, using `calculate_imbalance_prices`; the
+    category (any naming convention) and producer/consumer can be set per row.
 - Regulation values that change over time come from one dated table
   (`get_time_regulation_params_map`) and are applied by every `*_by_contract`
   helper; explicit arguments still win. From the first delivery hour of

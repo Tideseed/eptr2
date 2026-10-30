@@ -4,6 +4,8 @@ Use the installed implementation and contract date rather than copying numerical
 
 | Need | Utility |
 |---|---|
+| Hourly prices, unit costs and every resolved parameter over a range (fetched or given prices) | `calculate_imbalance_prices` |
+| Imbalance + KÜPST costs of actual vs forecast rows, per-row category | `calculate_imbalance_costs` |
 | Unit prices and opportunity costs | `calculate_unit_price_and_costs_by_contract` |
 | Source-specific tolerance | `get_kupst_tolerance_by_contract` |
 | Unit KÜPST rate | `calculate_unit_kupst_cost_by_contract` |

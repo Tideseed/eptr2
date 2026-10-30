@@ -206,6 +206,16 @@
       "signature": "(actual: float, forecast: float, is_producer: bool, tolerance_multiplier: float = 1.0, just_raw_imbalance: bool = False, regulation_period: Literal['current', '26_01', 'pre_2026'] = 'current', **kwargs) -> dict | float",
       "summary": "Calculate the imbalance amount and DSG (Balancing Responsible Group) tolerance effects."
     },
+    "calculate_imbalance_costs": {
+      "module": "eptr2.util.costs",
+      "signature": "(data=None, actual: float | None = None, forecast: float | None = None, date=None, category: str = 'other', is_producer: bool = True, prices=None, eptr=None, include_maintenance_penalty: bool = False, return_df: bool = True, **kwargs)",
+      "summary": "Imbalance and KUPST costs of actual vs forecast quantities, with every"
+    },
+    "calculate_imbalance_prices": {
+      "module": "eptr2.util.costs",
+      "signature": "(start_date=None, end_date=None, prices=None, eptr=None, kupst_category: str = 'other', include_maintenance_penalty: bool = False, return_df: bool = True, **kwargs)",
+      "summary": "Hourly imbalance prices, unit costs and every regulation parameter used to"
+    },
     "calculate_kupst_cost": {
       "module": "eptr2.util.costs",
       "signature": "(actual: float, forecast: float, mcp: float, smp: float, tol: float | None = None, source: str | None = None, kupst_multiplier: float | None = None, kupst_floor_price: float | None = None, return_detail: bool = False, regulation_period: Literal['current', '26_01', 'pre_2026'] = 'current', include_maintenance_penalty=False)",

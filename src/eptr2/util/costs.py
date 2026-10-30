@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import date, datetime, timedelta, timezone
 import warnings
 from typing import Literal
 import math
@@ -3030,3 +3030,439 @@ def calculate_kupst_cost_list(
         kupst_cost_list.append(cost)
 
     return kupst_cost_list
+
+
+### MAIN FUNCTIONS ###
+## calculate_imbalance_prices and calculate_imbalance_costs resolve every
+## regulation parameter (regulation period, floor and ceiling prices, V, B,
+## margins, KUPST tolerance, multiplier and floor) from each hour's contract, so
+## callers only supply market prices (or let them be fetched) and quantities.
+## They work without pandas and return a DataFrame when pandas is installed.
+
+_ISTANBUL_TZ = timezone(timedelta(hours=3))
+
+## Accepted input names, in order of preference, for each field
+_PRICE_FIELD_NAMES = {
+    "mcp": ("mcp", "ptf"),
+    "smp": ("smp", "smf"),
+    "system_direction": ("system_direction", "systemStatus", "sd_sign"),
+    "published_pos_imb_price": ("published_pos_imb_price", "positiveImbalance"),
+    "published_neg_imb_price": ("published_neg_imb_price", "negativeImbalance"),
+}
+
+
+def _to_contract(value, end: bool = False) -> str | None:
+    """Contract of a contract code, date ('YYYY-MM-DD', start or end hour of
+    the day), ISO datetime string or datetime/date object."""
+    if value is None:
+        return None
+    if isinstance(value, str):
+        value = value.strip()
+        if value.startswith("PH"):
+            return value
+        if len(value) == 10:
+            value = datetime.strptime(value, "%Y-%m-%d").date()
+        else:
+            value = datetime.fromisoformat(value)
+    if isinstance(value, datetime):
+        if value.tzinfo is not None:
+            value = value.astimezone(_ISTANBUL_TZ)
+        return value.strftime("PH%y%m%d%H")
+    if isinstance(value, date):
+        return value.strftime("PH%y%m%d") + ("23" if end else "00")
+    raise ValueError(f"Cannot convert {value!r} to a contract")
+
+
+def _contract_to_date_str(contract: str) -> str:
+    return f"20{contract[2:4]}-{contract[4:6]}-{contract[6:8]}"
+
+
+def _to_records(data) -> list[dict]:
+    """List of dicts from a DataFrame, a list of dicts or an API response."""
+    if data is None:
+        return []
+    if hasattr(data, "to_dict"):
+        return data.to_dict("records")
+    if isinstance(data, dict):
+        return list(data.get("items", [data]))
+    return [dict(row) for row in data]
+
+
+def _get_field(row: dict, field: str):
+    for name in _PRICE_FIELD_NAMES[field]:
+        value = row.get(name)
+        if value is not None and not (isinstance(value, float) and math.isnan(value)):
+            return value
+    return None
+
+
+def _row_contract(row: dict) -> str:
+    if row.get("contract") is not None:
+        return row["contract"]
+    if row.get("date") is not None:
+        return _to_contract(row["date"])
+    raise ValueError("Each row needs a 'date' or 'contract'")
+
+
+def _maybe_df(rows: list[dict], return_df: bool):
+    if not return_df:
+        return rows
+    try:
+        import pandas as pd
+    except ImportError:
+        return rows
+    return pd.DataFrame(rows)
+
+
+def _fetch_mcp_smp_imb(start_contract: str, end_contract: str, eptr=None, **kwargs) -> list[dict]:
+    if eptr is None:
+        from eptr2 import EPTR2
+
+        eptr = EPTR2(dotenv_path=kwargs.get("dotenv_path", ".env"))
+
+    res = eptr.call(
+        "mcp-smp-imb",
+        start_date=_contract_to_date_str(start_contract),
+        end_date=_contract_to_date_str(end_contract),
+    )
+    rows = _to_records(res)
+    if len(rows) == 0:
+        raise ValueError(
+            "No MCP/SMP data returned for the period. SMP and system direction are "
+            "published after delivery; for future hours pass prices explicitly."
+        )
+    return rows
+
+
+def _kupst_params_for_row(contract, category, include_maintenance_penalty, kupst_multiplier=None, kupst_floor_price=None):
+    """Tolerance, multiplier and floor applying to a contract and category."""
+    kupst_d = get_kupst_params_by_contract(
+        contract,
+        category=category,
+        include_maintenance_penalty=include_maintenance_penalty,
+    )
+    if kupst_d is None:
+        ## Pre-2026 values, the same defaults as calculate_unit_kupst_cost
+        category = normalize_kupst_category(category)
+        kupst_d = {
+            "category": category if category in ("wind", "solar") else "other",
+            "tolerance": get_kupst_tolerance_by_contract(contract, category),
+            "multiplier": 0.05 if include_maintenance_penalty else 0.03,
+            "floor_price": 750.0,
+        }
+    if kupst_multiplier is not None:
+        kupst_d["multiplier"] = kupst_multiplier
+    if kupst_floor_price is not None:
+        kupst_d["floor_price"] = kupst_floor_price
+    return kupst_d
+
+
+def calculate_imbalance_prices(
+    start_date=None,
+    end_date=None,
+    prices=None,
+    eptr=None,
+    kupst_category: str = "other",
+    include_maintenance_penalty: bool = False,
+    return_df: bool = True,
+    **kwargs,
+):
+    """
+    Hourly imbalance prices, unit costs and every regulation parameter used to
+    calculate them, resolved automatically from each hour's delivery date.
+
+    For each hour the regulation period, price floor and ceiling, V, B, low,
+    high and ceiling margins and the KUPST tolerance, multiplier and floor price
+    are looked up (see get_time_regulation_params_map and
+    contract_to_floor_ceil_prices), so a range spanning regulation changes is
+    priced correctly hour by hour.
+
+    Market prices come from ``prices`` if given, otherwise they are fetched
+    from EPİAŞ (mcp-smp-imb) for the range. Fetched hours also carry the
+    published imbalance prices, so calculated and published prices can be
+    compared.
+
+    Args:
+        start_date: Start of the range: 'YYYY-MM-DD', ISO datetime, contract
+            code or datetime. Required unless ``prices`` is given.
+        end_date: End of the range (inclusive). A date means its last hour.
+        prices: Hourly prices as a DataFrame or list of dicts with 'date' (or
+            'contract'), 'mcp' (or 'ptf') and 'smp' (or 'smf'), and optionally
+            'system_direction' (-1/0/1, or EPİAŞ 'systemStatus' labels such as
+            'Enerji Açığı'). The raw mcp-smp-imb response is accepted as is.
+            Rows outside start_date/end_date are dropped.
+        eptr: EPTR2 client for fetching. Created from .env if needed.
+        kupst_category: KUPST category or source name for the KUPST columns
+            (see normalize_kupst_category).
+        include_maintenance_penalty: Use the KUPST maintenance multiplier.
+        return_df: Return a pandas DataFrame if pandas is installed, otherwise
+            (or if False) a list of dicts.
+        **kwargs: Explicit parameter overrides that win over the resolved ones:
+            floor_price, ceil_price, V, B, low_margin, high_margin,
+            ceil_margin, kupst_multiplier, kupst_floor_price.
+
+    Returns:
+        One row per hour with: date, contract, regulation_period, mcp, smp,
+        system_direction, floor_price, ceil_price, V, B, low_margin,
+        high_margin, ceil_margin (None before 2026, whose formula does not use
+        them), pos_imb_price, neg_imb_price, unit_pos_imb_cost,
+        unit_neg_imb_cost, kupst_category, kupst_tolerance, kupst_multiplier,
+        kupst_floor_price, unit_kupst_cost and, when available,
+        published_pos_imb_price and published_neg_imb_price.
+
+    Notes:
+        When MCP equals SMP the system direction cannot be inferred from
+        prices. Fetched data carries the published direction; for given prices
+        without a direction such hours are priced as balanced and a warning is
+        raised.
+
+    Examples:
+        >>> calculate_imbalance_prices("2026-10-01", "2026-10-07", eptr=eptr)
+        >>> calculate_imbalance_prices(prices=[
+        ...     {"date": "2026-11-01T00:00:00+03:00", "mcp": 120, "smp": 130,
+        ...      "system_direction": -1}], kupst_category="Rüzgar")
+    """
+    start_contract = _to_contract(start_date)
+    end_contract = _to_contract(end_date, end=True)
+
+    if prices is None:
+        if start_contract is None or end_contract is None:
+            raise ValueError("start_date and end_date are required unless prices are given")
+        rows = _fetch_mcp_smp_imb(start_contract, end_contract, eptr=eptr, **kwargs)
+    else:
+        rows = _to_records(prices)
+
+    overrides = {
+        k: kwargs[k]
+        for k in ("floor_price", "ceil_price") + IMBALANCE_PARAM_KEYS
+        if kwargs.get(k) is not None
+    }
+
+    result = []
+    n_ambiguous = 0
+    for row in rows:
+        contract = _row_contract(row)
+        if start_contract is not None and contract < start_contract:
+            continue
+        if end_contract is not None and contract > end_contract:
+            continue
+
+        mcp = _get_field(row, "mcp")
+        smp = _get_field(row, "smp")
+        system_direction = normalize_system_direction(_get_field(row, "system_direction"))
+        if system_direction is None and mcp == smp:
+            n_ambiguous += 1
+
+        regulation_period = get_regulation_period_by_contract(contract)
+        params = {}
+        fc_d = contract_to_floor_ceil_prices(contract)
+        if fc_d is not None:
+            params["floor_price"] = fc_d["min"]
+            params["ceil_price"] = fc_d["max"]
+        reg_params = contract_to_regulation_params(contract)
+        for key in IMBALANCE_PARAM_KEYS:
+            params[key] = reg_params[key] if reg_params is not None else None
+        params.update(overrides)
+
+        kupst_d = _kupst_params_for_row(
+            contract,
+            kupst_category,
+            include_maintenance_penalty,
+            kupst_multiplier=kwargs.get("kupst_multiplier"),
+            kupst_floor_price=kwargs.get("kupst_floor_price"),
+        )
+
+        cost_d = calculate_unit_price_and_costs_by_contract(
+            contract=contract,
+            mcp=mcp,
+            smp=smp,
+            system_direction=system_direction,
+            kupst_multiplier=kupst_d["multiplier"],
+            kupst_floor_price=kupst_d["floor_price"],
+            **{k: v for k, v in params.items() if v is not None},
+        )
+
+        out = {
+            "date": row.get("date"),
+            "contract": contract,
+            "regulation_period": regulation_period,
+            "mcp": mcp,
+            "smp": smp,
+            "system_direction": system_direction,
+            "floor_price": params.get("floor_price"),
+            "ceil_price": params.get("ceil_price"),
+            **{key: params[key] for key in IMBALANCE_PARAM_KEYS},
+            "pos_imb_price": cost_d["pos_imb_price"],
+            "neg_imb_price": cost_d["neg_imb_price"],
+            "unit_pos_imb_cost": cost_d["unit_pos_imb_cost"],
+            "unit_neg_imb_cost": cost_d["unit_neg_imb_cost"],
+            "kupst_category": kupst_d["category"],
+            "kupst_tolerance": kupst_d["tolerance"],
+            "kupst_multiplier": kupst_d["multiplier"],
+            "kupst_floor_price": kupst_d["floor_price"],
+            "unit_kupst_cost": cost_d["unit_kupst"],
+        }
+        for field in ("published_pos_imb_price", "published_neg_imb_price"):
+            value = _get_field(row, field)
+            if value is not None:
+                out[field] = value
+        result.append(out)
+
+    if n_ambiguous > 0:
+        warnings.warn(
+            f"{n_ambiguous} hour(s) have MCP == SMP and no system direction; they are "
+            "priced as balanced. Pass system_direction (or EPİAŞ systemStatus) to "
+            "price them correctly.",
+            stacklevel=2,
+        )
+
+    result.sort(key=lambda x: x["contract"])
+    return _maybe_df(result, return_df)
+
+
+def calculate_imbalance_costs(
+    data=None,
+    actual: float | None = None,
+    forecast: float | None = None,
+    date=None,
+    category: str = "other",
+    is_producer: bool = True,
+    prices=None,
+    eptr=None,
+    include_maintenance_penalty: bool = False,
+    return_df: bool = True,
+    **kwargs,
+):
+    """
+    Imbalance and KUPST costs of actual vs forecast quantities, with every
+    price and regulation parameter pulled automatically.
+
+    The hours of ``data`` define the range; calculate_imbalance_prices supplies
+    the hourly prices, unit costs and parameters (fetched from EPİAŞ unless
+    ``prices`` is given). KUPST tolerance and multiplier follow each row's
+    category and date.
+
+    Args:
+        data: Hourly quantities as a DataFrame or list of dicts with 'date' (or
+            'contract'), 'actual' and 'forecast' in MWh. Optional per row
+            columns 'category' (or 'source') and 'is_producer' override the
+            function arguments, so a portfolio can mix plant types.
+        actual, forecast, date: A single hour instead of ``data``.
+        category: KUPST category or source name in any common convention
+            (e.g. 'wind', 'Rüzgar', 'GES', 'Müstakil depolama'), see
+            normalize_kupst_category.
+        is_producer: Production (True) or consumption (False) unit. KUPST
+            applies to producers only.
+        prices: Hourly prices passed to calculate_imbalance_prices. Fetched
+            from EPİAŞ if None.
+        eptr: EPTR2 client for fetching.
+        include_maintenance_penalty: Use the KUPST maintenance multiplier.
+        return_df: Return a pandas DataFrame if pandas is installed.
+        **kwargs: Parameter overrides passed to calculate_imbalance_prices.
+
+    Returns:
+        One row per input row with the input columns and contract, category,
+        is_producer, mcp, smp, system_direction, pos_imb_price, neg_imb_price,
+        imb_qty (positive surplus, negative deficit), unit_imb_cost, imb_cost,
+        kupst_tolerance, kupsm, unit_kupst_cost, kupst_cost (0 for consumers)
+        and total_cost, in TL.
+
+    Notes:
+        Imbalance is the raw deviation of the unit; balancing group (DSG)
+        tolerance and netting are not applied.
+
+    Examples:
+        >>> calculate_imbalance_costs(
+        ...     actual=80, forecast=100, date="2026-11-01T10:00:00+03:00",
+        ...     category="Rüzgar", eptr=eptr)
+    """
+    if data is None:
+        if actual is None or forecast is None or date is None:
+            raise ValueError("Provide data, or actual, forecast and date")
+        rows = [{"date": date, "actual": actual, "forecast": forecast}]
+    else:
+        rows = _to_records(data)
+    if len(rows) == 0:
+        return _maybe_df([], return_df)
+
+    contracts = [_row_contract(row) for row in rows]
+    price_rows = calculate_imbalance_prices(
+        start_date=min(contracts),
+        end_date=max(contracts),
+        prices=prices,
+        eptr=eptr,
+        return_df=False,
+        **kwargs,
+    )
+    price_by_contract = {p["contract"]: p for p in price_rows}
+
+    result = []
+    for row, contract in zip(rows, contracts):
+        price = price_by_contract.get(contract)
+        if price is None:
+            raise ValueError(f"No prices for {contract}")
+
+        row_category = row.get("category", row.get("source")) or category
+        row_is_producer = row.get("is_producer")
+        row_is_producer = is_producer if row_is_producer is None else bool(row_is_producer)
+
+        imb_qty = calculate_imbalance_amount(
+            actual=row["actual"],
+            forecast=row["forecast"],
+            is_producer=row_is_producer,
+            just_raw_imbalance=True,
+            regulation_period=price["regulation_period"],
+        )
+        unit_imb_cost = price["unit_neg_imb_cost" if imb_qty < 0 else "unit_pos_imb_cost"]
+        imb_cost = round(abs(imb_qty) * unit_imb_cost, 2)
+
+        kupst = {"kupst_tolerance": None, "kupsm": 0.0, "unit_kupst_cost": None, "kupst_cost": 0.0}
+        if row_is_producer:
+            kupst_d = _kupst_params_for_row(
+                contract,
+                row_category,
+                include_maintenance_penalty,
+                kupst_multiplier=kwargs.get("kupst_multiplier"),
+                kupst_floor_price=kwargs.get("kupst_floor_price"),
+            )
+            detail = calculate_kupst_cost(
+                actual=row["actual"],
+                forecast=row["forecast"],
+                mcp=price["mcp"],
+                smp=price["smp"],
+                tol=kupst_d["tolerance"],
+                kupst_multiplier=kupst_d["multiplier"],
+                kupst_floor_price=kupst_d["floor_price"],
+                regulation_period=price["regulation_period"],
+                return_detail=True,
+            )
+            kupst = {
+                "kupst_tolerance": kupst_d["tolerance"],
+                "kupsm": detail["kupsm"],
+                "unit_kupst_cost": detail["unit_kupst_cost"],
+                "kupst_cost": round(detail["kupst_cost"], 2),
+            }
+
+        result.append(
+            {
+                **row,
+                "contract": contract,
+                "category": normalize_kupst_category(row_category),
+                "is_producer": row_is_producer,
+                "mcp": price["mcp"],
+                "smp": price["smp"],
+                "system_direction": price["system_direction"],
+                "pos_imb_price": price["pos_imb_price"],
+                "neg_imb_price": price["neg_imb_price"],
+                "imb_qty": imb_qty,
+                "unit_imb_cost": unit_imb_cost,
+                "imb_cost": imb_cost,
+                **kupst,
+                "total_cost": round(imb_cost + kupst["kupst_cost"], 2),
+            }
+        )
+
+    return _maybe_df(result, return_df)
+
+
+### MAIN FUNCTIONS END ###

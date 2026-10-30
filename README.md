@@ -126,7 +126,19 @@ Note the argument order: dates first, the client as the `eptr` keyword.
 
 ### Imbalance and KÜPST cost calculations
 
-Pure functions — no API call, no credentials. The regulation period (pre-2026 / 2026) and the price floor/ceiling are derived from the contract code:
+The main functions resolve every regulation parameter (floor/ceiling, V, B, margins, KÜPST tolerance and multiplier by plant category) from each hour, and fetch MCP, SMP and system direction from EPİAŞ unless you pass prices:
+
+```python
+from eptr2.util.costs import calculate_imbalance_prices, calculate_imbalance_costs
+
+## Hourly prices, unit costs, all parameters used, and the published prices to compare
+prices = calculate_imbalance_prices("2026-10-01", "2026-10-07", eptr=eptr)
+
+## Costs of actual vs forecast; category in any convention ("wind", "Rüzgar", "GES", "BESS", ...)
+costs = calculate_imbalance_costs(data=df, category="Rüzgar", eptr=eptr)  # df: date, actual, forecast
+```
+
+The single-hour helpers are pure functions — no API call, no credentials. The regulation period (pre-2026 / 2026) and the price floor/ceiling are derived from the contract code:
 
 ```python
 from eptr2.util.costs import calculate_unit_price_and_costs_by_contract
@@ -301,7 +313,16 @@ df = get_hourly_price_and_cost_data(
 
 ### Dengesizlik ve KÜPST maliyetleri
 
-API çağrısı gerektirmeyen saf hesaplama fonksiyonlarıdır. Mevzuat dönemi (2026 öncesi / 2026) ve taban-tavan fiyatlar sözleşme kodundan otomatik belirlenir:
+Ana fonksiyonlar her saat için tüm mevzuat parametrelerini (taban-tavan fiyat, V, B, marjlar, santral kategorisine göre KÜPST toleransı ve katsayısı) otomatik belirler; fiyat verilmezse PTF, SMF ve sistem yönünü EPİAŞ'tan çeker:
+
+```python
+from eptr2.util.costs import calculate_imbalance_prices, calculate_imbalance_costs
+
+prices = calculate_imbalance_prices("2026-10-01", "2026-10-07", eptr=eptr)
+costs = calculate_imbalance_costs(data=df, category="Rüzgar", eptr=eptr)  # df: date, actual, forecast
+```
+
+Tek saatlik yardımcı fonksiyonlar API çağrısı gerektirmeyen saf hesaplama fonksiyonlarıdır. Mevzuat dönemi (2026 öncesi / 2026) ve taban-tavan fiyatlar sözleşme kodundan otomatik belirlenir:
 
 ```python
 from eptr2.util.costs import calculate_unit_price_and_costs_by_contract

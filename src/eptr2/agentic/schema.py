@@ -17,6 +17,8 @@ SCHEMA_FORMAT_VERSION = "2.0"
 # explicitly so internal/deprecated helpers (temp_*, *_pre_2026, *_2026
 # period variants) stay out of the agent-facing schema.
 COST_UTILITY_NAMES = [
+    "calculate_imbalance_prices",
+    "calculate_imbalance_costs",
     "get_kupst_tolerance",
     "get_kupst_tolerance_by_contract",
     "get_kupst_params_by_contract",

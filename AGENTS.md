@@ -273,7 +273,7 @@ except Exception as e:
 - Automatic TGT (Ticket Granting Ticket) management
 - Credential management via .env files
 - Composite functions for common data analysis
-- Imbalance/KUPST cost utilities (`eptr2.util.costs`)
+- Imbalance/KUPST cost utilities (`eptr2.util.costs`); start with `calculate_imbalance_prices` and `calculate_imbalance_costs`, which resolve every regulation parameter per hour
 - Pandas DataFrame integration
 - CLI, MCP server, agent skills and machine-readable schema for AI agents
 
