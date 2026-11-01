@@ -208,12 +208,12 @@
     },
     "calculate_imbalance_costs": {
       "module": "eptr2.util.costs",
-      "signature": "(data=None, actual: float | None = None, forecast: float | None = None, date=None, category: str = 'other', is_producer: bool = True, prices=None, eptr=None, include_maintenance_penalty: bool = False, return_df: bool = True, **kwargs)",
+      "signature": "(data: 'pd.DataFrame | list[dict] | None' = None, actual: float | None = None, forecast: float | None = None, date: str | datetime.datetime | None = None, category: str = 'other', is_producer: bool = True, prices: 'pd.DataFrame | list[dict] | None' = None, eptr: 'EPTR2 | None' = None, include_maintenance_penalty: bool = False, return_df: bool = True, **kwargs: float) -> 'pd.DataFrame | list[dict]'",
       "summary": "Imbalance and KUPST costs of actual vs forecast quantities, with every"
     },
     "calculate_imbalance_prices": {
       "module": "eptr2.util.costs",
-      "signature": "(start_date=None, end_date=None, prices=None, eptr=None, kupst_category: str = 'other', include_maintenance_penalty: bool = False, return_df: bool = True, include_calculated: bool = False, **kwargs)",
+      "signature": "(start_date: str | datetime.datetime | None = None, end_date: str | datetime.datetime | None = None, prices: 'pd.DataFrame | list[dict] | None' = None, eptr: 'EPTR2 | None' = None, kupst_category: str = 'other', include_maintenance_penalty: bool = False, return_df: bool = True, include_calculated: bool = False, **kwargs: float) -> 'pd.DataFrame | list[dict]'",
       "summary": "Hourly imbalance prices, unit costs and every regulation parameter used to"
     },
     "calculate_kupst_cost": {

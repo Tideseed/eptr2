@@ -1,8 +1,13 @@
 from datetime import date, datetime, timedelta, timezone
 import warnings
-from typing import Literal
+from typing import TYPE_CHECKING, Literal
 import math
 from eptr2.util.time import contract_to_floor_ceil_prices, iso_to_contract
+
+if TYPE_CHECKING:
+    import pandas as pd
+
+    from eptr2 import EPTR2
 
 
 def get_time_regulation_params_map():
@@ -3131,16 +3136,16 @@ def _kupst_params_for_row(contract, category, include_maintenance_penalty, kupst
 
 
 def calculate_imbalance_prices(
-    start_date=None,
-    end_date=None,
-    prices=None,
-    eptr=None,
+    start_date: str | datetime | None = None,
+    end_date: str | datetime | None = None,
+    prices: "pd.DataFrame | list[dict] | None" = None,
+    eptr: "EPTR2 | None" = None,
     kupst_category: str = "other",
     include_maintenance_penalty: bool = False,
     return_df: bool = True,
     include_calculated: bool = False,
-    **kwargs,
-):
+    **kwargs: float,
+) -> "pd.DataFrame | list[dict]":
     """
     Hourly imbalance prices, unit costs and every regulation parameter used to
     calculate them, resolved automatically from each hour's delivery date.
@@ -3340,18 +3345,18 @@ def calculate_imbalance_prices(
 
 
 def calculate_imbalance_costs(
-    data=None,
+    data: "pd.DataFrame | list[dict] | None" = None,
     actual: float | None = None,
     forecast: float | None = None,
-    date=None,
+    date: str | datetime | None = None,
     category: str = "other",
     is_producer: bool = True,
-    prices=None,
-    eptr=None,
+    prices: "pd.DataFrame | list[dict] | None" = None,
+    eptr: "EPTR2 | None" = None,
     include_maintenance_penalty: bool = False,
     return_df: bool = True,
-    **kwargs,
-):
+    **kwargs: float,
+) -> "pd.DataFrame | list[dict]":
     """
     Imbalance and KUPST costs of actual vs forecast quantities, with every
     price and regulation parameter pulled automatically.
@@ -3367,7 +3372,9 @@ def calculate_imbalance_costs(
             'contract'), 'actual' and 'forecast' in MWh. Optional per row
             columns 'category' (or 'source') and 'is_producer' override the
             function arguments, so a portfolio can mix plant types.
-        actual, forecast, date: A single hour instead of ``data``.
+        actual: Actual quantity (MWh) of a single hour instead of ``data``.
+        forecast: Forecast quantity (MWh) of that hour.
+        date: Date, datetime or contract of that hour.
         category: KUPST category or source name in any common convention
             (e.g. 'wind', 'Rüzgar', 'GES', 'Müstakil depolama'), see
             normalize_kupst_category.
