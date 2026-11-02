@@ -193,6 +193,10 @@ def calculate_portfolio_costs(
     + Your portfolio does not have to be an aggregator but calculations resemble those of an aggregator. You can use this function to estimate costs for potential aggregators.
     """
     #####
+    ## One client for every plant and the price data; otherwise each call would log in again
+    if kwargs.get("eptr") is None:
+        kwargs["eptr"] = EPTR2(dotenv_path=kwargs.get("dotenv_path", ".env"))
+
     ### Validate forecast source
     if forecast_source.lower() in ["kgüp", "kgup", "kagup", "kagüp"]:
         forecast_source = "kgup"
@@ -348,6 +352,7 @@ def calculate_portfolio_costs(
         cost_df = get_hourly_price_and_cost_data(
             start_date=start_date,
             end_date=end_date,
+            eptr=kwargs["eptr"],
             include_contract_symbol=True,
             add_kupst_cost=True,
             add_unit_prefix_to_cost_colnames=True,

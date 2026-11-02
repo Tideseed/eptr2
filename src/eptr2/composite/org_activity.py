@@ -10,9 +10,9 @@ from eptr2 import EPTR2
 import numpy as np
 import pandas as pd
 from eptr2.composite.dabi_idm import get_dabi_idm_data
+from eptr2.composite.price_and_cost import get_hourly_price_and_cost_data
 from eptr2.composite.idm_log import idm_log_longer
 from eptr2.util.time import (
-    iso_to_contract,
     get_hourly_contract_range_list,
     get_today_utc3,
 )
@@ -156,11 +156,11 @@ def get_org_estimated_activity(
 
     The activity comes from the organization's own matched quantities only: day ahead (GÖP), bilateral (İA) and intraday (GİP) matchings by organization id (get_dabi_idm_data, a few seconds per week). See calculate_org_activity for the decomposition (day ahead open / intraday close, day trade, dabi_net and dabi_idm_net net positions).
 
-    With include_pnl=True a fictitious PnL of day ahead open / intraday close trades is added from MCP and the published intraday WAP (two more calls, fast).
+    With include_pnl=True a fictitious PnL of day ahead open / intraday close trades is added from MCP and the published intraday WAP (get_hourly_price_and_cost_data, fast).
 
     With include_tad=True the TAD (total absolute deviation) of each contract (idm_tad) and day_trade_tad = day_trade * TAD are added. These are volatility metrics, not PnL. TAD can only be calculated from the market wide intraday trade log (idm_log_longer), which is large (about 20k trades a day), so this is much slower. The log is fetched in multi-day chunks by idm_log_longer; pass idm_log_days_interval to change the chunk length (days_interval of idm_log_longer).
 
-    With export_to_csv=True the raw data and the result are written to export_dir as CSV files named {name}_{start_date}_{end_date}.csv: org_{org_id}_positions (get_dabi_idm_data output), mcp and wap (raw mcp and wap calls), idm_log (the market wide trade log), idm_contract_stats (per contract WAP, TAD, trade count and volume from the log) and org_{org_id}_activity (the returned frame). Only the data of the requested steps is written. With check_existing=True, files of the same name (same period) are read from export_dir instead of being fetched, so the market wide files (mcp, wap, idm_log) are recycled for other organizations of the same period. CSV is used because the trade log can exceed the Excel row limit.
+    With export_to_csv=True the raw data and the result are written to export_dir as CSV files named {name}_{start_date}_{end_date}.csv: org_{org_id}_positions (get_dabi_idm_data output), prices (get_hourly_price_and_cost_data output: MCP, SMP, WAP and imbalance prices per hour), idm_log (the market wide trade log), idm_contract_stats (per contract WAP, TAD, trade count and volume from the log) and org_{org_id}_activity (the returned frame). Only the data of the requested steps is written. With check_existing=True, files of the same name (same period) are read from export_dir instead of being fetched, so the market wide files (prices, idm_log) are recycled for other organizations of the same period. CSV is used because the trade log can exceed the Excel row limit.
 
     end_date must be before today (Europe/Istanbul): data of the current day is not final, so neither the result nor the exported files would be.
 
@@ -169,7 +169,7 @@ def get_org_estimated_activity(
         end_date: End date in 'YYYY-MM-DD' format (inclusive), before today
         org_id: Organization ID
         eptr: EPTR2 object. Created from .env if not provided.
-        include_pnl: Add mcp, idm_wap and dabi_idm_pnl (fetches MCP and WAP).
+        include_pnl: Add mcp, idm_wap and dabi_idm_pnl (fetches MCP and WAP with get_hourly_price_and_cost_data).
         include_tad: Add idm_tad and day_trade_tad (fetches the IDM trade log). Independent of include_pnl.
         idm_log_df: Previously fetched IDM trade log covering the period (e.g. idm_log_longer output). The log is market wide, so it can be reused for several organizations to avoid fetching it again. Implies include_tad=True.
         export_to_csv: Write the raw data and the result to export_dir as CSV files (see above).
@@ -267,45 +267,28 @@ def get_org_estimated_activity(
         df[col] = df[col].fillna(0.0)
 
     if include_pnl:
-        mcp_df = load_existing("mcp")
-        if mcp_df is None:
-            log_step("Getting MCP...")
-            mcp_df = eptr.call(
-                "mcp",
+        price_df = load_existing("prices")
+        if price_df is None:
+            log_step("Getting MCP, SMP and intraday WAP...")
+            price_df = get_hourly_price_and_cost_data(
                 start_date=start_date,
                 end_date=end_date,
-                request_kwargs={"timeout": DEFAULT_COMPOSITE_TIMEOUT},
-                **retry_kwargs,
+                eptr=eptr,
+                include_wap=True,
+                add_kupst_cost=False,
+                include_contract_symbol=True,
+                timeout=DEFAULT_COMPOSITE_TIMEOUT,
+                max_lives=retry_kwargs["retry_attempts"],
+                retry_backoff=retry_kwargs["retry_backoff"],
+                retry_backoff_max=retry_kwargs["retry_backoff_max"],
             )
-        export(mcp_df, "mcp")
-        mcp_df = pd.DataFrame(
-            {
-                "contract": mcp_df["date"].apply(lambda x: iso_to_contract(x)),
-                "mcp": mcp_df["price"],
-            }
-        )
-
-        wap_df = load_existing("wap")
-        if wap_df is None:
-            log_step("Getting intraday WAP...")
-            wap_df = eptr.call(
-                "wap",
-                start_date=start_date,
-                end_date=end_date,
-                request_kwargs={"timeout": DEFAULT_COMPOSITE_TIMEOUT},
-                **retry_kwargs,
-            )
-        export(wap_df, "wap")
-        wap_df = pd.DataFrame(
-            {
-                "contract": wap_df["date"].apply(lambda x: iso_to_contract(x)),
-                "idm_wap": wap_df["wap"],
-            }
-        )
+        export(price_df, "prices")
 
         ## Missing prices stay NaN so that PnL is not silently zeroed
-        df = df.merge(mcp_df, on="contract", how="left").merge(
-            wap_df, on="contract", how="left"
+        df = df.merge(
+            price_df[["contract", "mcp", "wap"]].rename(columns={"wap": "idm_wap"}),
+            on="contract",
+            how="left",
         )
 
         if df["idm_wap"].isna().any():

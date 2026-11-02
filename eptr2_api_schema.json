@@ -146,7 +146,7 @@
     },
     "get_reference_imbalance_costs": {
       "module": "eptr2.composite.price_and_cost",
-      "signature": "(start_date: str, end_date: str, eptr: eptr2.main.EPTR2 | None = None)",
+      "signature": "(start_date: str, end_date: str, eptr: eptr2.main.EPTR2 | None = None, **kwargs)",
       "summary": "Get reference imbalance cost for a given period. Reference imbalance cost means the average of positive imbalance and negative imbalance costs. Imbalance costs are calculated as the difference from PTF/MCP, always positive values."
     },
     "get_rt_gen_bulk_range": {

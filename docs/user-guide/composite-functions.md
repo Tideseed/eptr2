@@ -246,7 +246,8 @@ for org_id in [104000, 105000]:
 ```
 
 `export_to_csv=True` writes `{name}_{start_date}_{end_date}.csv` files:
-`org_{org_id}_positions`, `mcp`, `wap`, `idm_log`, `idm_contract_stats` (WAP,
+`org_{org_id}_positions`, `prices` (MCP, SMP, WAP and imbalance prices from
+`get_hourly_price_and_cost_data`), `idm_log`, `idm_contract_stats` (WAP,
 TAD, trade count and volume per contract) and `org_{org_id}_activity`, for the
 steps that ran. With `check_existing=True` files of the same name are read
 instead of fetched, so the second organization above reuses the market-wide

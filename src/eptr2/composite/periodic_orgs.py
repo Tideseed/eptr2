@@ -144,6 +144,10 @@ def get_uevcb_ids(org_df: pd.DataFrame, period: str, **kwargs):
 def get_generation_org_and_uevcb_wrapper(period: str, **kwargs):
     """This is a wrapper function to get generation organizations with their UEVCB IDs."""
 
+    ## Both steps share one client
+    if kwargs.get("eptr") is None:
+        kwargs["eptr"] = EPTR2(recycle_tgt=True)
+
     df_gen_orgs = get_generation_organization_list(period=period, **kwargs)
     df_uevcb_ids = get_uevcb_ids(org_df=df_gen_orgs, period=period, **kwargs)
 
@@ -179,9 +183,14 @@ def get_periodic_generation_organization_lists(
             current_dt + timedelta(days=31), key="start_of_month", to_str=False
         )
 
+    ## One client for all periods
+    if kwargs.get("eptr") is None:
+        kwargs["eptr"] = EPTR2(recycle_tgt=True)
+    kwargs["period_range"] = "month"
+
     for period in periods:
         logger.info("Processing period: %s", period)
-        df_res = get_generation_organization_list(period=period, period_range="month")
+        df_res = get_generation_organization_list(period=period, **kwargs)
         df_res["period"] = period
         df = pd.concat([df, df_res], ignore_index=True)
         time.sleep(1)
@@ -212,6 +221,10 @@ def get_multiperiod_generation_org_and_uevcb_wrapper(
         )
 
     verbose = kwargs.get("verbose", False)
+
+    ## One client for all periods
+    if kwargs.get("eptr") is None:
+        kwargs["eptr"] = EPTR2(recycle_tgt=True)
 
     try:
         for period in periods:

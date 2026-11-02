@@ -13,6 +13,18 @@ All notable changes to eptr2 are documented here.
   raw response. `get_dabi_idm_data` (`idm_long` / `idm_short`) is unchanged.
   The trap is documented in AGENTS.md, the `idm-qty` help text and the
   market-operations, convenience-wrappers and API-discovery skills.
+- Composite functions build on other composites instead of repeating base
+  calls: `get_org_estimated_activity` takes MCP and WAP from
+  `get_hourly_price_and_cost_data` (its CSV export writes one `prices` file
+  instead of `mcp` and `wap`; files from 1.4.0 are fetched again), and
+  `get_reference_imbalance_costs` is built on it too (its columns are now that
+  function's: `mcp`, `smp`, `pos_imb_price`, `neg_imb_price`, … plus
+  `ref_imb_cost`).
+- `calculate_portfolio_costs` and the generation organization wrappers
+  (`get_generation_org_and_uevcb_wrapper`, `get_periodic_generation_organization_lists`,
+  `get_multiperiod_generation_org_and_uevcb_wrapper`) create one client for
+  all their calls when none is passed, instead of logging in for each plant,
+  period or step.
 - Request bodies accept numpy / pandas scalars: an id taken from a DataFrame
   (`int64`) raised "Object of type int64 is not JSON serializable".
 

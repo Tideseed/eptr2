@@ -162,9 +162,20 @@ class _FakeEPTR:
         if self.fail:
             raise AssertionError(f"{key} should have been read from file")
         dates = ["2026-10-20T00:00:00+03:00", "2026-10-20T01:00:00+03:00"]
-        if key == "mcp":
-            return pd.DataFrame({"date": dates, "price": [1000.0, 1200.0]})
-        return pd.DataFrame({"date": dates, "wap": [1100.0, 1150.0]})
+        if key == "mcp-smp-imb":
+            return pd.DataFrame(
+                {
+                    "date": dates,
+                    "time": ["00:00", "01:00"],
+                    "ptf": [1000.0, 1200.0],
+                    "smf": [1100.0, 1100.0],
+                    "positiveImbalance": [970.0, 1067.0],
+                    "negativeImbalance": [1133.0, 1236.0],
+                    "systemStatus": ["Enerji Açığı", "Enerji Fazlası"],
+                }
+            )
+        assert key == "wap", key
+        return pd.DataFrame({"date": dates, "hour": ["00:00", "01:00"], "wap": [1100.0, 1150.0]})
 
 
 def test_get_org_estimated_activity_export_and_reuse(tmp_path, monkeypatch):
@@ -216,10 +227,9 @@ def test_get_org_estimated_activity_export_and_reuse(tmp_path, monkeypatch):
             [
                 "idm_contract_stats",
                 "idm_log",
-                "mcp",
                 "org_1_activity",
                 "org_1_positions",
-                "wap",
+                "prices",
             ]
         )
     ]

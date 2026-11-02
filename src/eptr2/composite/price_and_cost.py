@@ -301,18 +301,23 @@ def get_reference_imbalance_costs(
     start_date: str,
     end_date: str,
     eptr: EPTR2 | None = None,
+    **kwargs,
 ):
     """
     Get reference imbalance cost for a given period. Reference imbalance cost means the average of positive imbalance and negative imbalance costs. Imbalance costs are calculated as the difference from PTF/MCP, always positive values.
+
+    Returns the get_hourly_price_and_cost_data columns (without WAP and KUPST) plus ref_imb_cost.
     """
 
-    if eptr is None:
-        eptr = EPTR2()
+    df = get_hourly_price_and_cost_data(
+        start_date=start_date,
+        end_date=end_date,
+        eptr=eptr,
+        include_wap=False,
+        add_kupst_cost=False,
+        **kwargs,
+    )
 
-    df = eptr.call("mcp-smp-imb", start_date=start_date, end_date=end_date)
-
-    df["neg_imb_cost"] = df["negativeImbalance"] - df["ptf"]
-    df["pos_imb_cost"] = df["ptf"] - df["positiveImbalance"]
     df["ref_imb_cost"] = round((df["neg_imb_cost"] + df["pos_imb_cost"]) / 2, 4)
 
     return df
