@@ -578,6 +578,13 @@ DEFAULT_COMPOSITE_BACKOFF = 3.0
 DEFAULT_LOGIN_TIMEOUT = 10.0
 
 
+def _json_default(o):
+    ## numpy / pandas scalars (e.g. an org id taken from a DataFrame is int64) -> plain Python values
+    if hasattr(o, "item"):
+        return o.item()
+    raise TypeError(f"Object of type {o.__class__.__name__} is not JSON serializable")
+
+
 def apply_default_timeout(
     request_kwargs: dict | None,
     connect_timeout: float | None = None,
@@ -715,7 +722,7 @@ def transparency_call(
             res = http.request(
                 method=call_method,
                 url=full_url,
-                body=json.dumps(call_body),
+                body=json.dumps(call_body, default=_json_default),
                 headers=header_d,
                 **request_kwargs,
             )

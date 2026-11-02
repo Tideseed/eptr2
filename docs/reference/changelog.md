@@ -13,6 +13,8 @@ All notable changes to eptr2 are documented here.
   raw response. `get_dabi_idm_data` (`idm_long` / `idm_short`) is unchanged.
   The trap is documented in AGENTS.md, the `idm-qty` help text and the
   market-operations, convenience-wrappers and API-discovery skills.
+- Request bodies accept numpy / pandas scalars: an id taken from a DataFrame
+  (`int64`) raised "Object of type int64 is not JSON serializable".
 
 ## Version 1.4.0 (2026-10-30)
 

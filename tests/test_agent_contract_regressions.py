@@ -1071,3 +1071,18 @@ class TestRegulationPeriodDefaults:
         )
         assert [r["regulation_period"] for r in rows] == ["26_01", "26_02"]
         assert [r["pos_imb_price"] for r in rows] == [-103.0, 116.4]
+
+
+def test_request_body_accepts_numpy_scalars():
+    """An org id taken from a DataFrame is numpy int64; the request body must still serialize."""
+    import json
+
+    import numpy as np
+    import pytest
+
+    from eptr2.main import _json_default
+
+    body = json.dumps({"organizationId": np.int64(104000), "ratio": np.float64(0.5)}, default=_json_default)
+    assert json.loads(body) == {"organizationId": 104000, "ratio": 0.5}
+    with pytest.raises(TypeError):
+        json.dumps({"x": object()}, default=_json_default)
