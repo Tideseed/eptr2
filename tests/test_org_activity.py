@@ -27,21 +27,21 @@ def test_idm_contract_stats(log_df):
     ## Non hourly (PB) contracts are left out
     assert list(stats.index) == ["PH26102000", "PH26102001"]
 
-    ## wap = (100*20 + 130*10) / 30 = 110, tad = (20*10 + 10*20) / 30
+    ## wap = (100*20 + 130*10) / 30 = 110, mad = (20*10 + 10*20) / 30
     assert stats.loc["PH26102000", "idm_wap"] == pytest.approx(110.0)
-    assert stats.loc["PH26102000", "idm_tad"] == pytest.approx(400 / 30)
+    assert stats.loc["PH26102000", "idm_mad"] == pytest.approx(400 / 30)
     assert stats.loc["PH26102000", "idm_trade_count"] == 2
     ## Log quantities are lots of 0.1 MWh
     assert stats.loc["PH26102000", "idm_volume_mwh"] == pytest.approx(3.0)
 
     ## A single price has no deviation
-    assert stats.loc["PH26102001", "idm_tad"] == pytest.approx(0.0)
+    assert stats.loc["PH26102001", "idm_mad"] == pytest.approx(0.0)
 
 
 def test_idm_contract_stats_empty():
     stats = calculate_idm_contract_stats(pd.DataFrame())
     assert stats.empty
-    assert "idm_tad" in stats.columns
+    assert "idm_mad" in stats.columns
 
 
 @pytest.fixture
@@ -61,7 +61,7 @@ def pos_df():
             "idm_short": [60.0, 10.0, 5.0, 15.0],
             "mcp": [1000.0, 1000.0, 1000.0, 1000.0],
             "idm_wap": [1100.0, 1100.0, 900.0, np.nan],
-            "idm_tad": [50.0, 50.0, 40.0, 30.0],
+            "idm_mad": [50.0, 50.0, 40.0, 30.0],
         }
     )
 
@@ -114,21 +114,21 @@ def test_org_activity_without_bilateral(pos_df):
 
 
 def test_org_activity_without_prices_has_no_pnl(pos_df):
-    df = calculate_org_activity(pos_df.drop(columns=["mcp", "idm_wap", "idm_tad"]))
+    df = calculate_org_activity(pos_df.drop(columns=["mcp", "idm_wap", "idm_mad"]))
     assert df["day_trade"].tolist() == [20.0, 10.0, 5.0, 15.0]
     assert df["dabi_idm_net"].tolist() == [50.0, 80.0, 15.0, 0.0]
     assert "dabi_idm_pnl" not in df
 
 
 def test_org_activity_tad_without_prices(pos_df):
-    """TAD is a volatility metric: day_trade_tad needs no MCP or WAP"""
+    """MAD and TAD are volatility metrics: day_trade_tad needs no MCP or WAP"""
     df = calculate_org_activity(pos_df.drop(columns=["mcp", "idm_wap"]))
     assert df["day_trade_tad"].tolist() == pytest.approx([1000.0, 500.0, 200.0, 450.0])
     assert "dabi_idm_pnl" not in df
 
 
 def test_org_activity_wap_only_pnl(pos_df):
-    df = calculate_org_activity(pos_df.drop(columns=["idm_tad"]))
+    df = calculate_org_activity(pos_df.drop(columns=["idm_mad"]))
     assert "day_trade_tad" not in df
     assert df.set_index("contract").loc["A", "dabi_idm_pnl"] == pytest.approx(4000.0)
 
@@ -240,7 +240,7 @@ def test_get_org_estimated_activity_export_and_reuse(tmp_path, monkeypatch):
     )
     assert calls == ["pos", "log"]
     pd.testing.assert_frame_equal(first, second, check_dtype=False)
-    assert first.loc[0, "idm_tad"] == pytest.approx(50.0)
+    assert first.loc[0, "idm_mad"] == pytest.approx(50.0)
 
 
 @pytest.mark.parametrize("end_date", ["2026-10-30", "2026-10-31"])

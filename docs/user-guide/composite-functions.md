@@ -209,8 +209,8 @@ df = get_org_estimated_activity(
 )
 ```
 
-`include_tad=True` adds `idm_tad` and `day_trade_tad`, volatility metrics rather
-than PnL; it doesn't need `include_pnl`. TAD needs
+`include_tad=True` adds `idm_mad` and `day_trade_tad`, volatility metrics rather
+than PnL; it doesn't need `include_pnl`. MAD needs
 the market-wide intraday trade log (about 20k trades a day), fetched by
 `idm_log_longer` in multi-day chunks, so it is much slower: roughly 30–70 s for
 a week, depending on EPİAŞ. `idm_log_days_interval` sets the chunk length.
@@ -222,12 +222,12 @@ a week, depending on EPİAŞ. `idm_log_days_interval` sets the chunk length.
 | `dabi_idm_net` | `dabi_net + idm_net`; positive must be consumed, negative generated (subtract `bi_net` for GÖP + GİP only) |
 | `dabi_idm_close` | Day-ahead (GÖP + İA) position reversed in the intraday market: `min(abs(dabi_net), abs(idm_net))` when they have opposite signs |
 | `mcp`, `idm_wap` | With `include_pnl=True`: MCP and the published intraday WAP |
-| `idm_tad` | With `include_tad=True`: TAD (total absolute deviation), the quantity-weighted mean of `abs(price - WAP)` over the contract's trades in the log |
+| `idm_mad` | With `include_tad=True`: MAD (mean absolute deviation, TL/MWh), the quantity-weighted mean of `abs(price - WAP)` over the contract's trades in the log |
 | `dabi_idm_pnl` | `dabi_idm_close * sign(dabi_net) * (idm_wap - mcp)`; bilateral quantities are valued at MCP too |
-| `day_trade_tad` | With `include_tad=True`: `day_trade * idm_tad` (TL), the price room around WAP the day-trade volume was traded in; a volatility metric, not a PnL |
+| `day_trade_tad` | With `include_tad=True`: `day_trade * idm_mad` (TL), the TAD (total absolute deviation) of the day-trade volume: the price room around WAP the day-trade volume was traded in; a volatility metric, not a PnL |
 
 The PnL is fictitious: the company's own trade prices are not public. To
-analyse several companies with TAD, fetch the log once with
+analyse several companies with MAD, fetch the log once with
 `idm_log_longer` and pass it as `idm_log_df`, or use the CSV export:
 
 ```python
@@ -248,7 +248,7 @@ for org_id in [104000, 105000]:
 `export_to_csv=True` writes `{name}_{start_date}_{end_date}.csv` files:
 `org_{org_id}_positions`, `prices` (MCP, SMP, WAP and imbalance prices from
 `get_hourly_price_and_cost_data`), `idm_log`, `idm_contract_stats` (WAP,
-TAD, trade count and volume per contract) and `org_{org_id}_activity`, for the
+MAD, trade count and volume per contract) and `org_{org_id}_activity`, for the
 steps that ran. With `check_existing=True` files of the same name are read
 instead of fetched, so the second organization above reuses the market-wide
 MCP, WAP and trade log. The files are CSV because the trade log can exceed

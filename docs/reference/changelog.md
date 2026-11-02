@@ -25,6 +25,11 @@ All notable changes to eptr2 are documented here.
   `get_multiperiod_generation_org_and_uevcb_wrapper`) create one client for
   all their calls when none is passed, instead of logging in for each plant,
   period or step.
+- `get_org_estimated_activity` / `calculate_org_activity` / `calculate_idm_contract_stats`:
+  `idm_tad` is renamed `idm_mad`. It is a per MWh value, the quantity-weighted
+  mean absolute deviation of trade prices from WAP (TL/MWh), not a total.
+  `day_trade_tad = day_trade × idm_mad` keeps its name: it is the total (TL).
+  **Breaking** for code and exported `idm_contract_stats` files that use `idm_tad`.
 - Request bodies accept numpy / pandas scalars: an id taken from a DataFrame
   (`int64`) raised "Object of type int64 is not JSON serializable".
 

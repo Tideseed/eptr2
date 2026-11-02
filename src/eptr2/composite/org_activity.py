@@ -42,13 +42,13 @@ def calculate_idm_contract_stats(log_df: pd.DataFrame) -> pd.DataFrame:
     Returns a DataFrame with columns:
         contract: Hourly contract name (PHyyMMddhh)
         idm_wap: Weighted average price of all trades in the contract
-        idm_tad: TAD (total absolute deviation), a volatility metric. Quantity weighted average of |price - idm_wap| over all trades in the contract
+        idm_mad: MAD (mean absolute deviation, TL/MWh), a volatility metric. Quantity weighted average of |price - idm_wap| over all trades in the contract
         idm_trade_count: Number of trades
         idm_volume_mwh: Total traded quantity in MWh (log quantities are lots of 0.1 MWh)
 
     Only hourly (PH) contracts are taken into account.
     """
-    cols = ["contract", "idm_wap", "idm_tad", "idm_trade_count", "idm_volume_mwh"]
+    cols = ["contract", "idm_wap", "idm_mad", "idm_trade_count", "idm_volume_mwh"]
     if log_df is None or log_df.empty:
         return pd.DataFrame(columns=cols)
 
@@ -65,10 +65,10 @@ def calculate_idm_contract_stats(log_df: pd.DataFrame) -> pd.DataFrame:
 
     df = df.merge(wap_df[["contract", "idm_wap"]], on="contract", how="left")
     df["abs_dev_q"] = (df["price"] - df["idm_wap"]).abs() * df["quantity"]
-    tad_df = df.groupby("contract", as_index=False)["abs_dev_q"].sum()
+    abs_dev_df = df.groupby("contract", as_index=False)["abs_dev_q"].sum()
 
-    stats_df = wap_df.merge(tad_df, on="contract", how="left")
-    stats_df["idm_tad"] = stats_df["abs_dev_q"] / stats_df["q"]
+    stats_df = wap_df.merge(abs_dev_df, on="contract", how="left")
+    stats_df["idm_mad"] = stats_df["abs_dev_q"] / stats_df["q"]
     stats_df["idm_volume_mwh"] = stats_df["q"] * IDM_LOT_MWH
 
     return stats_df[cols].sort_values("contract").reset_index(drop=True)
@@ -78,7 +78,7 @@ def calculate_org_activity(df: pd.DataFrame) -> pd.DataFrame:
     """
     Decomposes an organization's hourly positions into day ahead / intraday trades, day trades and net positions and, if prices are given, adds a fictitious (estimated) PnL.
 
-    Required columns: da_long, da_short, idm_long, idm_short. Optional columns: bi_long, bi_short (taken as 0 if missing); mcp and idm_wap (add dabi_idm_pnl); idm_tad (adds day_trade_tad).
+    Required columns: da_long, da_short, idm_long, idm_short. Optional columns: bi_long, bi_short (taken as 0 if missing); mcp and idm_wap (add dabi_idm_pnl); idm_mad (adds day_trade_tad).
 
     Added columns (all quantities in MWh, positive is buy / long):
         da_net: da_long - da_short
@@ -89,7 +89,7 @@ def calculate_org_activity(df: pd.DataFrame) -> pd.DataFrame:
         day_trade: min(idm_long, idm_short). Intraday quantity bought and sold back within the intraday market.
         dabi_idm_close: Day ahead (GÖP + İA) position closed (reversed) in the intraday market. min(|dabi_net|, |idm_net|) if dabi_net and idm_net have opposite signs, otherwise 0. Always non-negative, direction follows dabi_net.
         dabi_idm_pnl: Fictitious PnL of day ahead open / intraday close trades. dabi_idm_close * sign(dabi_net) * (idm_wap - mcp). Buying day ahead and selling in IDM gains when idm_wap > mcp, the reverse for selling day ahead. Bilateral quantities are valued at mcp as well.
-        day_trade_tad: Only with idm_tad. day_trade * idm_tad (TL). A volatility metric of the day trade volume, the price room around WAP it was traded in; it is not a PnL. Note that this is one sided TAD (not 2 * TAD for a buy and a sell around WAP) by definition.
+        day_trade_tad: Only with idm_mad. day_trade * idm_mad (TL): the TAD (total absolute deviation) of the day trade volume, the price room around WAP it was traded in. A volatility metric, not a PnL. It is one sided by definition (not 2 * day_trade * idm_mad for a buy and a sell around WAP).
 
     The PnL is an estimate: actual trade prices of the organization are not public, so intraday trades are assumed to be at idm_wap. If a price is missing, the related PnL is NaN.
     """
@@ -121,8 +121,8 @@ def calculate_org_activity(df: pd.DataFrame) -> pd.DataFrame:
     ]
     df[round_cols] = df[round_cols].round(2)
 
-    if "idm_tad" in df.columns:
-        df["day_trade_tad"] = df["day_trade"] * df["idm_tad"]
+    if "idm_mad" in df.columns:
+        df["day_trade_tad"] = df["day_trade"] * df["idm_mad"]
         df.loc[df["day_trade"] == 0, "day_trade_tad"] = 0.0
 
     if not {"mcp", "idm_wap"} <= set(df.columns):
@@ -158,9 +158,9 @@ def get_org_estimated_activity(
 
     With include_pnl=True a fictitious PnL of day ahead open / intraday close trades is added from MCP and the published intraday WAP (get_hourly_price_and_cost_data, fast).
 
-    With include_tad=True the TAD (total absolute deviation) of each contract (idm_tad) and day_trade_tad = day_trade * TAD are added. These are volatility metrics, not PnL. TAD can only be calculated from the market wide intraday trade log (idm_log_longer), which is large (about 20k trades a day), so this is much slower. The log is fetched in multi-day chunks by idm_log_longer; pass idm_log_days_interval to change the chunk length (days_interval of idm_log_longer).
+    With include_tad=True the MAD (mean absolute deviation, TL/MWh) of each contract (idm_mad) and day_trade_tad = day_trade * idm_mad, the TAD (total absolute deviation, TL) of the day trade volume, are added. These are volatility metrics, not PnL. MAD can only be calculated from the market wide intraday trade log (idm_log_longer), which is large (about 20k trades a day), so this is much slower. The log is fetched in multi-day chunks by idm_log_longer; pass idm_log_days_interval to change the chunk length (days_interval of idm_log_longer).
 
-    With export_to_csv=True the raw data and the result are written to export_dir as CSV files named {name}_{start_date}_{end_date}.csv: org_{org_id}_positions (get_dabi_idm_data output), prices (get_hourly_price_and_cost_data output: MCP, SMP, WAP and imbalance prices per hour), idm_log (the market wide trade log), idm_contract_stats (per contract WAP, TAD, trade count and volume from the log) and org_{org_id}_activity (the returned frame). Only the data of the requested steps is written. With check_existing=True, files of the same name (same period) are read from export_dir instead of being fetched, so the market wide files (prices, idm_log) are recycled for other organizations of the same period. CSV is used because the trade log can exceed the Excel row limit.
+    With export_to_csv=True the raw data and the result are written to export_dir as CSV files named {name}_{start_date}_{end_date}.csv: org_{org_id}_positions (get_dabi_idm_data output), prices (get_hourly_price_and_cost_data output: MCP, SMP, WAP and imbalance prices per hour), idm_log (the market wide trade log), idm_contract_stats (per contract WAP, MAD, trade count and volume from the log) and org_{org_id}_activity (the returned frame). Only the data of the requested steps is written. With check_existing=True, files of the same name (same period) are read from export_dir instead of being fetched, so the market wide files (prices, idm_log) are recycled for other organizations of the same period. CSV is used because the trade log can exceed the Excel row limit.
 
     end_date must be before today (Europe/Istanbul): data of the current day is not final, so neither the result nor the exported files would be.
 
@@ -170,7 +170,7 @@ def get_org_estimated_activity(
         org_id: Organization ID
         eptr: EPTR2 object. Created from .env if not provided.
         include_pnl: Add mcp, idm_wap and dabi_idm_pnl (fetches MCP and WAP with get_hourly_price_and_cost_data).
-        include_tad: Add idm_tad and day_trade_tad (fetches the IDM trade log). Independent of include_pnl.
+        include_tad: Add idm_mad and day_trade_tad (fetches the IDM trade log). Independent of include_pnl.
         idm_log_df: Previously fetched IDM trade log covering the period (e.g. idm_log_longer output). The log is market wide, so it can be reused for several organizations to avoid fetching it again. Implies include_tad=True.
         export_to_csv: Write the raw data and the result to export_dir as CSV files (see above).
         export_dir: Directory of the CSV files, created if missing.
@@ -178,7 +178,7 @@ def get_org_estimated_activity(
         verbose: Log each step and each IDM log chunk with row counts and elapsed time (to stderr)
 
     Returns:
-        pd.DataFrame: One row per hourly contract with quantity and decomposition columns, and the price, PnL and TAD columns that were requested. Prices (mcp, idm_wap, idm_tad) are left NaN if they could not be retrieved, they are not filled with 0.
+        pd.DataFrame: One row per hourly contract with quantity and decomposition columns, and the price, PnL, MAD and TAD columns that were requested. Prices (mcp, idm_wap, idm_mad) are left NaN if they could not be retrieved, they are not filled with 0.
     """
     today = get_today_utc3()
     if end_date >= today:
@@ -302,7 +302,7 @@ def get_org_estimated_activity(
             idm_log_df = load_existing("idm_log")
         if idm_log_df is None:
             log_step(
-                "Getting the IDM trade log for TAD (market wide, about 20k trades a day)..."
+                "Getting the IDM trade log for MAD (market wide, about 20k trades a day)..."
             )
             ## idm_log_longer fetches wide ranges in chunks of days_interval (+1) days
             log_kwargs = (
@@ -322,7 +322,7 @@ def get_org_estimated_activity(
         export(idm_log_df, "idm_log")
         stats_df = calculate_idm_contract_stats(idm_log_df)
         export(stats_df, "idm_contract_stats")
-        df = df.merge(stats_df[["contract", "idm_tad"]], on="contract", how="left")
+        df = df.merge(stats_df[["contract", "idm_mad"]], on="contract", how="left")
 
     df = calculate_org_activity(df)
     df["org_id"] = org_id
