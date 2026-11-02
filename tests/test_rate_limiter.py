@@ -43,18 +43,18 @@ class TestRateLimiter:
 
     def test_rate_limiter_cleans_old_calls(self, rate_limiter_instance):
         """Test that rate limiter removes calls older than 1 minute"""
-        limiter = RateLimiter(calls_per_minute=1, min_delay=0)
+        # 2 per minute: once the 61-second-old call is cleaned, the 30-second-old one leaves room, so no 30 s wait
+        limiter = RateLimiter(calls_per_minute=2, min_delay=0)
 
         # Add old timestamp (simulated)
-        limiter.call_times.append(time.time() - 61)  # 61 seconds ago
-        limiter.call_times.append(time.time() - 30)  # 30 seconds ago
+        old, recent = time.time() - 61, time.time() - 30  # 61 and 30 seconds ago
+        limiter.call_times += [old, recent]
 
-        initial_count = len(limiter.call_times)
         limiter.wait_if_needed()
-        final_count = len(limiter.call_times)
 
-        # Should remove the 61-second-old call
-        assert final_count < initial_count, "Should clean old calls"
+        # Should remove the 61-second-old call and keep the recent one
+        assert old not in limiter.call_times, "Should clean old calls"
+        assert recent in limiter.call_times
 
     def test_rate_limiter_returns_none(self, rate_limiter_instance):
         """Test that wait_if_needed doesn't return a value"""

@@ -1,16 +1,20 @@
 name: Quality Checks
 
+# Runs on main and pull requests only; dev branches are checked locally before pushing
+# (uv run pytest -m "not integration" and uv run --group docs mkdocs build --strict).
 on:
   pull_request:
   push:
     branches:
       - main
-      - dev-**
-      - improve/**
   workflow_dispatch:
 
 permissions:
   contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   tests:
@@ -19,19 +23,17 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Setup Python
-        uses: actions/setup-python@v5
+      - name: Setup uv
+        uses: astral-sh/setup-uv@v6
         with:
           python-version: '3.11'
+          enable-cache: true
 
-      - name: Install package + test extras
-        run: |
-          python -m pip install --upgrade pip
-          pip install -e ".[dev,mcp,dataframe]"
+      - name: Install package + test extras (locked)
+        run: uv sync --locked --extra mcp --extra dataframe --group dev
 
       - name: Run unit/offline tests
-        run: |
-          pytest -m "not integration"
+        run: uv run --no-sync pytest -m "not integration"
 
   docs-build:
     runs-on: ubuntu-latest
@@ -39,17 +41,15 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Setup Python
-        uses: actions/setup-python@v5
+      - name: Setup uv
+        uses: astral-sh/setup-uv@v6
         with:
           python-version: '3.11'
+          enable-cache: true
 
-      - name: Install docs dependencies
-        run: |
-          python -m pip install --upgrade pip
-          pip install mkdocs-material mkdocstrings[python] mkdocs-autorefs
-          pip install -e ".[dataframe]"
+      # docs tools come from uv.lock, so CI builds with the same versions as a local build
+      - name: Install docs dependencies (locked)
+        run: uv sync --locked --extra dataframe --group docs --no-default-groups
 
       - name: Build docs (strict)
-        run: |
-          mkdocs build --strict
+        run: uv run --no-sync mkdocs build --strict
