@@ -5,7 +5,7 @@
   },
   "composite_functions": {
     "calculate_idm_contract_stats": {
-      "module": "eptr2.composite.org_activity",
+      "module": "eptr2.composite.idm_log",
       "signature": "(log_df: pandas.DataFrame) -> pandas.DataFrame",
       "summary": "Calculates per contract intraday statistics from the IDM trade log (idm-log or idm_log_longer output)."
     },
@@ -113,6 +113,11 @@
       "module": "eptr2.composite.production",
       "signature": "(start_date: str, end_date: str, eptr: eptr2.main.EPTR2 | None = None, org_id: str | None = None, uevcb_id: str | None = None, verbose: bool = False, include_contract_symbol: bool = True, skip_kgup: bool = False, skip_kgup_v1: bool = False, skip_kudup: bool = False, **kwargs)",
       "summary": "This composite function gets KGUP v1, KGUP and KUDUP data and merges them."
+    },
+    "get_idm_contract_stats": {
+      "module": "eptr2.composite.idm_log",
+      "signature": "(start_date: str, end_date: str, eptr: eptr2.main.EPTR2 | None = None, idm_log_df: pandas.DataFrame | None = None, export_to_csv: bool = True, export_dir: str = 'data', check_existing: bool = True, verbose: bool = False, **kwargs: Any) -> pandas.DataFrame",
+      "summary": "Market wide intraday (GİP) statistics per hourly contract for the given period (start_date and end_date inclusive), from the IDM trade log: idm_wap, idm_mad (MAD, mean absolute deviation, TL/MWh), idm_tad (TAD, total absolute deviation, TL), idm_trade_count and idm_volume_mwh. See calculate_idm_contract_stats."
     },
     "get_kgup_bulk_range": {
       "module": "eptr2.composite.production",

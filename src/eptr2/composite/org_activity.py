@@ -11,7 +11,11 @@ import numpy as np
 import pandas as pd
 from eptr2.composite.dabi_idm import get_dabi_idm_data
 from eptr2.composite.price_and_cost import get_hourly_price_and_cost_data
-from eptr2.composite.idm_log import idm_log_longer
+from eptr2.composite.idm_log import (
+    IDM_LOT_MWH,  # noqa: F401
+    calculate_idm_contract_stats,  # noqa: F401
+    get_idm_contract_stats,
+)
 from eptr2.util.time import (
     get_hourly_contract_range_list,
     get_today_utc3,
@@ -19,11 +23,6 @@ from eptr2.util.time import (
 
 
 logger = logging.getLogger(__name__)
-
-## idm-log quantities are in lots. 1 lot = 0.1 MWh: for every hourly contract
-## sum(price * quantity) / 10 equals the idm-volume tradingVolume, and the
-## log-derived WAP equals the wap endpoint to the cent.
-IDM_LOT_MWH = 0.1
 
 QUANTITY_COLUMNS = [
     "da_long",
@@ -33,45 +32,6 @@ QUANTITY_COLUMNS = [
     "idm_long",
     "idm_short",
 ]
-
-
-def calculate_idm_contract_stats(log_df: pd.DataFrame) -> pd.DataFrame:
-    """
-    Calculates per contract intraday statistics from the IDM trade log (idm-log or idm_log_longer output).
-
-    Returns a DataFrame with columns:
-        contract: Hourly contract name (PHyyMMddhh)
-        idm_wap: Weighted average price of all trades in the contract
-        idm_mad: MAD (mean absolute deviation, TL/MWh), a volatility metric. Quantity weighted average of |price - idm_wap| over all trades in the contract
-        idm_trade_count: Number of trades
-        idm_volume_mwh: Total traded quantity in MWh (log quantities are lots of 0.1 MWh)
-
-    Only hourly (PH) contracts are taken into account.
-    """
-    cols = ["contract", "idm_wap", "idm_mad", "idm_trade_count", "idm_volume_mwh"]
-    if log_df is None or log_df.empty:
-        return pd.DataFrame(columns=cols)
-
-    df = log_df.loc[
-        log_df["contractName"].str.startswith("PH"),
-        ["contractName", "price", "quantity"],
-    ].rename({"contractName": "contract"}, axis=1)
-
-    df["pq"] = df["price"] * df["quantity"]
-    wap_df = df.groupby("contract", as_index=False).agg(
-        pq=("pq", "sum"), q=("quantity", "sum"), idm_trade_count=("price", "size")
-    )
-    wap_df["idm_wap"] = wap_df["pq"] / wap_df["q"]
-
-    df = df.merge(wap_df[["contract", "idm_wap"]], on="contract", how="left")
-    df["abs_dev_q"] = (df["price"] - df["idm_wap"]).abs() * df["quantity"]
-    abs_dev_df = df.groupby("contract", as_index=False)["abs_dev_q"].sum()
-
-    stats_df = wap_df.merge(abs_dev_df, on="contract", how="left")
-    stats_df["idm_mad"] = stats_df["abs_dev_q"] / stats_df["q"]
-    stats_df["idm_volume_mwh"] = stats_df["q"] * IDM_LOT_MWH
-
-    return stats_df[cols].sort_values("contract").reset_index(drop=True)
 
 
 def calculate_org_activity(df: pd.DataFrame) -> pd.DataFrame:
@@ -158,7 +118,7 @@ def get_org_estimated_activity(
 
     With include_pnl=True a fictitious PnL of day ahead open / intraday close trades is added from MCP and the published intraday WAP (get_hourly_price_and_cost_data, fast).
 
-    With include_tad=True the MAD (mean absolute deviation, TL/MWh) of each contract (idm_mad) and day_trade_tad = day_trade * idm_mad, the TAD (total absolute deviation, TL) of the day trade volume, are added. These are volatility metrics, not PnL. MAD can only be calculated from the market wide intraday trade log (idm_log_longer), which is large (about 20k trades a day), so this is much slower. The log is fetched in multi-day chunks by idm_log_longer; pass idm_log_days_interval to change the chunk length (days_interval of idm_log_longer).
+    With include_tad=True the MAD (mean absolute deviation, TL/MWh) of each contract (idm_mad) and day_trade_tad = day_trade * idm_mad, the TAD (total absolute deviation, TL) of the day trade volume, are added. These are volatility metrics, not PnL. MAD comes from get_idm_contract_stats, calculated from the market wide intraday trade log (idm_log_longer), which is large (about 20k trades a day), so this is much slower. The log is fetched in multi-day chunks by idm_log_longer; pass idm_log_days_interval to change the chunk length (days_interval of idm_log_longer).
 
     With export_to_csv=True the raw data and the result are written to export_dir as CSV files named {name}_{start_date}_{end_date}.csv: org_{org_id}_positions (get_dabi_idm_data output), prices (get_hourly_price_and_cost_data output: MCP, SMP, WAP and imbalance prices per hour), idm_log (the market wide trade log), idm_contract_stats (per contract WAP, MAD, trade count and volume from the log) and org_{org_id}_activity (the returned frame). Only the data of the requested steps is written. With check_existing=True, files of the same name (same period) are read from export_dir instead of being fetched, so the market wide files (prices, idm_log) are recycled for other organizations of the same period. CSV is used because the trade log can exceed the Excel row limit.
 
@@ -298,30 +258,25 @@ def get_org_estimated_activity(
             )
 
     if include_tad:
-        if idm_log_df is None:
-            idm_log_df = load_existing("idm_log")
-        if idm_log_df is None:
-            log_step(
-                "Getting the IDM trade log for MAD (market wide, about 20k trades a day)..."
-            )
-            ## idm_log_longer fetches wide ranges in chunks of days_interval (+1) days
-            log_kwargs = (
-                {"days_interval": kwargs["idm_log_days_interval"]}
-                if "idm_log_days_interval" in kwargs
-                else {}
-            )
-            idm_log_df = idm_log_longer(
-                start_date=start_date,
-                end_date=end_date,
-                eptr=eptr,
-                contract_wise=True,
-                verbose=verbose,
-                **log_kwargs,
-            )
-            log_step("Got %d IDM trades.", len(idm_log_df))
-        export(idm_log_df, "idm_log")
-        stats_df = calculate_idm_contract_stats(idm_log_df)
-        export(stats_df, "idm_contract_stats")
+        log_step("Getting IDM contract statistics (MAD) from the market wide trade log...")
+        ## idm_log_longer fetches wide ranges in chunks of days_interval (+1) days
+        log_kwargs = (
+            {"days_interval": kwargs["idm_log_days_interval"]}
+            if "idm_log_days_interval" in kwargs
+            else {}
+        )
+        stats_df = get_idm_contract_stats(
+            start_date=start_date,
+            end_date=end_date,
+            eptr=eptr,
+            idm_log_df=idm_log_df,
+            export_to_csv=export_to_csv,
+            export_dir=export_dir,
+            check_existing=check_existing,
+            verbose=verbose,
+            **log_kwargs,
+        )
+        log_step("Got statistics of %d contract(s).", len(stats_df))
         df = df.merge(stats_df[["contract", "idm_mad"]], on="contract", how="left")
 
     df = calculate_org_activity(df)

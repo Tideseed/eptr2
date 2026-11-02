@@ -160,6 +160,7 @@ from eptr2.composite import (
     get_kgup_bulk_range,   # Bulk per-plant production PLANS (KGÜP, by UEVCB id)
     get_rt_gen_bulk_range, # Bulk per-plant REALIZED generation (by powerplant id)
     get_org_estimated_activity,  # Org DA open/IDM close, day trade, dabi_net / dabi_idm_net (include_pnl=True: estimated PnL)
+    get_idm_contract_stats,      # Market-wide GİP WAP, MAD (TL/MWh) and TAD (TL) per contract; cached in CSV files by default
 )
 
 df = get_hourly_consumption_and_forecast_data(

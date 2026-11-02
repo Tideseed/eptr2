@@ -190,6 +190,35 @@ idm_log = idm_log_longer(
 
 `quantity` in the log is in lots (1 lot = 0.1 MWh).
 
+### IDM contract statistics (MAD and TAD)
+
+Market-wide price dispersion of each hourly contract, from the trade log:
+
+```python
+from eptr2.composite import get_idm_contract_stats
+
+stats = get_idm_contract_stats(
+    start_date="2026-10-01",
+    end_date="2026-10-07",
+    eptr=eptr,
+)
+```
+
+| Column | Meaning |
+|--------|---------|
+| `idm_wap` | Weighted average price of the contract's trades |
+| `idm_mad` | MAD (mean absolute deviation, TL/MWh): quantity-weighted mean of `abs(price - idm_wap)` |
+| `idm_tad` | TAD (total absolute deviation, TL): `sum(abs(price - idm_wap) * quantity)` = `idm_mad * idm_volume_mwh` |
+| `idm_trade_count`, `idm_volume_mwh` | Number of trades and traded MWh |
+
+The log is slow to fetch (roughly 30–70 s per week), so by default the
+function writes `idm_log_{start_date}_{end_date}.csv` and
+`idm_contract_stats_{start_date}_{end_date}.csv` to `export_dir` (`"data"`)
+and, on later calls, reads the statistics file (or else the log file) before
+fetching. Turn this off with `export_to_csv=False` / `check_existing=False`.
+`get_org_estimated_activity(include_tad=True)` uses the same function and
+files. `end_date` must be before today (Europe/Istanbul).
+
 ## Organization Estimated Activity
 
 Estimates a company's hourly trading activity from its own matched quantities

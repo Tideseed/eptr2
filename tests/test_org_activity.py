@@ -206,8 +206,10 @@ def test_get_org_estimated_activity_export_and_reuse(tmp_path, monkeypatch):
     monkeypatch.setattr(
         oa, "get_dabi_idm_data", lambda **kw: calls.append("pos") or pos_df.copy()
     )
+    import eptr2.composite.idm_log as il
+
     monkeypatch.setattr(
-        oa, "idm_log_longer", lambda **kw: calls.append("log") or log_df.copy()
+        il, "idm_log_longer", lambda **kw: calls.append("log") or log_df.copy()
     )
     kw = dict(
         start_date="2026-10-20",

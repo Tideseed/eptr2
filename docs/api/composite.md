@@ -63,6 +63,20 @@ from eptr2.composite import (
       show_source: false
       heading_level: 4
 
+### Intraday Statistics Functions
+
+::: eptr2.composite.idm_log.get_idm_contract_stats
+    options:
+      show_root_heading: true
+      show_source: true
+      heading_level: 4
+
+::: eptr2.composite.idm_log.calculate_idm_contract_stats
+    options:
+      show_root_heading: true
+      show_source: false
+      heading_level: 4
+
 ## Quick Reference
 
 ### get_hourly_consumption_and_forecast_data

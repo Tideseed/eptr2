@@ -30,6 +30,15 @@ All notable changes to eptr2 are documented here.
   mean absolute deviation of trade prices from WAP (TL/MWh), not a total.
   `day_trade_tad = day_trade × idm_mad` keeps its name: it is the total (TL).
   **Breaking** for code and exported `idm_contract_stats` files that use `idm_tad`.
+- New composite `get_idm_contract_stats(start_date, end_date, eptr=...)`:
+  market-wide GİP statistics per hourly contract from the trade log, `idm_wap`,
+  `idm_mad` (TL/MWh), the new `idm_tad` (TL, `idm_mad × idm_volume_mwh`),
+  trade count and volume. It writes `idm_log` and `idm_contract_stats` CSV files
+  and reads them first (`export_to_csv=True`, `check_existing=True` by
+  default); old statistics files without the current columns are recalculated.
+  `get_org_estimated_activity(include_tad=True)` uses it and shares its files.
+  `calculate_idm_contract_stats` now lives in `eptr2.composite.idm_log` (still
+  importable from `org_activity`).
 - Request bodies accept numpy / pandas scalars: an id taken from a DataFrame
   (`int64`) raised "Object of type int64 is not JSON serializable".
 
