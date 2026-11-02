@@ -105,7 +105,7 @@ def get_org_estimated_activity(
     include_pnl: bool = False,
     include_tad: bool = False,
     idm_log_df: pd.DataFrame | None = None,
-    export_to_csv: bool = False,
+    export_to_csv: bool = True,
     export_dir: str = "data",
     check_existing: bool = True,
     verbose: bool = True,
@@ -120,7 +120,7 @@ def get_org_estimated_activity(
 
     With include_tad=True the MAD (mean absolute deviation, TL/MWh) of each contract (idm_mad) and day_trade_tad = day_trade * idm_mad, the TAD (total absolute deviation, TL) of the day trade volume, are added. These are volatility metrics, not PnL. MAD comes from get_idm_contract_stats, calculated from the market wide intraday trade log (idm_log_longer), which is large (about 20k trades a day), so this is much slower. The log is fetched in multi-day chunks by idm_log_longer; pass idm_log_days_interval to change the chunk length (days_interval of idm_log_longer).
 
-    With export_to_csv=True the raw data and the result are written to export_dir as CSV files named {name}_{start_date}_{end_date}.csv: org_{org_id}_positions (get_dabi_idm_data output), prices (get_hourly_price_and_cost_data output: MCP, SMP, WAP and imbalance prices per hour), idm_log (the market wide trade log), idm_contract_stats (per contract WAP, MAD, trade count and volume from the log) and org_{org_id}_activity (the returned frame). Only the data of the requested steps is written. With check_existing=True, files of the same name (same period) are read from export_dir instead of being fetched, so the market wide files (prices, idm_log) are recycled for other organizations of the same period. CSV is used because the trade log can exceed the Excel row limit.
+    By default (export_to_csv=True, check_existing=True) the raw data and the result are written to export_dir as CSV files named {name}_{start_date}_{end_date}.csv: org_{org_id}_positions (get_dabi_idm_data output), prices (get_hourly_price_and_cost_data output: MCP, SMP, WAP and imbalance prices per hour), idm_log (the market wide trade log), idm_contract_stats (per contract WAP, MAD, trade count and volume from the log) and org_{org_id}_activity (the returned frame). Only the data of the requested steps is written. With check_existing=True, files of the same name (same period) are read from export_dir instead of being fetched, so the market wide files (prices, idm_log, idm_contract_stats) are recycled for other organizations of the same period and nothing is fetched twice. Pass export_to_csv=False to write nothing. CSV is used because the trade log can exceed the Excel row limit.
 
     end_date must be before today (Europe/Istanbul): data of the current day is not final, so neither the result nor the exported files would be.
 
@@ -132,7 +132,7 @@ def get_org_estimated_activity(
         include_pnl: Add mcp, idm_wap and dabi_idm_pnl (fetches MCP and WAP with get_hourly_price_and_cost_data).
         include_tad: Add idm_mad and day_trade_tad (fetches the IDM trade log). Independent of include_pnl.
         idm_log_df: Previously fetched IDM trade log covering the period (e.g. idm_log_longer output). The log is market wide, so it can be reused for several organizations to avoid fetching it again. Implies include_tad=True.
-        export_to_csv: Write the raw data and the result to export_dir as CSV files (see above).
+        export_to_csv: Write the raw data and the result to export_dir as CSV files (see above). Default True.
         export_dir: Directory of the CSV files, created if missing.
         check_existing: Read the raw data from existing CSV files of the same period in export_dir instead of fetching it.
         verbose: Log each step and each IDM log chunk with row counts and elapsed time (to stderr)

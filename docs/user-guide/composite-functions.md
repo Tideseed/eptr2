@@ -257,7 +257,8 @@ a week, depending on EPİAŞ. `idm_log_days_interval` sets the chunk length.
 
 The PnL is fictitious: the company's own trade prices are not public. To
 analyse several companies with MAD, fetch the log once with
-`idm_log_longer` and pass it as `idm_log_df`, or use the CSV export:
+`idm_log_longer` and pass it as `idm_log_df`, or rely on the CSV files, which
+are written and read by default:
 
 ```python
 for org_id in [104000, 105000]:
@@ -268,20 +269,18 @@ for org_id in [104000, 105000]:
         eptr=eptr,
         include_pnl=True,
         include_tad=True,
-        export_to_csv=True,   # write raw data and result to export_dir
-        check_existing=True,  # read files of the same period instead of fetching
-        export_dir="data",
+        export_dir="data",    # default; export_to_csv and check_existing are True by default
     )
 ```
 
-`export_to_csv=True` writes `{name}_{start_date}_{end_date}.csv` files:
+By default (`export_to_csv=True`) the function writes `{name}_{start_date}_{end_date}.csv` files:
 `org_{org_id}_positions`, `prices` (MCP, SMP, WAP and imbalance prices from
 `get_hourly_price_and_cost_data`), `idm_log`, `idm_contract_stats` (WAP,
 MAD, trade count and volume per contract) and `org_{org_id}_activity`, for the
 steps that ran. With `check_existing=True` files of the same name are read
 instead of fetched, so the second organization above reuses the market-wide
-MCP, WAP and trade log. The files are CSV because the trade log can exceed
-Excel's row limit.
+MCP, WAP and trade log. Pass `export_to_csv=False` to write nothing. The files
+are CSV because the trade log can exceed Excel's row limit.
 
 `end_date` must be before today (Europe/Istanbul); the function raises
 `ValueError` otherwise, because data of the current day isn't final.

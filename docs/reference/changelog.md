@@ -39,6 +39,9 @@ All notable changes to eptr2 are documented here.
   `get_org_estimated_activity(include_tad=True)` uses it and shares its files.
   `calculate_idm_contract_stats` now lives in `eptr2.composite.idm_log` (still
   importable from `org_activity`).
+- `get_org_estimated_activity` writes its CSV files by default
+  (`export_to_csv=True`, like `get_idm_contract_stats`), so repeated runs read
+  files instead of fetching again. Pass `export_to_csv=False` to write nothing.
 - Request bodies accept numpy / pandas scalars: an id taken from a DataFrame
   (`int64`) raised "Object of type int64 is not JSON serializable".
 

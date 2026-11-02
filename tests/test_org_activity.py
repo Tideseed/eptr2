@@ -221,7 +221,8 @@ def test_get_org_estimated_activity_export_and_reuse(tmp_path, monkeypatch):
         verbose=False,
     )
 
-    first = oa.get_org_estimated_activity(eptr=_FakeEPTR(), export_to_csv=True, **kw)
+    ## export_to_csv is on by default
+    first = oa.get_org_estimated_activity(eptr=_FakeEPTR(), **kw)
     names = sorted(f.name for f in tmp_path.iterdir())
     assert names == [
         f"{n}_2026-10-20_2026-10-20.csv"
@@ -243,6 +244,13 @@ def test_get_org_estimated_activity_export_and_reuse(tmp_path, monkeypatch):
     assert calls == ["pos", "log"]
     pd.testing.assert_frame_equal(first, second, check_dtype=False)
     assert first.loc[0, "idm_mad"] == pytest.approx(50.0)
+
+    ## export_to_csv=False writes nothing
+    other = tmp_path / "other"
+    oa.get_org_estimated_activity(
+        eptr=_FakeEPTR(), **{**kw, "export_dir": str(other)}, export_to_csv=False
+    )
+    assert not other.exists()
 
 
 @pytest.mark.parametrize("end_date", ["2026-10-30", "2026-10-31"])
