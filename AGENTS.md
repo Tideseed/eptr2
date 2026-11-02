@@ -169,9 +169,11 @@ df = get_hourly_consumption_and_forecast_data(
 )
 ```
 
-**Per-organization GİP quantities have EPİAŞ's bid/ask names swapped:** in `idm-qty` with `org_id`,
-`clearingQuantityAsk` = BOUGHT and `clearingQuantityBid` = SOLD. `get_dabi_idm_data` maps them to `idm_long` (purchases) and
-`idm_short` (sales); its nets are long minus short (net purchases) and `net_sales` has the opposite sign.
+**Trap: EPİAŞ swaps bid/ask in GİP matching quantities (`idm-qty`).** The raw response has `clearingQuantityAsk` =
+BOUGHT (Alış) and `clearingQuantityBid` = SOLD (Satış). From 1.4.1 the eptr2 DataFrame corrects them
+(`clearingQuantityBid` = bought, `clearingQuantityAsk` = sold); `postprocess=False` and eptr2 1.4.0 or earlier keep
+EPİAŞ's labels. `get_dabi_idm_data` maps them to `idm_long` (purchases) and `idm_short` (sales) in every version; its nets
+are long minus short (net purchases) and `net_sales` has the opposite sign.
 
 Note: composite functions take `start_date`/`end_date` first and the client as the `eptr` keyword argument.
 

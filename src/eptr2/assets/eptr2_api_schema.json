@@ -1437,8 +1437,8 @@
       "call_path": "electricity-service/v1/markets/idm/data/matching-quantity",
       "category": "GİP",
       "desc": {
-        "en": "It is the total matching quantity in the intraday market which is categorized as hourly or block depending on the contract type.",
-        "tr": "Gün İçi Piyasası’nda kontrat türüne göre saatlik veya blok olarak gösterilen toplam eşleşme miktarıdır."
+        "en": "It is the total matching quantity in the intraday market which is categorized as hourly or block depending on the contract type. EPİAŞ returns purchases as clearingQuantityAsk and sales as clearingQuantityBid; the eptr2 DataFrame corrects them: clearingQuantityBid = bought, clearingQuantityAsk = sold (the raw response with postprocess=False is unchanged).",
+        "tr": "Gün İçi Piyasası’nda kontrat türüne göre saatlik veya blok olarak gösterilen toplam eşleşme miktarıdır. EPİAŞ alışı clearingQuantityAsk, satışı clearingQuantityBid olarak döndürür; eptr2 DataFrame'inde bunlar düzeltilmiştir: clearingQuantityBid = alış, clearingQuantityAsk = satış (postprocess=False ham yanıtı değiştirmez)."
       },
       "optional_params": [
         "org_id"
@@ -4780,7 +4780,7 @@
       "url": "https://seffaflik.epias.com.tr/electricity/electricity-transmission/zero-balance-adjustment/monthly-zero-balance-adjustment"
     }
   },
-  "eptr2_version": "1.4.0",
+  "eptr2_version": "1.4.1.dev0",
   "schema_format_version": "2.0",
   "usage": {
     "cli": "eptr2 call <key> --start-date ... --end-date ...",

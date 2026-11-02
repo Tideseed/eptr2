@@ -233,8 +233,8 @@ def get_help_d(key=None):
                 "en": "IDM Matching Quantity",
             },
             "desc": {
-                "tr": "Gün İçi Piyasası’nda kontrat türüne göre saatlik veya blok olarak gösterilen toplam eşleşme miktarıdır.",
-                "en": "It is the total matching quantity in the intraday market which is categorized as hourly or block depending on the contract type.",
+                "tr": "Gün İçi Piyasası’nda kontrat türüne göre saatlik veya blok olarak gösterilen toplam eşleşme miktarıdır. EPİAŞ alışı clearingQuantityAsk, satışı clearingQuantityBid olarak döndürür; eptr2 DataFrame'inde bunlar düzeltilmiştir: clearingQuantityBid = alış, clearingQuantityAsk = satış (postprocess=False ham yanıtı değiştirmez).",
+                "en": "It is the total matching quantity in the intraday market which is categorized as hourly or block depending on the contract type. EPİAŞ returns purchases as clearingQuantityAsk and sales as clearingQuantityBid; the eptr2 DataFrame corrects them: clearingQuantityBid = bought, clearingQuantityAsk = sold (the raw response with postprocess=False is unchanged).",
             },
             "url": "https://seffaflik.epias.com.tr/electricity/electricity-markets/intraday-market-idm/idm-matching-quantity",
         },

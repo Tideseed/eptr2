@@ -18,11 +18,11 @@ def process_idm_data(
     """
     Fetch one organisation's intraday (GİP / IDM) matched quantities per contract (call key ``idm-qty`` with ``org_id``).
 
-    EPİAŞ's column names are swapped on this endpoint: ``clearingQuantityAsk`` is the quantity the organisation BOUGHT and
-    ``clearingQuantityBid`` the quantity it SOLD. The returned frame uses unambiguous names instead:
+    EPİAŞ returns this endpoint's columns swapped (``clearingQuantityAsk`` = bought, ``clearingQuantityBid`` = sold);
+    the ``idm-qty`` postprocessing corrects them. The returned frame uses unambiguous names instead:
 
-    - ``idm_long``: GİP purchases (MWh), from ``clearingQuantityAsk``
-    - ``idm_short``: GİP sales (MWh), from ``clearingQuantityBid``
+    - ``idm_long``: GİP purchases (MWh), from the corrected ``clearingQuantityBid``
+    - ``idm_short``: GİP sales (MWh), from the corrected ``clearingQuantityAsk``
 
     The day before ``start_date`` is fetched too, because the contracts of ``start_date`` start trading at 18:00 the
     previous day.
@@ -44,8 +44,7 @@ def process_idm_data(
         **retry_kwargs,
     )
 
-    ### Due to naming confusion by EPIAS, ask is mapped to buy and bid is mapped to sell.
-    ### (checked on behaviour too: solar-only organisations have "Ask" quantities at night, when they cannot sell)
+    ### idm-qty postprocessing already corrects EPİAŞ's swapped labels: Bid = bought, Ask = sold
 
     if df.empty:
         df = pd.DataFrame(columns=["contract", "idm_long", "idm_short"])
@@ -55,8 +54,8 @@ def process_idm_data(
             .rename(
                 {
                     "kontratAdi": "contract",
-                    "clearingQuantityAsk": "idm_long",
-                    "clearingQuantityBid": "idm_short",
+                    "clearingQuantityBid": "idm_long",
+                    "clearingQuantityAsk": "idm_short",
                 },
                 axis=1,
             )
@@ -87,8 +86,8 @@ def get_day_ahead_and_bilateral_matches(
 
     - ``da_long`` / ``da_short``: GÖP purchases / sales (``matchedBids`` / ``matchedOffers`` of ``dam-clearing``)
     - ``bi_long`` / ``bi_short``: bilateral purchases / sales (``bi-long`` / ``bi-short``)
-    - ``idm_long`` / ``idm_short``: GİP purchases / sales (``idm-qty``; EPİAŞ's ask/bid names are swapped there, see
-      :func:`process_idm_data`), only with ``include_idm_data=True``
+    - ``idm_long`` / ``idm_short``: GİP purchases / sales (``idm-qty``; EPİAŞ's ask/bid names are swapped there and
+      corrected by eptr2, see :func:`process_idm_data`), only with ``include_idm_data=True``
     - ``dabi_net`` = ``da_long - da_short + bi_long - bi_short``; ``idm_net`` = ``idm_long - idm_short``;
       ``dabi_idm_net`` = ``dabi_net + idm_net``. All nets are LONG minus SHORT, i.e. **net purchases**.
     - ``net_sales``: the opposite sign, **net sales** (positive = net seller), of ``dabi_idm_net`` when IDM data is

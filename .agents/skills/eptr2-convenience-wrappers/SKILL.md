@@ -32,6 +32,8 @@ print(prices.head())
 
 `get_kgup` requires the `region` argument even though the generic call can default it. Inspect each wrapper's signature for these differences. Examples of real names include `get_wap`, `get_imb_vol`, `get_imb_qty`, and `get_kgup`; do not invent `get_idm_wap`, `get_imbalance_volume`, or `get_dpp`.
 
+Trap: `get_idm_qty` (GİP matching quantity, `idm-qty`). EPİAŞ's raw response has bid/ask swapped (`clearingQuantityAsk` = bought, `clearingQuantityBid` = sold). From eptr2 1.4.1 the DataFrame corrects them (`clearingQuantityBid` = bought, `clearingQuantityAsk` = sold); `postprocess=False` and eptr2 1.4.0 or earlier keep the swapped labels. For per-organization positions prefer `eptr2.composite.get_dabi_idm_data`, whose `idm_long` / `idm_short` are unambiguous.
+
 Most tabular endpoints return pandas DataFrames when pandas is installed. Some calls return dictionaries, lists, or scalars; `postprocess=False` preserves the decoded response envelope. Omitting `eptr` constructs a client and authenticates, so discovery should use imports/signatures rather than executing a wrapper.
 
 For composite analysis, import from `eptr2.composite` and pass the client as `eptr=...` after the date arguments. The available Python, shell, or MCP facility is a runtime choice; these examples do not depend on a specific agent vendor.

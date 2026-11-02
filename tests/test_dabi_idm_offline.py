@@ -20,9 +20,9 @@ class FakeEPTR2:
         if key == "bi-short":
             return pd.DataFrame([{"date": date, "hour": "00:00", "quantity": 40.0}])
         if key == "idm-qty":
-            # EPİAŞ naming swap: Ask = BOUGHT (1.1), Bid = SOLD (5.8)
+            # as returned by eptr.call after postprocessing corrects EPİAŞ's swap: Bid = BOUGHT (1.1), Ask = SOLD (5.8)
             return pd.DataFrame([{"kontratAdi": "PH26101900", "kontratTuru": "HOURLY",
-                                  "clearingQuantityAsk": 1.1, "clearingQuantityBid": 5.8}])
+                                  "clearingQuantityBid": 1.1, "clearingQuantityAsk": 5.8}])
         raise AssertionError(f"unexpected call {key}")
 
 
@@ -31,7 +31,7 @@ def test_gip_swap_and_signs():
     r = df.iloc[0]
     assert (r.da_long, r.da_short) == (2.0, 7.0)          # GÖP purchases / sales
     assert (r.bi_long, r.bi_short) == (1.0, 40.0)         # bilateral purchases / sales
-    assert (r.idm_long, r.idm_short) == (1.1, 5.8)        # Ask -> purchases, Bid -> sales
+    assert (r.idm_long, r.idm_short) == (1.1, 5.8)        # Bid -> purchases, Ask -> sales
     assert r.dabi_net == 2.0 - 7.0 + 1.0 - 40.0           # long minus short: net purchases
     assert round(r.idm_net, 2) == -4.7
     assert round(r.dabi_idm_net, 2) == -48.7
@@ -43,3 +43,14 @@ def test_period_wrapper_passes_kwargs():
     fake = FakeEPTR2()
     get_dabi_idm_data_period("2026-10-01", eptr=fake, org_id="103940", lives=1)
     assert fake.calls and all(kw.get("retry_attempts") == 1 for _, kw in fake.calls)
+
+
+def test_idm_qty_postprocess_corrects_epias_swap():
+    """EPİAŞ returns GİP purchases (alış) as clearingQuantityAsk; the DataFrame has them as clearingQuantityBid."""
+    from eptr2.mapping.processing import get_postprocess_function
+
+    # PH26110100 of one organization: the platform page shows Alış 10,50 and Satış 11,50
+    res = {"items": [{"kontratTuru": "Saatlik", "kontratAdi": "PH26110100",
+                      "clearingQuantityAsk": 10.5, "clearingQuantityBid": 11.5}]}
+    r = get_postprocess_function("idm-qty")(res, key="idm-qty").iloc[0]
+    assert (r.clearingQuantityBid, r.clearingQuantityAsk) == (10.5, 11.5)  # bought, sold

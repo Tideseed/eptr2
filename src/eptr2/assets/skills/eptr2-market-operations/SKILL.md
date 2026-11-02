@@ -35,8 +35,13 @@ For organization-specific analyses, resolve the organization and pass its ID onl
 `da_long`/`da_short` (GÖP purchases/sales), `bi_long`/`bi_short` (bilateral), `idm_long`/`idm_short` (GİP), the nets
 `dabi_net`, `idm_net`, `dabi_idm_net` (**long minus short = net purchases**) and `net_sales` (positive = net seller).
 
-**EPİAŞ swaps bid/ask on the per-organization GİP endpoint:** in `idm-qty` with `org_id`, `clearingQuantityAsk` is what the
-organization BOUGHT and `clearingQuantityBid` what it SOLD. The composite maps this; raw `idm-qty` users must too.
+**Trap: EPİAŞ swaps bid/ask on the GİP matching quantity endpoint.** The raw `idm-qty` response labels the
+organization's purchases (Alış) `clearingQuantityAsk` and its sales (Satış) `clearingQuantityBid`, the opposite of the
+platform page. From eptr2 1.4.1 the `idm-qty` DataFrame (`eptr.call("idm-qty", ...)`, `get_idm_qty`) corrects them:
+`clearingQuantityBid` = bought, `clearingQuantityAsk` = sold. `postprocess=False` returns the raw, still swapped response,
+and eptr2 1.4.0 and earlier return the swapped labels in the DataFrame too; check `eptr2.__version__` before reusing
+older code or data. `get_dabi_idm_data` (`idm_long` / `idm_short`) is correct in every version. Check against the
+platform's "GİP Eşleşme Miktarı" page (Eşleşen Alış / Satış Miktarı) when in doubt.
 `dam-clearing` per organization is not swapped (`matchedBids` = purchases, `matchedOffers` = sales).
 
 For an organization's estimated trading activity, use `eptr2.composite.get_org_estimated_activity(start_date, end_date, org_id=..., eptr=eptr)`: per hourly contract it splits day-ahead (GÖP + İA) open / intraday close (`dabi_idm_close`), intraday day trade (`min(idm_long, idm_short)`), the day-ahead (GÖP + İA) net position `dabi_net` and the total net `dabi_idm_net` to be consumed (+) or generated (−), using only the organization's GÖP, İA and GİP matchings (fast). `include_pnl=True` adds a fictitious PnL of day-ahead open / intraday close trades (`dabi_idm_pnl`) from MCP and the published WAP. `include_tad=True` adds the TAD (total absolute deviation: quantity-weighted mean of |price − WAP|) of each contract from the market-wide `idm-log` and `day_trade_tad = day_trade × TAD`; these are volatility metrics, not PnL, and need no `include_pnl`. The log is much slower (roughly 30–70 s per week, depending on EPİAŞ). `verbose=True` shows progress. `export_to_csv=True` writes the raw data (positions, MCP, WAP, trade log, per-contract WAP/TAD) and the result to `export_dir`; `check_existing=True` reads files of the same period instead of fetching, so the market-wide data is recycled across organizations. `end_date` must be before today (Europe/Istanbul), otherwise it raises `ValueError`. `idm-log` quantities are lots of 0.1 MWh. The PnL is an estimate, not the organization's realized result: its own trade prices are not public.

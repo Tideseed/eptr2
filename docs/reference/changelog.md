@@ -2,6 +2,18 @@
 
 All notable changes to eptr2 are documented here.
 
+## Version 1.4.1 (unreleased)
+
+### Fixed
+- `idm-qty` (`get_idm_qty`): EPİAŞ returns GİP purchases (Alış) as
+  `clearingQuantityAsk` and sales (Satış) as `clearingQuantityBid`. The
+  DataFrame now corrects them: `clearingQuantityBid` = bought,
+  `clearingQuantityAsk` = sold, matching the platform page. **Breaking for code
+  that compensated for the swap itself**; `postprocess=False` still returns the
+  raw response. `get_dabi_idm_data` (`idm_long` / `idm_short`) is unchanged.
+  The trap is documented in AGENTS.md, the `idm-qty` help text and the
+  market-operations, convenience-wrappers and API-discovery skills.
+
 ## Version 1.4.0 (2026-10-30)
 
 Endpoint mappings were reviewed against EPİAŞ's technical documentation

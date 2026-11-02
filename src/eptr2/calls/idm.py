@@ -110,10 +110,10 @@ def get_idm_qty(start_date: str, end_date: str, org_id: str | int | None = None,
     Category: GİP
 
     EN (IDM Matching Quantity):
-        It is the total matching quantity in the intraday market which is categorized as hourly or block depending on the contract type.
+        It is the total matching quantity in the intraday market which is categorized as hourly or block depending on the contract type. EPİAŞ returns purchases as clearingQuantityAsk and sales as clearingQuantityBid; the eptr2 DataFrame corrects them: clearingQuantityBid = bought, clearingQuantityAsk = sold (the raw response with postprocess=False is unchanged).
 
     TR (GİP Eşleşme Miktarı):
-        Gün İçi Piyasası’nda kontrat türüne göre saatlik veya blok olarak gösterilen toplam eşleşme miktarıdır.
+        Gün İçi Piyasası’nda kontrat türüne göre saatlik veya blok olarak gösterilen toplam eşleşme miktarıdır. EPİAŞ alışı clearingQuantityAsk, satışı clearingQuantityBid olarak döndürür; eptr2 DataFrame'inde bunlar düzeltilmiştir: clearingQuantityBid = alış, clearingQuantityAsk = satış (postprocess=False ham yanıtı değiştirmez).
 
     Reference: https://seffaflik.epias.com.tr/electricity/electricity-markets/intraday-market-idm/idm-matching-quantity
     """

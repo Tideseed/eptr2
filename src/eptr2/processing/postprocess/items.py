@@ -38,6 +38,18 @@ def postprocess_items_to_df(res, **kwargs):
 
 
 ## Adhoc non-standard response postprocess
+def postprocess_idm_qty(res, **kwargs):
+    ## EPİAŞ labels GİP purchases (alış) as clearingQuantityAsk and sales (satış) as
+    ## clearingQuantityBid; swap them so Bid = bought and Ask = sold, as on the platform page
+    df = pd.DataFrame(res["items"])
+    return df.rename(
+        columns={
+            "clearingQuantityAsk": "clearingQuantityBid",
+            "clearingQuantityBid": "clearingQuantityAsk",
+        }
+    )
+
+
 def postprocess_ren_capacity_dict_to_df(res, **kwargs):
     df = pd.DataFrame(res["installedCapacities"])
     return df

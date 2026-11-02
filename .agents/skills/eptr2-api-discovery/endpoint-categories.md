@@ -12,7 +12,7 @@ The installed catalog is the authoritative list; use `eptr2 categories` and `ept
 | Actual generation | `rt-gen`, `rt-gen-bulk` |
 | Generation plans | `kgup`, `kgup-v1`, `kudup`, `dpp-bulk` |
 | Settlement generation | `uevm` |
-| Market volumes | `dam-clearing`, `idm-qty`, `bi-long`, `bi-short` |
+| Market volumes | `dam-clearing`, `idm-qty` (raw bid/ask swapped by EPİAŞ, corrected in the DataFrame from 1.4.1), `bi-long`, `bi-short` |
 | Natural gas | Search `gas`; inspect the matching `ng-*` calls |
 
 ## IDs are endpoint-specific
