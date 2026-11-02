@@ -5,7 +5,7 @@ All notable changes to eptr2 are documented here.
 ## Version 1.4.1 (unreleased)
 
 ### Fixed
-- `idm-qty` (`get_idm_qty`): EPİAŞ returns GİP purchases (Alış) as
+- `idm-qty` (`get_idm_qty`) ([#7](https://github.com/Tideseed/eptr2/issues/7)): EPİAŞ returns GİP purchases (Alış) as
   `clearingQuantityAsk` and sales (Satış) as `clearingQuantityBid`. The
   DataFrame now corrects them: `clearingQuantityBid` = bought,
   `clearingQuantityAsk` = sold, matching the platform page. **Breaking for code
