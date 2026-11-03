@@ -3082,6 +3082,27 @@ def _row_contract(row: dict) -> str:
     raise ValueError("Each row needs a 'date' or 'contract'")
 
 
+def _dedupe_price_rows(rows: list[dict]) -> list[dict]:
+    """One row per hour. EPİAŞ's mcp-smp-imb returned every hour of 2026-11-01
+    twice (identical rows), so identical rows of the same hour are kept once.
+    Rows of the same hour with different prices raise ValueError, since it is
+    unknown which one is right."""
+    seen = {}
+    result = []
+    for row in rows:
+        contract = _row_contract(row)
+        values = tuple(_get_field(row, field) for field in _PRICE_FIELD_NAMES)
+        if contract in seen:
+            if seen[contract] != values:
+                raise ValueError(
+                    f"Conflicting price rows for {contract}: {seen[contract]} and {values}"
+                )
+            continue
+        seen[contract] = values
+        result.append(row)
+    return result
+
+
 def _maybe_df(rows: list[dict], return_df: bool):
     if not return_df:
         return rows
@@ -3224,6 +3245,7 @@ def calculate_imbalance_prices(
         rows = _fetch_mcp_smp_imb(start_contract, end_contract, eptr=eptr, **kwargs)
     else:
         rows = _to_records(prices)
+    rows = _dedupe_price_rows(rows)
 
     overrides = {
         k: kwargs[k]

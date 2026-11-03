@@ -5,6 +5,7 @@ from eptr2.processing.postprocess.items import (
     postprocess_direct_dict_to_df,
     postprocess_ren_capacity_dict_to_df,
     postprocess_idm_qty,
+    postprocess_mcp_smp_imb,
 )
 
 
@@ -44,7 +45,6 @@ def get_postprocess_function(key):
         "imb-qty-g",
         "imb-org-list",
         "interim-mcp",
-        "mcp-smp-imb",
         "bpm-orders-w-avg",
         "bpm-orders",
         "market-participants",
@@ -226,6 +226,9 @@ def get_postprocess_function(key):
 
     elif key in ["idm-qty"]:
         return postprocess_idm_qty
+
+    elif key in ["mcp-smp-imb"]:
+        return postprocess_mcp_smp_imb
 
     elif key in ["interim-mcp-status"]:
         return postprocess_mcp_status
