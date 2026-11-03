@@ -203,7 +203,9 @@ if MCP_AVAILABLE:
     def get_imbalance_price(start_date: str, end_date: str) -> str:
         """Get electricity imbalance prices (positive and negative)."""
         client = _get_eptr_client()
-        result = client.call("mcp-smp-imb", start_date=start_date, end_date=end_date)
+        result = client.call(
+            "mcp-smp-imb", start_date=start_date, end_date=end_date, drop_duplicates=True
+        )
         return _format_result(result)
 
     @mcp.tool()

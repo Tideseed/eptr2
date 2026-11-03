@@ -22,6 +22,9 @@ RESPONSES = json.loads((Path(__file__).parent / "fixtures/skill_responses.json")
 EXAMPLE_FILES = sorted(p for p in SKILLS.rglob("*.md") if "```python\n" in p.read_text())
 
 
+from eptr2.main import RESERVED_CALL_OPTIONS
+
+
 class ExampleClient:
     def __init__(self, **kwargs):
         assert kwargs.get("strict_params") is True
@@ -29,7 +32,7 @@ class ExampleClient:
     def call(self, key, **kwargs):
         assert key in get_path_map(just_call_keys=True)
         params = set(get_required_parameters(key) + get_optional_parameters(key))
-        options = {"postprocess", "request_kwargs", "retry_attempts", "retry_backoff", "retry_backoff_max", "retry_jitter"}
+        options = RESERVED_CALL_OPTIONS
         assert not (kwargs.keys() - params - options), kwargs
         if key == "kgup":
             assert kwargs["region"] == "TR1"

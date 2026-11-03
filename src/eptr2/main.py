@@ -373,6 +373,8 @@ class EPTR2:
     def call(self, key: str, **kwargs):
         """
         Main call function for the API. This function is used to process parameters and make calls to EPIAS Transparency API.
+
+        drop_duplicates=True drops rows that are identical in every column from the DataFrame (postprocessed results only), e.g. EPİAŞ's mcp-smp-imb returned every hour of 2026-11-01 twice. Default False: the data is returned as EPİAŞ sends it.
         """
 
         self.check_renew_tgt(**kwargs)
@@ -532,6 +534,15 @@ class EPTR2:
             from eptr2.mapping.processing import get_postprocess_function
 
             df = get_postprocess_function(key)(res, key=key)
+            if kwargs.get("drop_duplicates", False) and hasattr(df, "drop_duplicates"):
+                n_rows = len(df)
+                df = df.drop_duplicates().reset_index(drop=True)
+                if len(df) < n_rows:
+                    logger.warning(
+                        "%s: dropped %d duplicate row(s) returned by EPİAŞ.",
+                        key,
+                        n_rows - len(df),
+                    )
             return df
 
         return res
@@ -613,6 +624,7 @@ RESERVED_CALL_OPTIONS = frozenset(
         "connect_timeout",
         "credentials_file_path",
         "custom_aliases",
+        "drop_duplicates",
         "force_renew_tgt",
         "get_raw_response",
         "is_test",

@@ -54,11 +54,13 @@ def get_hourly_price_and_cost_data(
     if verbose:
         logger.info("Getting MCP, SMP and imbalance price data...")
 
+    ## One row per hour: EPİAŞ returned every hour of 2026-11-01 twice
     price_df = eptr.call(
         "mcp-smp-imb",
         start_date=start_date,
         end_date=end_date,
         request_kwargs={"timeout": timeout},
+        drop_duplicates=True,
         **retry_kwargs,
     )
 

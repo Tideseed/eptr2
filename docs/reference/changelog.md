@@ -44,11 +44,13 @@ All notable changes to eptr2 are documented here.
   files instead of fetching again. Pass `export_to_csv=False` to write nothing.
 - `mcp-smp-imb`: EPİAŞ returns every hour of 2026-11-01 twice (identical rows
   in every field), which doubled that day in `get_hourly_price_and_cost_data`,
-  `calculate_imbalance_prices` and the functions built on them. The DataFrame
-  drops identical rows with a warning (rows of the same hour that differ are
-  kept, with a warning), and `calculate_imbalance_prices` keeps one row per
-  hour of any input, raising `ValueError` for conflicting rows of an hour.
-  `postprocess=False` still returns the raw response.
+  `calculate_imbalance_prices` and the functions built on them. New
+  `eptr.call(..., drop_duplicates=True)` option (default `False`, any
+  DataFrame result) drops rows identical in every column, with a warning; the
+  price composite, `calculate_imbalance_prices` and the MCP imbalance price
+  tool use it. `calculate_imbalance_prices` also keeps one row per hour of any
+  input (raw responses, `prices`), raising `ValueError` for conflicting rows of
+  an hour.
 - Request bodies accept numpy / pandas scalars: an id taken from a DataFrame
   (`int64`) raised "Object of type int64 is not JSON serializable".
 

@@ -3123,6 +3123,7 @@ def _fetch_mcp_smp_imb(start_contract: str, end_contract: str, eptr=None, **kwar
         "mcp-smp-imb",
         start_date=_contract_to_date_str(start_contract),
         end_date=_contract_to_date_str(end_contract),
+        drop_duplicates=True,
     )
     rows = _to_records(res)
     if len(rows) == 0:

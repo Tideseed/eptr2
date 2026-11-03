@@ -149,6 +149,24 @@ print(df.describe())
 print(df.columns)
 ```
 
+### Duplicate Rows
+
+EPİAŞ occasionally returns the same row twice (for example `mcp-smp-imb` for
+every hour of 2026-11-01). By default the data is returned as sent;
+`drop_duplicates=True` drops rows that are identical in every column:
+
+```python
+df = eptr.call(
+    "mcp-smp-imb",
+    start_date="2026-11-01",
+    end_date="2026-11-01",
+    drop_duplicates=True,
+)
+```
+
+The price and cost functions (`get_hourly_price_and_cost_data`,
+`calculate_imbalance_prices`) already use it.
+
 ### Raw JSON Output
 
 ```python
