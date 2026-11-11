@@ -326,6 +326,15 @@ def normalize_kupst_category(name: str | None, strict: bool = False) -> str:
     (plant_w_battery if it is a generation plant with storage, battery if it is
     standalone storage); wind; solar; other sources.
 
+    Storage cases differ in the EPDK decisions (14029 and 14907): a plant with
+    storage ("depolamalı elektrik üretim tesisi") is plant_w_battery
+    (tolerance 0.05, multiplier 0.10); standalone storage ("müstakil
+    depolama") is battery (its own row from 2026-11-01, 'other' before); a
+    generation plant with an integrated storage unit ("bütünleşik depolama
+    ünitesi") uses its main source's tolerance (Article 3(3)), so pass the
+    main source (e.g. 'wind') for it. Names such as 'RES+BESS' cannot tell the
+    last two apart and resolve to plant_w_battery.
+
     Args:
         name: Source or category name. None gives 'other'.
         strict: If True, raise ValueError for names that match no rule instead
