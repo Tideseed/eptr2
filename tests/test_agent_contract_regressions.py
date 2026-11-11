@@ -847,14 +847,19 @@ class TestKupstCategories:
         assert res["tol"] == {tol}
         assert res["unit"] == {round(1000 * multiplier, 4)}
 
-    def test_new_categories_are_other_before_november(self):
+    def test_categories_before_november_follow_decision_14029(self):
+        ## Standalone storage has no 14029 category: falls back to 'other'
         res = self._all_paths(self.OCT, "battery")
         assert res["tol"] == {0.05}
         assert res["unit"] == {50.0}
-        ## unlicensed kept its 20% tolerance, the multiplier was 0.05
+        ## 14029 Article 2 (c): transmission-connected unlicensed n = 0.02 (issue #8)
         res = self._all_paths(self.OCT, "unlicensed")
         assert res["tol"] == {0.20}
-        assert res["unit"] == {50.0}
+        assert res["unit"] == {20.0}
+        ## 14029 Article 2 (a): plants with storage n = 0.10 (issue #8)
+        res = self._all_paths(self.OCT, "plant_w_battery")
+        assert res["tol"] == {0.05}
+        assert res["unit"] == {100.0}
 
     @pytest.mark.parametrize(
         "contract, category, multiplier",
@@ -864,7 +869,8 @@ class TestKupstCategories:
             ## No maintenance multiplier for these categories
             ("PH26110100", "plant_w_battery", 0.10),
             ("PH26110100", "unlicensed_from_transmission", 0.02),
-            ("PH26103123", "plant_w_battery", 0.08),
+            ("PH26103123", "plant_w_battery", 0.10),
+            ("PH26103123", "wind", 0.08),
         ],
     )
     def test_maintenance_penalty_does_not_clobber_category(
@@ -898,8 +904,10 @@ class TestKupstCategories:
         assert applies(self.NOV, "sun", 30)
         assert applies(self.NOV, "hydro", 25) and not applies(self.NOV, "hydro", 24)
         assert not applies(self.NOV, "plant_w_battery", 100)
-        ## No threshold recorded before November
-        assert not applies(self.OCT, "wind", 100)
+        ## 14029 has the same thresholds (issue #8)
+        assert applies(self.OCT, "wind", 30) and not applies(self.OCT, "wind", 29)
+        assert applies(self.OCT, "hydro", 25) and not applies(self.OCT, "hydro", 24)
+        assert not applies(self.OCT, "plant_w_battery", 100)
 
     def test_explicit_values_still_win(self):
         from eptr2.util.costs import calculate_kupst_cost_by_contract

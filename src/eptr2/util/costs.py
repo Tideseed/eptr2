@@ -44,25 +44,47 @@ def get_time_regulation_params_map():
 
     ## Categories without a 'multiplier_maintenance' have no maintenance
     ## multiplier; the plain multiplier applies even with the penalty flag.
+    ## EPDK Decision 14029 (11/12/2025, RG 29/12/2025 No. 33122), in force
+    ## 2026-01-01: multipliers in Article 2, tolerances in Article 3.
     def _kupst_2026_01():
-        rate = {"multiplier": 0.05, "multiplier_maintenance": 0.08}
         return {
-            "wind": {"tolerance": 0.15, **rate},
-            "solar": {"tolerance": 0.08, **rate},
-            "unlicensed_from_transmission": {"tolerance": 0.20, **rate},
-            "other": {"tolerance": 0.05, **rate},
+            ## Rüzgar (renewable: maintenance multiplier from 30 fault entries)
+            "wind": {
+                "tolerance": 0.15,
+                "multiplier": 0.05,
+                "multiplier_maintenance": 0.08,
+                "maintenance_fault_threshold": 30,
+            },
+            ## Güneş
+            "solar": {
+                "tolerance": 0.08,
+                "multiplier": 0.05,
+                "multiplier_maintenance": 0.08,
+                "maintenance_fault_threshold": 30,
+            },
+            ## Depolamalı elektrik üretim tesisleri
+            "plant_w_battery": {"tolerance": 0.05, "multiplier": 0.10},
+            ## Diğer kaynaklar
+            "other": {
+                "tolerance": 0.05,
+                "multiplier": 0.05,
+                "multiplier_maintenance": 0.08,
+                "maintenance_fault_threshold": 25,
+            },
+            ## İletim sisteminden bağlı lisanssız santraller, santral bazında
+            "unlicensed_from_transmission": {"tolerance": 0.20, "multiplier": 0.02},
         }
 
     map_l = [
         {
             ## V lowered from 150 to 100 and KUPST multipliers and tolerances
             ## set per category, effective from the first delivery hour of
-            ## 2026-11-01. The imbalance and KUPST formulas are unchanged.
-            ## Source: KUPST coefficients table ("Tablo 4, KÜPST katsayıları,
-            ## Kasım 2026'dan itibaren") supplied by the maintainer.
-            ## TODO: cite the board decision / Resmi Gazete issue.
-            ## Consumption unit categories of the same table start in 2027
-            ## and are not included yet.
+            ## 2026-11-01 (the billing period after publication).
+            ## Sources: EPDK Decision 14907 (KÜPSM/KÜPST coefficients, replaces
+            ## 14029) and Decision 14911 (V = 100 TL/MWh), both 24/09/2026,
+            ## RG 19/10/2026 No. 33405.
+            ## Consumption unit categories of 14907 start on 2027-01-01
+            ## (Provisional Article 1) and are not included yet.
             "date": "2026-11-01",
             "period": "26_02",
             "V": 100,
@@ -1155,7 +1177,7 @@ def calculate_kupst_cost(
     if return_detail:
         detail_d = {
             "kupst_tol_perc": tol,
-            "kupsm_tol": tol,
+            "kupsm_tol": forecast * tol,
             "kupsm": kupsm,
             "unit_kupst_cost": unit_kupst,
             "kupst_cost": kupst_cost,
@@ -3389,6 +3411,13 @@ def calculate_imbalance_costs(
     ``prices`` is given). Published imbalance prices are used where available,
     calculated ones otherwise (see imb_price_source). KUPST tolerance and multiplier follow each row's
     category and date.
+
+    Which plan to pass as ``forecast``: KÜPSM is measured against BUDÜP, the
+    expected settlement period plan: KUDÜP + YAL - YAT + SRDM + SFHM (EPDK
+    Decisions 14029 and 14907, Article 1), not against the day-ahead KGÜP
+    (v1). Passing KGÜP v1 overstates KÜPST for plants whose plan changed
+    intraday or that received balancing instructions; KUDÜP plus net YAL/YAT
+    (or KUDÜP alone without instructions) gives the published values.
 
     Args:
         data: Hourly quantities as a DataFrame or list of dicts with 'date' (or

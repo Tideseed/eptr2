@@ -51,6 +51,18 @@ All notable changes to eptr2 are documented here.
   tool use it. `calculate_imbalance_prices` also keeps one row per hour of any
   input (raw responses, `prices`), raising `ValueError` for conflicting rows of
   an hour.
+- KÜPST coefficients of `26_01` (2026-01-01 to 2026-10-31) corrected against
+  EPDK Decision 14029 ([#8](https://github.com/Tideseed/eptr2/issues/8)):
+  transmission-connected unlicensed plants n = 0.02 (was 0.05), plants with
+  storage (`plant_w_battery`) n = 0.10 (fell back to `other`, 0.05), and the
+  maintenance multiplier 0.08 now applies from 30 monthly fault entries for
+  wind and solar and 25 for other sources (it could never apply before).
+  **KÜPST results for January–October 2026 change for these categories.**
+  The `26_02` row now cites Decisions 14907 and 14911.
+- `calculate_kupst_cost(..., return_detail=True)`: `kupsm_tol` is the tolerance
+  amount in MWh (`forecast × tolerance`), as documented; it returned the ratio.
+- `calculate_imbalance_costs` documents that KÜPSM is measured against BUDÜP
+  (KUDÜP + YAL − YAT + SRDM + SFHM), not KGÜP v1.
 - Request bodies accept numpy / pandas scalars: an id taken from a DataFrame
   (`int64`) raised "Object of type int64 is not JSON serializable".
 

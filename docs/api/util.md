@@ -61,6 +61,12 @@ calculate_imbalance_prices(
 
 The dated regulation table is `get_time_regulation_params_map()`; each row
 names its period (`26_01` from 2026-01-01, `26_02` from 2026-11-01).
+KÜPST coefficients follow EPDK Decision 14029 (RG 29/12/2025, No. 33122) for
+`26_01` and Decision 14907 (RG 19/10/2026, No. 33405) for `26_02`; V = 100
+from 2026-11-01 is Decision 14911 (same issue).
+
+For `calculate_imbalance_costs`, pass as `forecast` the plan KÜPSM is measured
+against: BUDÜP = KUDÜP + YAL − YAT + SRDM + SFHM, not the day-ahead KGÜP v1.
 
 ::: eptr2.util.costs.calculate_imbalance_prices
     options:
