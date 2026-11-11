@@ -65,8 +65,11 @@ KÜPST coefficients follow EPDK Decision 14029 (RG 29/12/2025, No. 33122) for
 `26_01` and Decision 14907 (RG 19/10/2026, No. 33405) for `26_02`; V = 100
 from 2026-11-01 is Decision 14911 (same issue).
 
-For `calculate_imbalance_costs`, pass as `forecast` the plan KÜPSM is measured
-against: BUDÜP = KUDÜP + YAL − YAT + SRDM + SFHM, not the day-ahead KGÜP v1.
+`calculate_imbalance_costs` measures the costs against the plan passed as
+`forecast`. KUDÜP approximates the settled values: settlement uses BUDÜP =
+KUDÜP + YAL − YAT + SRDM + SFHM, and since plant-level YAL/YAT are not
+published, they are taken as 0. KGÜP v1 gives a what-if: the costs had the
+day-ahead plan not changed.
 
 ::: eptr2.util.costs.calculate_imbalance_prices
     options:

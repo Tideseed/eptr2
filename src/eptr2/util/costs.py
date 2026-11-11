@@ -3412,12 +3412,15 @@ def calculate_imbalance_costs(
     calculated ones otherwise (see imb_price_source). KUPST tolerance and multiplier follow each row's
     category and date.
 
-    Which plan to pass as ``forecast``: KÜPSM is measured against BUDÜP, the
-    expected settlement period plan: KUDÜP + YAL - YAT + SRDM + SFHM (EPDK
-    Decisions 14029 and 14907, Article 1), not against the day-ahead KGÜP
-    (v1). Passing KGÜP v1 overstates KÜPST for plants whose plan changed
-    intraday or that received balancing instructions; KUDÜP plus net YAL/YAT
-    (or KUDÜP alone without instructions) gives the published values.
+    ``forecast`` is the plan the costs are measured against, so the choice of
+    plan sets the question being answered:
+
+    - KUDÜP approximates the settled values. Settlement measures KÜPSM against
+      BUDÜP = KUDÜP + YAL - YAT + SRDM + SFHM (EPDK Decisions 14029 and 14907,
+      Article 1). Plant-level YAL/YAT are not available from the
+      Transparency Platform, so they are taken as 0 and BUDÜP = KUDÜP.
+    - KGÜP v1 (the day-ahead plan) answers "what if the day-ahead plan had not
+      changed": the costs had the plant not updated its plan intraday.
 
     Args:
         data: Hourly quantities as a DataFrame or list of dicts with 'date' (or

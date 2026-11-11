@@ -61,8 +61,10 @@ All notable changes to eptr2 are documented here.
   The `26_02` row now cites Decisions 14907 and 14911.
 - `calculate_kupst_cost(..., return_detail=True)`: `kupsm_tol` is the tolerance
   amount in MWh (`forecast × tolerance`), as documented; it returned the ratio.
-- `calculate_imbalance_costs` documents that KÜPSM is measured against BUDÜP
-  (KUDÜP + YAL − YAT + SRDM + SFHM), not KGÜP v1.
+- `calculate_imbalance_costs` documents the choice of `forecast`: KUDÜP
+  approximates settlement (BUDÜP = KUDÜP + YAL − YAT + SRDM + SFHM, with
+  plant-level YAL/YAT unavailable and taken as 0), KGÜP v1 is a what-if with
+  the day-ahead plan unchanged.
 - Request bodies accept numpy / pandas scalars: an id taken from a DataFrame
   (`int64`) raised "Object of type int64 is not JSON serializable".
 
