@@ -71,11 +71,82 @@ def get_time_regulation_params_map():
                 "multiplier_maintenance": 0.08,
                 "maintenance_fault_threshold": 25,
             },
+            ## Other renewables (hydro, geothermal, biomass, ...): tolerance of
+            ## "Diğer kaynaklar", fault threshold of "Yenilenebilir enerji kaynakları"
+            "other_renewable": {
+                "tolerance": 0.05,
+                "multiplier": 0.05,
+                "multiplier_maintenance": 0.08,
+                "maintenance_fault_threshold": 30,
+            },
             ## İletim sisteminden bağlı lisanssız santraller, santral bazında
             "unlicensed_from_transmission": {"tolerance": 0.20, "multiplier": 0.02},
         }
 
+    ## EPDK Decision 14907 (24/09/2026, RG 19/10/2026 No. 33405), in force from
+    ## the billing period after publication (2026-11-01). Article 2 and 3.
+    def _kupst_2026_02():
+        return {
+            ## Rüzgar
+            "wind": {
+                "tolerance": 0.15,
+                "multiplier": 0.05,
+                "multiplier_maintenance": 0.08,
+                "maintenance_fault_threshold": 30,
+            },
+            ## Güneş
+            "solar": {
+                "tolerance": 0.08,
+                "multiplier": 0.05,
+                "multiplier_maintenance": 0.08,
+                "maintenance_fault_threshold": 30,
+            },
+            ## Depolamalı elektrik üretim tesisi
+            "plant_w_battery": {"tolerance": 0.05, "multiplier": 0.10},
+            ## Diğer kaynaklar
+            "other": {
+                "tolerance": 0.05,
+                "multiplier": 0.05,
+                "multiplier_maintenance": 0.08,
+                "maintenance_fault_threshold": 25,
+            },
+            ## Other renewables, as in _kupst_2026_01
+            "other_renewable": {
+                "tolerance": 0.05,
+                "multiplier": 0.05,
+                "multiplier_maintenance": 0.08,
+                "maintenance_fault_threshold": 30,
+            },
+            ## İletime bağlı lisanssız, santral bazında
+            "unlicensed_from_transmission": {"tolerance": 0.20, "multiplier": 0.02},
+            ## Dağıtıma bağlı lisanssız, katılımcı bazında
+            "unlicensed_from_distribution": {"tolerance": 0.25, "multiplier": 0.01},
+            ## Müstakil depolama
+            "battery": {"tolerance": 0.20, "multiplier": 0.02},
+        }
+
     map_l = [
+        {
+            ## Consumption settlement units get KUPST from 2027-01-01
+            ## (Decision 14907, Provisional Article 1): n = 0.01 (Article 2 e),
+            ## tolerance 0.75 for withdrawal units under DUY Article 17(2)
+            ## (a)-(ç) and 0.30 for other consumption (Article 3 g, ğ).
+            ## Production values are unchanged from 26_02.
+            "date": "2027-01-01",
+            "period": "27_01",
+            "V": 100,
+            "B": 100,
+            "low_margin": 0.03,
+            "high_margin": 0.06,
+            "ceil_margin": 0.05,
+            "dsg_tolerance": 0.05,
+            "kupst_floor_price": 750.0,
+            "kupst": {
+                **_kupst_2026_02(),
+                "consumption_art17": {"tolerance": 0.75, "multiplier": 0.01},
+                "consumption_other": {"tolerance": 0.30, "multiplier": 0.01},
+            },
+        },
         {
             ## V lowered from 150 to 100 and KUPST multipliers and tolerances
             ## set per category, effective from the first delivery hour of
@@ -84,7 +155,7 @@ def get_time_regulation_params_map():
             ## 14029) and Decision 14911 (V = 100 TL/MWh), both 24/09/2026,
             ## RG 19/10/2026 No. 33405.
             ## Consumption unit categories of 14907 start on 2027-01-01
-            ## (Provisional Article 1) and are not included yet.
+            ## (Provisional Article 1): see the 27_01 row.
             "date": "2026-11-01",
             "period": "26_02",
             "V": 100,
@@ -94,37 +165,7 @@ def get_time_regulation_params_map():
             "ceil_margin": 0.05,
             "dsg_tolerance": 0.05,
             "kupst_floor_price": 750.0,
-            "kupst": {
-                ## Rüzgar
-                "wind": {
-                    "tolerance": 0.15,
-                    "multiplier": 0.05,
-                    "multiplier_maintenance": 0.08,
-                    "maintenance_fault_threshold": 30,
-                },
-                ## Güneş
-                "solar": {
-                    "tolerance": 0.08,
-                    "multiplier": 0.05,
-                    "multiplier_maintenance": 0.08,
-                    "maintenance_fault_threshold": 30,
-                },
-                ## Depolamalı üretim tesisi
-                "plant_w_battery": {"tolerance": 0.05, "multiplier": 0.10},
-                ## Diğer kaynaklar
-                "other": {
-                    "tolerance": 0.05,
-                    "multiplier": 0.05,
-                    "multiplier_maintenance": 0.08,
-                    "maintenance_fault_threshold": 25,
-                },
-                ## İletime bağlı lisanssız, santral bazında
-                "unlicensed_from_transmission": {"tolerance": 0.20, "multiplier": 0.02},
-                ## Dağıtıma bağlı lisanssız, katılımcı bazında
-                "unlicensed_from_distribution": {"tolerance": 0.25, "multiplier": 0.01},
-                ## Müstakil depolama
-                "battery": {"tolerance": 0.20, "multiplier": 0.02},
-            },
+            "kupst": _kupst_2026_02(),
         },
         {
             "date": "2026-01-01",
@@ -260,10 +301,17 @@ KUPST_CATEGORIES = (
     "solar",
     "plant_w_battery",
     "other",
+    "other_renewable",
     "unlicensed_from_transmission",
     "unlicensed_from_distribution",
     "battery",
+    "consumption_art17",
+    "consumption_other",
 )
+
+## Consumption settlement unit categories: KUPST applies to them only where the
+## regulation row defines them (from 2027-01-01).
+KUPST_CONSUMPTION_CATEGORIES = ("consumption_art17", "consumption_other")
 
 ## Exact names (after normalization) that map to a category
 KUPST_CATEGORY_ALIASES = {
@@ -275,6 +323,10 @@ KUPST_CATEGORY_ALIASES = {
     "default": "other",
     "diger": "other",
     "diger_kaynaklar": "other",
+    "renewable": "other_renewable",
+    "yenilenebilir": "other_renewable",
+    "consumption": "consumption_other",
+    "tuketim": "consumption_other",
     ## Earlier names
     "storage_plant": "plant_w_battery",
     "unlicensed_transmission": "unlicensed_from_transmission",
@@ -296,11 +348,21 @@ _KUPST_PLANT_W_BATTERY_KEYS = (
 _KUPST_BATTERY_ONLY_KEYS = ("mustakil", "standalone", "stand", "alone", "only")
 _KUPST_WIND_KEYS = ("wind", "ruzgar", "res", "wpp", "onshore", "offshore")
 _KUPST_SOLAR_KEYS = ("solar", "sun", "gunes", "ges", "pv", "photovoltaic", "fotovoltaik", "spp")
+## Renewables other than wind and solar (Law 5346 Art. 3: hidrolik, jeotermal,
+## biyokütle, biyogaz incl. landfill gas, dalga, akıntı, gel-git)
+_KUPST_OTHER_RENEWABLE_KEYS = (
+    "hydro", "hydroelectric", "hes", "hidrolik", "hidroelektrik", "dam", "baraj",
+    "barajli", "river", "akarsu", "kanal", "run", "geothermal", "jeotermal", "jes",
+    "biomass", "biyokutle", "biogas", "biyogaz", "landfill", "cop", "wave", "dalga",
+    "tidal", "gelgit", "renewable", "yenilenebilir",
+)
 _KUPST_OTHER_KEYS = (
-    "other", "diger", "hydro", "hes", "dam", "baraj", "river", "akarsu", "coal",
-    "komur", "linyit", "lignite", "gas", "dogalgaz", "natural", "ngcc", "dgkc",
-    "geothermal", "jeotermal", "jes", "biomass", "biyokutle", "biogas", "biyogaz",
-    "fuel", "fueloil", "nuclear", "nukleer", "thermal", "termik", "import", "ithal",
+    "other", "diger", "coal", "komur", "linyit", "lignite", "gas", "dogalgaz",
+    "natural", "ngcc", "dgkc", "fuel", "fueloil", "nuclear", "nukleer", "thermal",
+    "termik", "import", "ithal",
+)
+_KUPST_CONSUMPTION_KEYS = (
+    "consumption", "consumer", "tuketim", "tuketici", "cekis", "withdrawal", "load",
 )
 _TR_FOLD = str.maketrans("ıİşŞğĞüÜöÖçÇâÂîÎûÛ", "iissgguuooccaaiiuu")
 
@@ -322,9 +384,16 @@ def normalize_kupst_category(name: str | None, strict: bool = False) -> str:
     'Dağıtıma bağlı lisanssız', 'unlicensed', 'HES', 'doğalgaz' all resolve.
 
     Rules, in order: an exact category name or alias; unlicensed (distribution
-    if a distribution keyword is present, transmission otherwise); battery
-    (plant_w_battery if it is a generation plant with storage, battery if it is
-    standalone storage); wind; solar; other sources.
+    if a distribution keyword is present, transmission otherwise); consumption
+    (consumption_art17 with '17' in the name, consumption_other otherwise);
+    battery (plant_w_battery if it is a generation plant with storage, battery
+    if it is standalone storage); wind; solar; other renewables (hydro,
+    geothermal, biomass, ...); other sources.
+
+    other_renewable exists because EPDK Decisions 14029 and 14907 set the
+    maintenance fault threshold for renewable sources (30) and other sources
+    (25), while hydro, geothermal and biomass share the tolerance of other
+    sources. Renewable follows Law 5346 Art. 3.
 
     Storage cases differ in the EPDK decisions (14029 and 14907): a plant with
     storage ("depolamalı elektrik üretim tesisi") is plant_w_battery
@@ -362,6 +431,10 @@ def normalize_kupst_category(name: str | None, strict: bool = False) -> str:
         if has(_KUPST_DISTRIBUTION_KEYS):
             return "unlicensed_from_distribution"
         return "unlicensed_from_transmission"
+    if has(_KUPST_CONSUMPTION_KEYS):
+        if "17" in tokens or any(t.endswith("17") for t in tokens):
+            return "consumption_art17"
+        return "consumption_other"
     if has(_KUPST_BATTERY_KEYS):
         if has(_KUPST_BATTERY_ONLY_KEYS):
             return "battery"
@@ -372,6 +445,8 @@ def normalize_kupst_category(name: str | None, strict: bool = False) -> str:
         return "wind"
     if has(_KUPST_SOLAR_KEYS):
         return "solar"
+    if has(_KUPST_OTHER_RENEWABLE_KEYS):
+        return "other_renewable"
     if has(_KUPST_OTHER_KEYS) or not strict:
         return "other"
 
@@ -410,9 +485,17 @@ def get_kupst_params_by_contract(
         return None
 
     category = normalize_kupst_category(category)
+    cat_d = _kupst_category_params(params, category)
+    if cat_d is None:
+        ## Consumption before the regulation covers it: no KUPST
+        return {
+            "category": category,
+            "tolerance": None,
+            "multiplier": 0.0,
+            "floor_price": params["kupst_floor_price"],
+        }
     if category not in params["kupst"]:
         category = "other"
-    cat_d = params["kupst"][category]
 
     multiplier = cat_d["multiplier"]
     if include_maintenance_penalty:
@@ -426,20 +509,49 @@ def get_kupst_params_by_contract(
     }
 
 
+def _kupst_category_params(params: dict, category: str) -> dict | None:
+    """Parameters of a normalized category in a regulation row: 'other' for
+    production categories the row does not list, None for consumption
+    categories before KUPST applies to them."""
+    if category in params["kupst"]:
+        return params["kupst"][category]
+    if category in KUPST_CONSUMPTION_CATEGORIES:
+        return None
+    return params["kupst"]["other"]
+
+
+def kupst_applies(contract: str | None, category: str | None, is_producer: bool = True) -> bool:
+    """
+    Whether KUPST applies to a unit: always for production units; for
+    consumption units only from 2027-01-01 (EPDK Decision 14907, Provisional
+    Article 1), with a consumption category ('consumption_art17' or
+    'consumption_other').
+    """
+    if is_producer:
+        return True
+    params = contract_to_regulation_params(contract)
+    if params is None:
+        return False
+    return normalize_kupst_category(category) in params["kupst"].keys() & set(
+        KUPST_CONSUMPTION_CATEGORIES
+    )
+
+
 def is_kupst_maintenance_penalty_applicable(
     contract: str | None, category: str | None, monthly_fault_entries: int
 ) -> bool:
     """
     Whether the KUPST maintenance multiplier applies, given the number of fault
-    entries of the plant in the month (e.g. 30 or more for wind and solar, 25 or
-    more for other sources from 2026-11-01). False for categories or periods
-    without a defined threshold.
+    entries of the plant in the month (30 or more for renewable sources: wind,
+    solar, other_renewable; 25 or more for other sources; from 2026-01-01).
+    False for categories or periods without a defined threshold.
     """
     params = contract_to_regulation_params(contract)
     if params is None:
         return False
-    category = normalize_kupst_category(category)
-    cat_d = params["kupst"].get(category, params["kupst"]["other"])
+    cat_d = _kupst_category_params(params, normalize_kupst_category(category))
+    if cat_d is None:
+        return False
     threshold = cat_d.get("maintenance_fault_threshold")
     return threshold is not None and monthly_fault_entries >= threshold
 
@@ -882,11 +994,12 @@ def temp_calculate_draft_unit_kupst_cost(
 ):
     """
     .. deprecated:: 1.3.2
-        Use :func:`calculate_unit_kupst_cost_2026` instead.
+        Use :func:`calculate_unit_kupst_cost_by_contract` instead.
+        This function will be removed in eptr2 1.5.0.
     """
     warnings.warn(
-        "temp_calculate_draft_unit_kupst_cost is deprecated, "
-        "use calculate_unit_kupst_cost_2026 instead",
+        "temp_calculate_draft_unit_kupst_cost is deprecated and will be removed in eptr2 1.5.0. "
+        "Use calculate_unit_kupst_cost_by_contract instead.",
         DeprecationWarning,
         stacklevel=2,
     )
@@ -951,8 +1064,13 @@ def calculate_unit_kupst_cost_pre_2026(
 def calculate_kupsm(actual: float, forecast: float, tol: float):
     """
     Calculate the KÜPSM (Kesinleşmiş Üretim Planından Sapma Miktarı) given actual and forecast values and tolerance.
+
+    The tolerance amount is tol * |forecast|, so consumption plans entered as
+    negative quantities work too. tol None (KUPST does not apply) gives 0.
     """
-    tol_val = forecast * tol
+    if tol is None:
+        return 0.0
+    tol_val = abs(forecast) * tol
     kupsm = max(0, abs(forecast - actual) - tol_val)
     return kupsm
 
@@ -1186,7 +1304,7 @@ def calculate_kupst_cost(
     if return_detail:
         detail_d = {
             "kupst_tol_perc": tol,
-            "kupsm_tol": forecast * tol,
+            "kupsm_tol": abs(forecast) * tol,
             "kupsm": kupsm,
             "unit_kupst_cost": unit_kupst,
             "kupst_cost": kupst_cost,
@@ -2664,15 +2782,15 @@ def calculate_imbalance_cost_list(
 ):
     """
     .. deprecated:: 1.3.3
-        Use singular unit functions with list comprehension instead.
-        This function will be removed in a future version.
+        Use :func:`calculate_imbalance_costs` (or :func:`calculate_unit_imbalance_cost` per hour) instead.
+        This function will be removed in eptr2 1.5.0.
 
     Calculates imbalance costs for a given forecast and actual values.
     Imbalance dampening reduces imbalance costs by the given rate (<1). It is used to emulate balance responsible party (DSG) effect.
     """
     warnings.warn(
-        "calculate_imbalance_cost_list is deprecated and will be removed in a future version. "
-        "Use calculate_unit_imbalance_cost with list comprehension instead.",
+        "calculate_imbalance_cost_list is deprecated and will be removed in eptr2 1.5.0. "
+        "Use calculate_imbalance_costs (or calculate_unit_imbalance_cost per hour) instead.",
         DeprecationWarning,
         stacklevel=2,
     )
@@ -2716,14 +2834,14 @@ def calculate_diff_costs_list(
 ):
     """
     .. deprecated:: 1.3.3
-        Use individual unit functions with list comprehension instead.
-        This function will be removed in a future version.
+        Use :func:`calculate_imbalance_costs` instead.
+        This function will be removed in eptr2 1.5.0.
 
     Wrapper function to calculate all costs related to the difference between actual and forecasted values.
     """
     warnings.warn(
-        "calculate_diff_costs_list is deprecated and will be removed in a future version. "
-        "Use calculate_unit_imbalance_cost and calculate_kupst_cost with list comprehension instead.",
+        "calculate_diff_costs_list is deprecated and will be removed in eptr2 1.5.0. "
+        "Use calculate_imbalance_costs instead.",
         DeprecationWarning,
         stacklevel=2,
     )
@@ -2768,13 +2886,14 @@ def calculate_diff_costs_list(
 def calculate_imbalance_cost_values_list_pre_2026(mcp: list, smp: list):
     """
     .. deprecated:: 1.3.3
-        In further versions, please use the singular unit functions and make your own list comprehension.
+        Use :func:`calculate_unit_imbalance_cost` per hour (or :func:`calculate_imbalance_prices`) instead.
+        This function will be removed in eptr2 1.5.0.
 
     Calculates imbalance costs relative to day-ahead prices (MCP) for positive and negative imbalances
     """
     warnings.warn(
-        "calculate_imbalance_cost_values_list_pre_2026 is deprecated, "
-        "In further versions, please use the singular unit functions.",
+        "calculate_imbalance_cost_values_list_pre_2026 is deprecated and will be removed in eptr2 1.5.0. "
+        "Use calculate_unit_imbalance_cost per hour instead.",
         DeprecationWarning,
         stacklevel=2,
     )
@@ -2794,11 +2913,12 @@ def calculate_imbalance_cost_values_list_pre_2026(mcp: list, smp: list):
 def temp_get_draft_kupst_tolerance(source: str):
     """
     .. deprecated:: 1.3.2
-        Use :func:`get_kupst_tolerance_2026` instead.
+        Use :func:`get_kupst_tolerance_by_contract` instead.
+        This function will be removed in eptr2 1.5.0.
     """
     warnings.warn(
-        "temp_get_draft_kupst_tolerance is deprecated, "
-        "use get_kupst_tolerance_2026 instead",
+        "temp_get_draft_kupst_tolerance is deprecated and will be removed in eptr2 1.5.0. "
+        "Use get_kupst_tolerance_by_contract instead.",
         DeprecationWarning,
         stacklevel=2,
     )
@@ -2819,11 +2939,12 @@ def temp_calculate_imbalance_price_and_costs_new(
 ):
     """
     .. deprecated:: 1.3.2
-        Use :func:`calculate_imbalance_price_and_costs_2026` instead.
+        Use :func:`calculate_unit_price_and_costs` instead.
+        This function will be removed in eptr2 1.5.0.
     """
     warnings.warn(
-        "temp_calculate_imbalance_price_and_costs_new is deprecated, "
-        "use calculate_imbalance_price_and_costs_2026 instead",
+        "temp_calculate_imbalance_price_and_costs_new is deprecated and will be removed in eptr2 1.5.0. "
+        "Use calculate_unit_price_and_costs instead.",
         DeprecationWarning,
         stacklevel=2,
     )
@@ -2856,6 +2977,7 @@ def calculate_imbalance_price_and_costs_2026(
     """
     .. deprecated:: 1.3.3
         Use :func:`calculate_unit_price_and_costs` instead.
+        This function will be removed in eptr2 1.5.0.
 
     Function to calculate imbalance prices based on new regulation (2026)
 
@@ -2871,8 +2993,8 @@ def calculate_imbalance_price_and_costs_2026(
     regulation: Direction of system regulation ("up", "down", "balanced") when mcp == smp
     """
     warnings.warn(
-        "calculate_imbalance_price_and_costs_2026 is deprecated, "
-        "use calculate_unit_price_and_costs instead",
+        "calculate_imbalance_price_and_costs_2026 is deprecated and will be removed in eptr2 1.5.0. "
+        "Use calculate_unit_price_and_costs instead.",
         DeprecationWarning,
         stacklevel=2,
     )
@@ -2900,13 +3022,14 @@ def calculate_imbalance_price_and_costs_2026(
 def calculate_imbalance_prices_list_pre_2026(mcp: list, smp: list):
     """
     .. deprecated:: 1.3.3
-        In further versions, please use the singular unit functions and make your own list comprehension.
+        Use :func:`calculate_unit_imbalance_cost` per hour (or :func:`calculate_imbalance_prices`) instead.
+        This function will be removed in eptr2 1.5.0.
 
     Calculates imbalance prices for positive and negative imbalances
     """
     warnings.warn(
-        "calculate_imbalance_prices_list_pre_2026 is deprecated, "
-        "In further versions, please use the singular unit functions.",
+        "calculate_imbalance_prices_list_pre_2026 is deprecated and will be removed in eptr2 1.5.0. "
+        "Use calculate_imbalance_prices instead.",
         DeprecationWarning,
         stacklevel=2,
     )
@@ -2932,8 +3055,8 @@ def calculate_kupst_cost_list(
 ):
     """
     .. deprecated:: 1.3.3
-        Use list comprehension with :func:`calculate_kupsm` instead.
-        This function will be removed in a future version.
+        Use :func:`calculate_imbalance_costs` (or :func:`calculate_kupst_cost` per hour) instead.
+        This function will be removed in eptr2 1.5.0.
 
     Calculate KUPST (Production Plan Deviation Cost) for multiple periods.
 
@@ -2998,8 +3121,8 @@ def calculate_kupst_cost_list(
     """
 
     warnings.warn(
-        "calculate_kupst_cost_list is deprecated, "
-        "In further versions, please use the singular unit functions.",
+        "calculate_kupst_cost_list is deprecated and will be removed in eptr2 1.5.0. "
+        "Use calculate_imbalance_costs (or calculate_kupst_cost per hour) instead.",
         DeprecationWarning,
         stacklevel=2,
     )
@@ -3443,7 +3566,10 @@ def calculate_imbalance_costs(
             (e.g. 'wind', 'Rüzgar', 'GES', 'Müstakil depolama'), see
             normalize_kupst_category.
         is_producer: Production (True) or consumption (False) unit. KUPST
-            applies to producers only.
+            applies to producers, and to consumption units from 2027-01-01
+            when their category is 'consumption_art17' (withdrawal units of
+            DUY Art. 17(2) (a)-(ç), tolerance 0.75) or 'consumption_other'
+            (0.30), see kupst_applies.
         prices: Hourly prices passed to calculate_imbalance_prices. Fetched
             from EPİAŞ if None.
         eptr: EPTR2 client for fetching.
@@ -3455,12 +3581,21 @@ def calculate_imbalance_costs(
         One row per input row with the input columns and contract, category,
         is_producer, mcp, smp, system_direction, pos_imb_price, neg_imb_price,
         imb_price_source, imb_qty (positive surplus, negative deficit), unit_imb_cost, imb_cost,
-        kupst_tolerance, kupsm, unit_kupst_cost, kupst_cost (0 for consumers)
-        and total_cost, in TL.
+        kupst_tolerance, kupsm, unit_kupst_cost, kupst_cost (0 where KUPST
+        does not apply) and total_cost, in TL.
 
     Notes:
         Imbalance is the raw deviation of the unit; balancing group (DSG)
         tolerance and netting are not applied.
+
+        Rules of the KÜPST decisions (14029, 14907) that are not modelled:
+        from 2026-11-01 the deviation is |(UEVM - UEÇM) - BUDÜP|, i.e. net of
+        the unit's withdrawals, so pass net quantities for units that both
+        inject and withdraw; unlicensed plants are assessed on generation only
+        (14907 Art. 1(3)); distribution-connected unlicensed plants are
+        assessed per participant, so pass the participant's aggregate; and
+        14907 does not apply to the transmission-connected plants of Art.
+        5(1)(ç), (d), (e) of the unlicensed generation regulation (14907 Art. 5).
 
     Examples:
         >>> calculate_imbalance_costs(
@@ -3511,7 +3646,7 @@ def calculate_imbalance_costs(
         imb_cost = round(abs(imb_qty) * unit_imb_cost, 2)
 
         kupst = {"kupst_tolerance": None, "kupsm": 0.0, "unit_kupst_cost": None, "kupst_cost": 0.0}
-        if row_is_producer:
+        if kupst_applies(contract, row_category, row_is_producer):
             kupst_d = _kupst_params_for_row(
                 contract,
                 row_category,

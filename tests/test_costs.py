@@ -72,11 +72,13 @@ class TestRegulationPeriod:
         assert get_regulation_period_by_contract("PH26010101") == "26_01"
         assert get_regulation_period_by_contract("PH26103123") == "26_01"
         assert get_regulation_period_by_contract("PH26110100") == "26_02"
-        assert get_regulation_period_by_contract("PH27010100") == "26_02"
+        assert get_regulation_period_by_contract("PH26123123") == "26_02"
+        assert get_regulation_period_by_contract("PH27010100") == "27_01"
 
     def test_get_starting_contract_by_regulation_period_current(self):
         """Test starting contract for current (newest) and labelled periods."""
-        assert get_starting_contract_by_regulation_period("current") == "PH26110100"
+        assert get_starting_contract_by_regulation_period("current") == "PH27010100"
+        assert get_starting_contract_by_regulation_period("26_02") == "PH26110100"
         assert get_starting_contract_by_regulation_period("26_02") == "PH26110100"
         assert get_starting_contract_by_regulation_period("26_01") == "PH26010100"
 

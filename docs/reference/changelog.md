@@ -59,12 +59,38 @@ All notable changes to eptr2 are documented here.
   wind and solar and 25 for other sources (it could never apply before).
   **KÜPST results for January–October 2026 change for these categories.**
   The `26_02` row now cites Decisions 14907 and 14911.
+- KÜPST maintenance threshold for renewables other than wind and solar: new
+  `other_renewable` category (hydro, geothermal, biomass, biogas, …;
+  "renewable" as in Law 5346 Art. 3), with the tolerance and multiplier of
+  other sources but the renewables threshold of 30 monthly fault entries
+  (Decisions 14029 and 14907, Article 2); they used the 25 of `other`.
+  `normalize_kupst_category` maps HES, JES, Biyokütle etc. to it.
+- Consumption settlement units get KÜPST from 2027-01-01 (Decision 14907,
+  Provisional Article 1): new `27_01` regulation row and categories
+  `consumption_art17` (withdrawal units of DUY Art. 17(2) (a)–(ç), tolerance
+  0.75) and `consumption_other` (0.30), both with n = 0.01.
+  `calculate_imbalance_costs` applies KÜPST to consumers in these categories
+  from that date (`kupst_applies`). `regulation_period="current"` is now
+  `27_01` (production values unchanged).
+- `calculate_portfolio_costs` used the `other` KÜPST multiplier for every
+  plant; the unit KÜPST cost now follows each plant's `source` (e.g. 0.10 for
+  plants with storage, 0.02 for transmission-connected unlicensed plants).
+- `calculate_kupsm` uses `|forecast|` for the tolerance amount, so negative
+  (consumption) plans work, and returns 0 when KÜPST does not apply.
+- `calculate_imbalance_costs` documents the decision rules it does not model
+  (net UEVM − UEÇM deviation, generation-only for unlicensed plants,
+  per-participant aggregation, the Art. 5 exclusion).
 - `calculate_kupst_cost(..., return_detail=True)`: `kupsm_tol` is the tolerance
   amount in MWh (`forecast × tolerance`), as documented; it returned the ratio.
 - `calculate_imbalance_costs` documents the choice of `forecast`: KUDÜP
   approximates settlement (BUDÜP = KUDÜP + YAL − YAT + SRDM + SFHM, with
   plant-level YAL/YAT unavailable and taken as 0), KGÜP v1 is a what-if with
   the day-ahead plan unchanged.
+- Deprecated cost functions (`calculate_imbalance_cost_list`,
+  `calculate_diff_costs_list`, `calculate_kupst_cost_list`, the `*_pre_2026`
+  list helpers, `calculate_imbalance_price_and_costs_2026` and the `temp_*`
+  helpers) now warn that they will be removed in **1.5.0** and name a current
+  replacement.
 - Request bodies accept numpy / pandas scalars: an id taken from a DataFrame
   (`int64`) raised "Object of type int64 is not JSON serializable".
 

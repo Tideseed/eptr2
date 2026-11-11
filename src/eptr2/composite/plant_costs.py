@@ -189,7 +189,7 @@ def calculate_portfolio_costs(
     For a given portfolio (e.g. an aggregator) of power plants, this function calculates the overall imbalance and kupst costs based on provided production data. There are some caveats to consider.
 
     + This function is suitable for only production/generation portfolios (not consumption). If your portfolio includes consumption units, results will be inaccurate.
-    + KUPST calculations are based on a single plant type. Aggregators have more complex rules that are not covered here.
+    + KUPST tolerance and multiplier follow each plant's 'source' column of id_df (see normalize_kupst_category). Aggregator rules (communities as a balancing unit, capacity-weighted tolerance under Article 4 of EPDK Decisions 14029 and 14907) are not covered here.
     + Your portfolio does not have to be an aggregator but calculations resemble those of an aggregator. You can use this function to estimate costs for potential aggregators.
     """
     #####
@@ -287,6 +287,7 @@ def calculate_portfolio_costs(
         else:
             sub_df["actual"] = sub_df["total_rt"]
 
+        sub_df["kupst_source"] = row.get("source", "other")
         sub_df["da_forecast"] = sub_df["toplam_kgup_v1"]
         sub_df["forecast"] = sub_df[f"toplam_{forecast_source}"]
         ## Negative means underproduction, negative imbalance
@@ -333,6 +334,7 @@ def calculate_portfolio_costs(
                     "contract",
                     "plant_name",
                     "uevcb_id",
+                    "kupst_source",
                     "da_forecast",
                     "forecast",
                     "actual",
@@ -399,6 +401,8 @@ def calculate_portfolio_costs(
         cost_df[
             [
                 "contract",
+                "mcp",
+                "smp",
                 "sd_sign",
                 "unit_pos_imb_cost",
                 "unit_neg_imb_cost",
@@ -407,6 +411,28 @@ def calculate_portfolio_costs(
         ],
         on="contract",
         how="left",
+    )
+
+    ## The KUPST multiplier depends on each plant's category (e.g. 0.10 for a
+    ## plant with storage, 0.02 for transmission-connected unlicensed), so the
+    ## unit cost of the price data (category 'other') is recalculated per plant.
+    ## Pre-2026 contracts keep it.
+    def _plant_unit_kupst_cost(row):
+        kupst_d = get_kupst_params_by_contract(
+            None if use_latest_regulation else row["contract"],
+            category=row["kupst_source"],
+        )
+        if kupst_d is None or pd.isna(row["mcp"]) or pd.isna(row["smp"]):
+            return row["unit_kupst_cost"]
+        return calculate_unit_kupst_cost(
+            mcp=row["mcp"],
+            smp=row["smp"],
+            kupst_multiplier=kupst_d["multiplier"],
+            kupst_floor_price=kupst_d["floor_price"],
+        )
+
+    plan_realized_w_costs_df["unit_kupst_cost"] = plan_realized_w_costs_df.apply(
+        _plant_unit_kupst_cost, axis=1
     )
 
     # plan_realized_w_costs_df["kupsm_da"] = plan_realized_w_costs_df.apply(

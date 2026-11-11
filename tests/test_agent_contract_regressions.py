@@ -902,11 +902,14 @@ class TestKupstCategories:
 
         assert applies(self.NOV, "wind", 30) and not applies(self.NOV, "wind", 29)
         assert applies(self.NOV, "sun", 30)
-        assert applies(self.NOV, "hydro", 25) and not applies(self.NOV, "hydro", 24)
+        ## Hydro is renewable: 30 fault entries, not the 25 of other sources
+        assert applies(self.NOV, "hydro", 30) and not applies(self.NOV, "hydro", 29)
+        assert applies(self.NOV, "doğalgaz", 25) and not applies(self.NOV, "doğalgaz", 24)
         assert not applies(self.NOV, "plant_w_battery", 100)
         ## 14029 has the same thresholds (issue #8)
         assert applies(self.OCT, "wind", 30) and not applies(self.OCT, "wind", 29)
-        assert applies(self.OCT, "hydro", 25) and not applies(self.OCT, "hydro", 24)
+        assert applies(self.OCT, "hydro", 30) and not applies(self.OCT, "hydro", 29)
+        assert applies(self.OCT, "linyit", 25) and not applies(self.OCT, "linyit", 24)
         assert not applies(self.OCT, "plant_w_battery", 100)
 
     def test_explicit_values_still_win(self):
@@ -982,7 +985,7 @@ class TestKupstCategoryNames:
             ("standalone storage", "battery"),
             ("unlicensed", "unlicensed_from_transmission"),
             ("unlicensed-distribution", "unlicensed_from_distribution"),
-            ("HES", "other"),
+            ("HES", "other_renewable"),
             ("Doğalgaz", "other"),
             ("coal", "other"),
             (None, "other"),
@@ -1012,7 +1015,8 @@ class TestKupstCategoryNames:
         with pytest.raises(ValueError):
             normalize_kupst_category("xyz", strict=True)
         assert normalize_kupst_category("xyz") == "other"
-        assert normalize_kupst_category("hydro", strict=True) == "other"
+        assert normalize_kupst_category("hydro", strict=True) == "other_renewable"
+        assert normalize_kupst_category("doğalgaz", strict=True) == "other"
 
     def test_cost_paths_use_the_mapping(self):
         from eptr2.util.costs import (
@@ -1035,8 +1039,9 @@ class TestRegulationPeriodDefaults:
     def test_period_labels(self):
         from eptr2.util.costs import get_regulation_periods, get_regulation_params
 
-        assert get_regulation_periods() == ["pre_2026", "26_01", "26_02"]
-        assert get_regulation_params("current")["period"] == "26_02"
+        assert get_regulation_periods() == ["pre_2026", "26_01", "26_02", "27_01"]
+        ## 'current' is the newest row, also when it starts in the future
+        assert get_regulation_params("current")["period"] == "27_01"
         assert get_regulation_params("26_01")["V"] == 150
         assert get_regulation_params("pre_2026") is None
 
