@@ -51,7 +51,7 @@ def get_dam_block_bid(start_date: str, end_date: str, eptr: EPTR2 | None = None,
         Blok Bid: Active electricity purchase bids of market participants participating in the day-ahead market that includes a single price during the specified time slot and variable volume information based on a given settlement period.
 
     TR (GÖP Blok Alış Miktarı):
-        Gün Öncesi Piyasası'nda sunulan en az 4 en fazla 24 saati kapsayan ve eşleşen blok alış tekliflerinin toplam miktarıdır.
+        Gün Öncesi Piyasası'nda sunulan en az 3 en fazla 24 saati kapsayan ve eşleşen blok alış tekliflerinin toplam miktarıdır.
 
     Reference: https://seffaflik.epias.com.tr/electricity/electricity-markets/day-ahead-market-dam/dam-block-bid
     """
@@ -69,7 +69,7 @@ def get_dam_block_offer(start_date: str, end_date: str, eptr: EPTR2 | None = Non
         Block Offer: Active electricity sales offers of market participants participating in the day-ahead market that includes a single price during the specified time slot and variable volume information based on a given settlement period
 
     TR (GÖP Blok Satış Miktarı):
-        Gün Öncesi Piyasası'nda sunulan en az 4 en fazla 24 saati kapsayan ve eşleşen blok satış tekliflerinin toplam miktarıdır.
+        Gün Öncesi Piyasası'nda sunulan en az 3 en fazla 24 saati kapsayan ve eşleşen blok satış tekliflerinin toplam miktarıdır.
 
     Reference: https://seffaflik.epias.com.tr/electricity/electricity-markets/day-ahead-market-dam/dam-block-offer
     """

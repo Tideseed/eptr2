@@ -91,6 +91,10 @@ All notable changes to eptr2 are documented here.
   list helpers, `calculate_imbalance_price_and_costs_2026` and the `temp_*`
   helpers) now warn that they will be removed in **1.5.0** and name a current
   replacement.
+- Checked against EPİAŞ's electricity technical documentation v1.16.4 (last
+  updated 2026-10-08): `dam-block-bid` / `dam-block-offer` help now says blocks
+  span at least 3 hours (was 4); `ren-total-cost` returns a new
+  `lumUretimYektob` column (LÜM generation YEKTOB, TL), which passes through.
 - Request bodies accept numpy / pandas scalars: an id taken from a DataFrame
   (`int64`) raised "Object of type int64 is not JSON serializable".
 

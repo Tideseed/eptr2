@@ -85,7 +85,7 @@ def get_help_d(key=None):
                 "en": "DAM Block Bid",
             },
             "desc": {
-                "tr": "Gün Öncesi Piyasası'nda sunulan en az 4 en fazla 24 saati kapsayan ve eşleşen blok alış tekliflerinin toplam miktarıdır.",
+                "tr": "Gün Öncesi Piyasası'nda sunulan en az 3 en fazla 24 saati kapsayan ve eşleşen blok alış tekliflerinin toplam miktarıdır.",
                 "en": "Blok Bid: Active electricity purchase bids of market participants participating in the day-ahead market that includes a single price during the specified time slot and variable volume information based on a given settlement period.",
             },
             "url": "https://seffaflik.epias.com.tr/electricity/electricity-markets/day-ahead-market-dam/dam-block-bid",
@@ -97,7 +97,7 @@ def get_help_d(key=None):
                 "en": "DAM Block Offer",
             },
             "desc": {
-                "tr": "Gün Öncesi Piyasası'nda sunulan en az 4 en fazla 24 saati kapsayan ve eşleşen blok satış tekliflerinin toplam miktarıdır.",
+                "tr": "Gün Öncesi Piyasası'nda sunulan en az 3 en fazla 24 saati kapsayan ve eşleşen blok satış tekliflerinin toplam miktarıdır.",
                 "en": "Block Offer: Active electricity sales offers of market participants participating in the day-ahead market that includes a single price during the specified time slot and variable volume information based on a given settlement period",
             },
             "url": "https://seffaflik.epias.com.tr/electricity/electricity-markets/day-ahead-market-dam/dam-block-offer",
