@@ -309,7 +309,7 @@
   },
   "date_format": "YYYY-MM-DD (ISO 8601); market timezone is Europe/Istanbul",
   "description": "Machine-readable schema of the eptr2 Python client for the EPIAS Transparency Platform (Turkish electricity and natural gas markets). Generated with `eptr2 schema`; do not edit by hand.",
-  "endpoint_count": 234,
+  "endpoint_count": 236,
   "endpoints": {
     "anc-pf-qty": {
       "call_method": "POST",
@@ -1927,6 +1927,22 @@
       },
       "url": null
     },
+    "meter-count": {
+      "call_method": "POST",
+      "call_path": "electricity-service/v1/consumption/data/meter-count",
+      "category": "Genel Veriler",
+      "desc": {
+        "en": "The meter count announced for the period after the current one; the whole monthly series is returned at once.",
+        "tr": "İçerisinde bulunulan dönemden bir sonraki dönem için açıklanan sayaç adedi verisidir; aylık seri tek seferde döner."
+      },
+      "optional_params": [],
+      "required_params": [],
+      "title": {
+        "en": "Meter Count",
+        "tr": "Sayaç Adedi"
+      },
+      "url": "https://seffaflik.epias.com.tr/electricity-service/technical/tr/index.html#_meter-count"
+    },
     "mf-distribution": {
       "call_method": "POST",
       "call_path": "electricity-service/v1/consumption/data/multiple-factor-distribution",
@@ -2116,6 +2132,25 @@
         "tr": "Çarpan Değeri"
       },
       "url": "https://seffaflik.epias.com.tr/electricity/electricity-consumption/profile-coefficients/multiple-factor"
+    },
+    "multiple-factor-bulk": {
+      "call_method": "POST",
+      "call_path": "electricity-service/v1/consumption/data/multiple-factor-bulk",
+      "category": "Profil Katsaıları",
+      "desc": {
+        "en": "Hourly multiple factors of one distribution company for all profile groups and meter reading types, covering up to three months from the period (as far as published). Distribution company ids come from the mf-distribution call. The response is large (about 45,000 rows); pass request_kwargs={\"timeout\": 300} if the default read timeout is too short.",
+        "tr": "Bir dağıtım şirketinin tüm profil grupları ve sayaç okuma tipleri için saatlik çarpan değerleridir; dönem ile başlayan en fazla üç ayı (yayımlanan kadarını) kapsar. Dağıtım şirketi kimlikleri mf-distribution çağrısından alınır. Yanıt büyüktür (yaklaşık 45.000 satır); varsayılan okuma süresi yetmezse request_kwargs={\"timeout\": 300} verin."
+      },
+      "optional_params": [],
+      "required_params": [
+        "period",
+        "distribution_id"
+      ],
+      "title": {
+        "en": "Multiple Factor (Bulk)",
+        "tr": "Çarpan Değeri (Toplu)"
+      },
+      "url": "https://seffaflik.epias.com.tr/electricity-service/technical/tr/index.html#_multiple-factor-bulk"
     },
     "ng-balancing-notifications": {
       "call_method": "POST",

@@ -15,11 +15,13 @@ __all__ = [
     "get_load_plan",
     "get_long_term_demand_forecast",
     "get_main_tariff_group_list",
+    "get_meter_count",
     "get_mf_distribution",
     "get_mf_meter_reading_type",
     "get_mf_profile_group",
     "get_monthly_index",
     "get_multiple_factor",
+    "get_multiple_factor_bulk",
     "get_percentage_consumption_info",
     "get_planned_outages",
     "get_profile_group_list",
@@ -192,6 +194,24 @@ def get_main_tariff_group_list(eptr: EPTR2 | None = None, **kwargs):
     return eptr.call("main-tariff-group-list", **kwargs)
 
 
+def get_meter_count(eptr: EPTR2 | None = None, **kwargs):
+    """Meter Count / Sayaç Adedi
+
+    Category: Genel Veriler
+
+    EN (Meter Count):
+        The meter count announced for the period after the current one; the whole monthly series is returned at once.
+
+    TR (Sayaç Adedi):
+        İçerisinde bulunulan dönemden bir sonraki dönem için açıklanan sayaç adedi verisidir; aylık seri tek seferde döner.
+
+    Reference: https://seffaflik.epias.com.tr/electricity-service/technical/tr/index.html#_meter-count
+    """
+    if eptr is None:
+        eptr = EPTR2()
+    return eptr.call("meter-count", **kwargs)
+
+
 def get_mf_distribution(period: str, eptr: EPTR2 | None = None, **kwargs):
     """Multiple Factor - Distribution Companies Listing Service / Çarpan Değeri - Dağıtım Firmaları Listeleme Servisi
 
@@ -280,6 +300,24 @@ def get_multiple_factor(period: str, mr_type: str, distribution_id: str | int, s
     if eptr is None:
         eptr = EPTR2()
     return eptr.call("multiple-factor", period=period, mr_type=mr_type, distribution_id=distribution_id, subscriber_pg=subscriber_pg, **kwargs)
+
+
+def get_multiple_factor_bulk(period: str, distribution_id: str | int, eptr: EPTR2 | None = None, **kwargs):
+    """Multiple Factor (Bulk) / Çarpan Değeri (Toplu)
+
+    Category: Profil Katsaıları
+
+    EN (Multiple Factor (Bulk)):
+        Hourly multiple factors of one distribution company for all profile groups and meter reading types, covering up to three months from the period (as far as published). Distribution company ids come from the mf-distribution call. The response is large (about 45,000 rows); pass request_kwargs={"timeout": 300} if the default read timeout is too short.
+
+    TR (Çarpan Değeri (Toplu)):
+        Bir dağıtım şirketinin tüm profil grupları ve sayaç okuma tipleri için saatlik çarpan değerleridir; dönem ile başlayan en fazla üç ayı (yayımlanan kadarını) kapsar. Dağıtım şirketi kimlikleri mf-distribution çağrısından alınır. Yanıt büyüktür (yaklaşık 45.000 satır); varsayılan okuma süresi yetmezse request_kwargs={"timeout": 300} verin.
+
+    Reference: https://seffaflik.epias.com.tr/electricity-service/technical/tr/index.html#_multiple-factor-bulk
+    """
+    if eptr is None:
+        eptr = EPTR2()
+    return eptr.call("multiple-factor-bulk", period=period, distribution_id=distribution_id, **kwargs)
 
 
 def get_percentage_consumption_info(period: str, province_id: str | int, eptr: EPTR2 | None = None, **kwargs):

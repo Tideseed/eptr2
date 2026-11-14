@@ -2597,6 +2597,30 @@ def get_help_d(key=None):
             },
             "url": "https://seffaflik.epias.com.tr/electricity-service/technical/tr/index.html#_profile-subscription-group-list",
         },
+        "multiple-factor-bulk": {
+            "category": "Profil Katsaıları",
+            "title": {
+                "tr": "Çarpan Değeri (Toplu)",
+                "en": "Multiple Factor (Bulk)",
+            },
+            "desc": {
+                "tr": "Bir dağıtım şirketinin tüm profil grupları ve sayaç okuma tipleri için saatlik çarpan değerleridir; dönem ile başlayan en fazla üç ayı (yayımlanan kadarını) kapsar. Dağıtım şirketi kimlikleri mf-distribution çağrısından alınır. Yanıt büyüktür (yaklaşık 45.000 satır); varsayılan okuma süresi yetmezse request_kwargs={\"timeout\": 300} verin.",
+                "en": "Hourly multiple factors of one distribution company for all profile groups and meter reading types, covering up to three months from the period (as far as published). Distribution company ids come from the mf-distribution call. The response is large (about 45,000 rows); pass request_kwargs={\"timeout\": 300} if the default read timeout is too short.",
+            },
+            "url": "https://seffaflik.epias.com.tr/electricity-service/technical/tr/index.html#_multiple-factor-bulk",
+        },
+        "meter-count": {
+            "category": "Genel Veriler",
+            "title": {
+                "tr": "Sayaç Adedi",
+                "en": "Meter Count",
+            },
+            "desc": {
+                "tr": "İçerisinde bulunulan dönemden bir sonraki dönem için açıklanan sayaç adedi verisidir; aylık seri tek seferde döner.",
+                "en": "The meter count announced for the period after the current one; the whole monthly series is returned at once.",
+            },
+            "url": "https://seffaflik.epias.com.tr/electricity-service/technical/tr/index.html#_meter-count",
+        },
         "eligible-consumer-count": {
             "category": "Serbest Tüketici",
             "title": {

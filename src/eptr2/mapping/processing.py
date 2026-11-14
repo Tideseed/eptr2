@@ -214,6 +214,8 @@ def get_postprocess_function(key):
         "eligible-consumer-quantity",
         "monthly-index",
         "multiple-factor",
+        "multiple-factor-bulk",
+        "meter-count",
         "percentage-consumption-info",
         "planned-outages",
         "eligible-consumer-count",

@@ -211,7 +211,7 @@ if MCP_AVAILABLE:
     @mcp.tool()
     @_validated
     def get_available_eptr2_calls() -> str:
-        """List all 232 available API calls in the eptr2 library.
+        """List all 236 available API calls in the eptr2 library.
         Requires no credentials."""
         from eptr2.agentic.discovery import list_calls
         from eptr2.mapping.path import get_alias_map

@@ -327,6 +327,8 @@ def get_required_parameters(key, return_mapping=False, mapping_only_keys=False):
             "subscriber_pg",
         ],
         "mf-distribution": ["period"],
+        "multiple-factor-bulk": ["period", "distribution_id"],
+        "meter-count": [],
         "mf-meter-reading-type": [],
         "mf-profile-group": ["period", "distribution_id"],
         "percentage-consumption-info": ["period", "province_id"],

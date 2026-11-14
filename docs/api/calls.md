@@ -24,7 +24,7 @@ patterns.
 
 ```python
 import eptr2.calls as calls
-print(len(calls.__all__))   # 236 (234 endpoints + 2 aliases)
+print(len(calls.__all__))   # 238 (236 endpoints + 2 aliases)
 ```
 
 The wrappers are auto-generated from
@@ -78,6 +78,6 @@ from eptr2.calls import (
     get_load_plan,
     get_dam_clearing,
     get_uevm,
-    # ... 234 in total
+    # ... 236 in total
 )
 ```

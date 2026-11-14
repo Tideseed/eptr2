@@ -91,6 +91,16 @@ All notable changes to eptr2 are documented here.
   list helpers, `calculate_imbalance_price_and_costs_2026` and the `temp_*`
   helpers) now warn that they will be removed in **1.5.0** and name a current
   replacement.
+- New calls `meter-count` (Sayaç Adedi: the whole monthly meter count series,
+  no parameters) and `multiple-factor-bulk` (Çarpan Değeri toplu: hourly
+  multiple factors of one distribution company for all profile groups and
+  meter reading types, up to three months from `period`; `distribution_id` from
+  `mf-distribution`),
+  with wrappers `get_meter_count` and `get_multiple_factor_bulk`. 236 call
+  keys. Of the other unmapped endpoints in the technical documentation, AUF
+  (`maximum-settlement-price`, last data 2023-09) and five YEKDEM endpoints
+  have had no data for years, and the rest serve the platform's home page and
+  charts, so they are not added.
 - Checked against EPİAŞ's electricity technical documentation v1.16.4 (last
   updated 2026-10-08): `dam-block-bid` / `dam-block-offer` help now says blocks
   span at least 3 hours (was 4); `ren-total-cost` returns a new

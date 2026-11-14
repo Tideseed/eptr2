@@ -1074,6 +1074,10 @@ def get_path_map(just_call_keys: bool = False):
             "monthly-index": get_path_template("cons", "monthly-index"),
             ## Çarpan Değeri Listeleme Servisi
             "multiple-factor": get_path_template("cons", "multiple-factor"),
+            ## Çarpan Değeri toplu (one distribution company, all profile groups)
+            "multiple-factor-bulk": get_path_template("cons", "multiple-factor-bulk"),
+            ## Sayaç Adedi Listeleme Servisi
+            "meter-count": get_path_template("cons", "meter-count"),
             ## Dağıtım Firmaları Listeleme Servisi
             "mf-distribution": get_path_template(
                 "cons", "multiple-factor-distribution"
