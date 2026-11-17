@@ -590,7 +590,10 @@ DEFAULT_LOGIN_TIMEOUT = 10.0
 
 
 def _json_default(o):
-    ## numpy / pandas scalars (e.g. an org id taken from a DataFrame is int64) -> plain Python values
+    ## numpy / pandas values (e.g. an org id taken from a DataFrame is int64) -> plain Python values;
+    ## tolist() keeps arrays and Series as lists and turns scalars into Python scalars
+    if hasattr(o, "tolist"):
+        return o.tolist()
     if hasattr(o, "item"):
         return o.item()
     raise TypeError(f"Object of type {o.__class__.__name__} is not JSON serializable")

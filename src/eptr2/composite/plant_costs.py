@@ -193,10 +193,6 @@ def calculate_portfolio_costs(
     + Your portfolio does not have to be an aggregator but calculations resemble those of an aggregator. You can use this function to estimate costs for potential aggregators.
     """
     #####
-    ## One client for every plant and the price data; otherwise each call would log in again
-    if kwargs.get("eptr") is None:
-        kwargs["eptr"] = EPTR2(dotenv_path=kwargs.get("dotenv_path", ".env"))
-
     ### Validate forecast source
     if forecast_source.lower() in ["kgüp", "kgup", "kagup", "kagüp"]:
         forecast_source = "kgup"
@@ -250,6 +246,10 @@ def calculate_portfolio_costs(
             excel_export_path, sheet_name="contract_summary"
         )
         return res_d
+
+    ## One client for every plant and the price data; otherwise each call would log in again
+    if kwargs.get("eptr") is None:
+        kwargs["eptr"] = EPTR2(dotenv_path=kwargs.get("dotenv_path", ".env"))
 
     plan_realized_df = pd.DataFrame()
     id_df = id_df.reset_index(drop=True).copy()

@@ -5,7 +5,7 @@ from eptr2 import EPTR2
 import numpy as np
 
 
-def test_get_org_estimated_activity():
+def test_get_org_estimated_activity(tmp_path):
     """Positions only: GÖP, İA and GİP matchings by organization id, no trade log"""
     is_env_ok = load_dotenv(".env")
     assert is_env_ok
@@ -16,6 +16,7 @@ def test_get_org_estimated_activity():
         end_date="2026-10-20",
         org_id=104000,
         eptr=eptr,
+        export_dir=str(tmp_path),  # fetch live, not from earlier CSV files
     )
 
     assert len(df) == 24
@@ -26,7 +27,7 @@ def test_get_org_estimated_activity():
     assert np.allclose(df["dabi_idm_net"], df["dabi_net"] + df["idm_net"])
 
 
-def test_get_org_estimated_activity_with_pnl():
+def test_get_org_estimated_activity_with_pnl(tmp_path):
     """include_pnl adds MCP, published WAP and the DA open / IDM close PnL, without the trade log"""
     is_env_ok = load_dotenv(".env")
     assert is_env_ok
@@ -37,6 +38,7 @@ def test_get_org_estimated_activity_with_pnl():
         end_date="2026-10-20",
         org_id=104000,
         eptr=eptr,
+        export_dir=str(tmp_path),  # fetch live, not from earlier CSV files
         include_pnl=True,
     )
 
@@ -47,7 +49,7 @@ def test_get_org_estimated_activity_with_pnl():
     assert df["idm_wap"].notna().all()
 
 
-def test_get_org_estimated_activity_with_tad():
+def test_get_org_estimated_activity_with_tad(tmp_path):
     """include_tad adds MAD from the trade log and day_trade_tad, without MCP and WAP"""
     is_env_ok = load_dotenv(".env")
     assert is_env_ok
@@ -58,6 +60,7 @@ def test_get_org_estimated_activity_with_tad():
         end_date="2026-10-20",
         org_id=104000,
         eptr=eptr,
+        export_dir=str(tmp_path),  # fetch live, not from earlier CSV files
         include_tad=True,
     )
 

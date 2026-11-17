@@ -341,7 +341,7 @@ _KUPST_UNLICENSED_KEYS = ("unlicensed", "lisanssiz", "licenceless", "licenseless
 _KUPST_DISTRIBUTION_KEYS = ("distribution", "dagitim", "dist", "dso")
 _KUPST_BATTERY_KEYS = ("battery", "batteries", "batarya", "bess", "storage", "depolama", "ess")
 _KUPST_PLANT_W_BATTERY_KEYS = (
-    "depolamali", "plant", "uretim", "tesis", "tesisi", "hybrid", "hibrit", "with",
+    "depolamali", "plant", "uretim", "hybrid", "hibrit", "with",
     "w", "integrated", "entegre", "wind", "ruzgar", "solar", "gunes", "res", "ges",
     "pv", "hes", "hydro",
 )
@@ -352,7 +352,8 @@ _KUPST_SOLAR_KEYS = ("solar", "sun", "gunes", "ges", "pv", "photovoltaic", "foto
 ## biyokütle, biyogaz incl. landfill gas, dalga, akıntı, gel-git)
 _KUPST_OTHER_RENEWABLE_KEYS = (
     "hydro", "hydroelectric", "hes", "hidrolik", "hidroelektrik", "dam", "baraj",
-    "barajli", "river", "akarsu", "kanal", "run", "geothermal", "jeotermal", "jes",
+    "barajli", "river", "akarsu", "kanal", "run", "dammedhydro", "hidro", "nehir",
+    "geothermal", "jeotermal", "jes", "bes",
     "biomass", "biyokutle", "biogas", "biyogaz", "landfill", "cop", "wave", "dalga",
     "tidal", "gelgit", "renewable", "yenilenebilir",
 )
@@ -469,8 +470,9 @@ def get_kupst_params_by_contract(
         category: KUPST category or source name in any common convention,
             mapped by normalize_kupst_category (e.g. 'Rüzgar', 'GES', 'BESS').
             'unlicensed' maps to 'unlicensed_from_transmission' (per plant, the
-            20% tolerance unlicensed plants had before). Unrecognized names
-            (e.g. 'hydro', 'coal') fall back to 'other'. Note that
+            20% tolerance unlicensed plants had before). Hydro, geothermal and
+            biomass names map to 'other_renewable'; unrecognized names (e.g.
+            'coal') fall back to 'other'. Note that
             'unlicensed_from_distribution' is applied per participant, so the
             deviation should be the participant's aggregate.
         include_maintenance_penalty: Use the maintenance multiplier. Categories
@@ -518,6 +520,21 @@ def _kupst_category_params(params: dict, category: str) -> dict | None:
     if category in KUPST_CONSUMPTION_CATEGORIES:
         return None
     return params["kupst"]["other"]
+
+
+def _resolve_unit_category(category: str | None, is_producer: bool) -> tuple[str, bool]:
+    """
+    Category and unit type of a row: a consumption category makes the unit a
+    consumer, and a consumer without a consumption category is
+    'consumption_other' (EPDK Decision 14907 Art. 3(1)(ğ): every consumption
+    unit not under DUY Art. 17(2) has tolerance 0.30).
+    """
+    normalized = normalize_kupst_category(category)
+    if normalized in KUPST_CONSUMPTION_CATEGORIES:
+        return normalized, False
+    if not is_producer:
+        return "consumption_other", False
+    return normalized, True
 
 
 def kupst_applies(contract: str | None, category: str | None, is_producer: bool = True) -> bool:
@@ -648,7 +665,8 @@ def get_starting_contract_by_regulation_period(
     str
         The first contract code of the period, e.g.:
         - '26_01': 'PH26010100'
-        - '26_02' / 'current': 'PH26110100'
+        - '26_02': 'PH26110100'
+        - '27_01' / 'current': 'PH27010100'
         - 'pre_2026': 'PH15010100' (pre-2026 regulation)
 
     Raises
@@ -937,9 +955,9 @@ def calculate_unit_kupst_cost(
     Examples
     --------
     >>> calculate_unit_kupst_cost(mcp=100, smp=110, regulation_period='current')
-    5.5
+    37.5
     >>> calculate_unit_kupst_cost(mcp=100, smp=110, include_maintenance_penalty=True, regulation_period='current')
-    8.8
+    60.0
     """
 
     if math.isnan(mcp) or math.isnan(smp):
@@ -1042,7 +1060,7 @@ def calculate_unit_kupst_cost_2026(
     )
     if source is not None:
         source_map = {"battery": 0.1, "aggregator": 0.05, "unlicensed": 0.02}
-        kupst_multiplier = source_map.get(source, kupst_multiplier_default)
+        kupst_multiplier = source_map.get(source, kupst_multiplier)
 
     return round(max(mcp, smp, kupst_floor_price) * kupst_multiplier, 2)
 
@@ -1153,7 +1171,7 @@ def calculate_kupst_cost_by_contract(
     ...     smp=110,
     ...     source='wind'
     ... )
-    90.0
+    75.0
     """
     regulation_period = get_regulation_period_by_contract(contract)
     ## KUPST multipliers and the floor price can change within a regulation
@@ -1271,7 +1289,7 @@ def calculate_kupst_cost(
     ...     source='wind',
     ...     regulation_period='current'
     ... )
-    90.0
+    75.0
 
     >>> calculate_kupst_cost(
     ...     actual=100,
@@ -1282,12 +1300,25 @@ def calculate_kupst_cost(
     ...     return_detail=True,
     ...     regulation_period='current'
     ... )
-    {'kupst_tol_perc': 0.15, 'kupsm_tol': 18.0, 'kupsm': 2.0, 'unit_kupst_cost': 5.5, 'kupst_cost': 11.0}
+    {'kupst_tol_perc': 0.15, 'kupsm_tol': 18.0, 'kupsm': 2.0, 'unit_kupst_cost': 37.5, 'kupst_cost': 75.0}
     """
     if tol is None:
         if source is None:
             raise Exception("Either tol(erance) or source parameter must be provided")
         tol = get_kupst_tolerance(source=source, regulation_period=regulation_period)
+
+    ## The multiplier and floor depend on the source's KUPST category too
+    ## (e.g. 0.10 for plant_w_battery), not only the tolerance
+    if source is not None and kupst_multiplier is None and is_dated_regulation_period(regulation_period):
+        source_d = get_kupst_params_by_period(
+            regulation_period,
+            category=source,
+            include_maintenance_penalty=include_maintenance_penalty,
+        )
+        if source_d is not None:
+            kupst_multiplier = source_d["multiplier"]
+            if kupst_floor_price is None:
+                kupst_floor_price = source_d["floor_price"]
 
     kupsm = calculate_kupsm(actual=actual, forecast=forecast, tol=tol)
 
@@ -1304,7 +1335,7 @@ def calculate_kupst_cost(
     if return_detail:
         detail_d = {
             "kupst_tol_perc": tol,
-            "kupsm_tol": abs(forecast) * tol,
+            "kupsm_tol": None if tol is None else abs(forecast) * tol,
             "kupsm": kupsm,
             "unit_kupst_cost": unit_kupst,
             "kupst_cost": kupst_cost,
@@ -2169,7 +2200,7 @@ def calculate_unit_price_and_costs_by_contract(
     ...     mcp=100,
     ...     smp=110
     ... )
-    {'pos_price': 94.0, 'neg_price': 116.5, 'pos_cost': 6.0, 'neg_cost': 16.5, 'unit_kupst': 5.5}
+    {'pos_imb_price': -103.0, 'neg_imb_price': 159.0, 'unit_pos_imb_cost': 203.0, 'unit_neg_imb_cost': 59.0, 'unit_kupst': 37.5}
     """
     regulation_period = get_regulation_period_by_contract(contract=contract)
 
@@ -2254,7 +2285,7 @@ def calculate_unit_price_and_costs(
     Examples
     --------
     >>> calculate_unit_price_and_costs(mcp=100, smp=110, regulation_period='current')
-    {'pos_price': 94.0, 'neg_price': 116.5, 'pos_cost': 6.0, 'neg_cost': 16.5, 'unit_kupst': 5.5}
+    {'pos_imb_price': 97.0, 'neg_imb_price': 116.6, 'unit_pos_imb_cost': 3.0, 'unit_neg_imb_cost': 16.6, 'unit_kupst': 37.5}
     """
 
     if is_dated_regulation_period(regulation_period):
@@ -3566,10 +3597,11 @@ def calculate_imbalance_costs(
             (e.g. 'wind', 'Rüzgar', 'GES', 'Müstakil depolama'), see
             normalize_kupst_category.
         is_producer: Production (True) or consumption (False) unit. KUPST
-            applies to producers, and to consumption units from 2027-01-01
-            when their category is 'consumption_art17' (withdrawal units of
-            DUY Art. 17(2) (a)-(ç), tolerance 0.75) or 'consumption_other'
-            (0.30), see kupst_applies.
+            applies to producers, and to consumption units from 2027-01-01:
+            'consumption_art17' (withdrawal units of DUY Art. 17(2) (a)-(ç),
+            tolerance 0.75) or 'consumption_other' (0.30), see kupst_applies.
+            A consumption category makes the row a consumer; a consumer with
+            any other category is 'consumption_other'.
         prices: Hourly prices passed to calculate_imbalance_prices. Fetched
             from EPİAŞ if None.
         eptr: EPTR2 client for fetching.
@@ -3634,6 +3666,7 @@ def calculate_imbalance_costs(
         row_category = row.get("category", row.get("source")) or category
         row_is_producer = row.get("is_producer")
         row_is_producer = is_producer if row_is_producer is None else bool(row_is_producer)
+        row_category, row_is_producer = _resolve_unit_category(row_category, row_is_producer)
 
         imb_qty = calculate_imbalance_amount(
             actual=row["actual"],

@@ -53,6 +53,12 @@ def calculate_org_activity(df: pd.DataFrame) -> pd.DataFrame:
 
     The PnL is an estimate: actual trade prices of the organization are not public, so intraday trades are assumed to be at idm_wap. If a price is missing, the related PnL is NaN.
     """
+    if "idm_tad" in df.columns and "idm_mad" not in df.columns:
+        logger.warning(
+            "idm_tad is given without idm_mad: since eptr2 1.4.1 the per-MWh value is idm_mad "
+            "(idm_tad is the total in TL), so day_trade_tad is not calculated. Rename the column to idm_mad."
+        )
+
     df = df.copy()
     for col in ["bi_long", "bi_short"]:
         if col not in df.columns:

@@ -2,111 +2,122 @@
 
 All notable changes to eptr2 are documented here.
 
-## Version 1.4.1 (unreleased)
+## Version 1.4.1 (2026-11-17)
+
+KÜPST checked against the EPDK decisions, EPİAŞ's GİP bid/ask label swap and
+duplicated imbalance rows, two new calls and a GİP statistics composite.
+
+### Breaking changes
+- `idm-qty` (`get_idm_qty`) ([#7](https://github.com/Tideseed/eptr2/issues/7)):
+  EPİAŞ returns GİP purchases (Alış) as `clearingQuantityAsk` and sales (Satış)
+  as `clearingQuantityBid`. The DataFrame now corrects them:
+  `clearingQuantityBid` = bought, `clearingQuantityAsk` = sold. Code that
+  swapped the columns itself must drop that swap. `postprocess=False` still
+  returns the raw response; `get_dabi_idm_data` (`idm_long` / `idm_short`) was
+  already correct.
+- `idm_tad` is renamed `idm_mad` in `get_org_estimated_activity`,
+  `calculate_org_activity` and `calculate_idm_contract_stats`: it is the
+  per-MWh mean absolute deviation of trade prices from WAP (TL/MWh).
+  `day_trade_tad = day_trade × idm_mad` keeps its name (the total, TL).
+  `calculate_org_activity` warns when it gets only the old `idm_tad`.
+- `get_org_estimated_activity` writes its CSV files by default
+  (`export_to_csv=True`) and its price file is `prices` (from
+  `get_hourly_price_and_cost_data`) instead of `mcp` and `wap`; files from
+  1.4.0 are fetched again.
+- `get_reference_imbalance_costs` is built on `get_hourly_price_and_cost_data`
+  and returns its column names (`mcp`, `smp`, `pos_imb_price`, …) plus
+  `ref_imb_cost`.
+- KÜPST results change for the categories corrected below.
+
+### Added
+- `get_idm_contract_stats(start_date, end_date, eptr=...)`: market-wide GİP
+  statistics per hourly contract from the trade log: `idm_wap`, `idm_mad`
+  (TL/MWh), `idm_tad` (TL, `idm_mad × idm_volume_mwh`), trade count and
+  volume. The log and the statistics are written to CSV and read back before
+  fetching (`export_to_csv=True`, `check_existing=True`); logs or files that
+  miss days of the period (e.g. a failed request) are neither written nor
+  read, and a log passed in as `idm_log_df` is not written.
+  `get_org_estimated_activity(include_tad=True)` uses it.
+  `calculate_idm_contract_stats` now lives in `eptr2.composite.idm_log`
+  (still importable from `org_activity`).
+- New calls `meter-count` (Sayaç Adedi: the whole monthly meter count series)
+  and `multiple-factor-bulk` (Çarpan Değeri for one distribution company, all
+  profile groups and meter reading types, up to three months from `period`;
+  `distribution_id` from `mf-distribution`), with wrappers `get_meter_count`
+  and `get_multiple_factor_bulk`. 236 call keys. Of the other endpoints in
+  EPİAŞ's technical documentation, AUF (`maximum-settlement-price`, last data
+  2023-09) and five YEKDEM endpoints have had no data for years, and the rest
+  serve the platform's home page and charts, so they are not added.
+- `eptr.call(..., drop_duplicates=True)` (default `False`) drops rows that are
+  identical in every column, with a warning. EPİAŞ's `mcp-smp-imb` returns
+  every hour of 2026-11-01 twice, which doubled that day in the price and cost
+  functions; `get_hourly_price_and_cost_data`, `calculate_imbalance_prices`
+  and the MCP imbalance price tool use it, and `calculate_imbalance_prices`
+  keeps one row per hour of any input (raising `ValueError` for conflicting
+  rows of an hour).
+- KÜPST categories `other_renewable` (hydro, geothermal, biomass, …: tolerance
+  and multiplier of other sources, maintenance multiplier from 30 fault
+  entries like wind and solar) and, from 2027-01-01 (Decision 14907,
+  Provisional Article 1), `consumption_art17` (tolerance 0.75) and
+  `consumption_other` (0.30), n = 0.01, in a new `27_01` regulation row.
+  `regulation_period="current"` is now `27_01` (production values unchanged).
+  `kupst_applies` tells whether KÜPST applies to a unit.
 
 ### Fixed
-- `idm-qty` (`get_idm_qty`) ([#7](https://github.com/Tideseed/eptr2/issues/7)): EPİAŞ returns GİP purchases (Alış) as
-  `clearingQuantityAsk` and sales (Satış) as `clearingQuantityBid`. The
-  DataFrame now corrects them: `clearingQuantityBid` = bought,
-  `clearingQuantityAsk` = sold, matching the platform page. **Breaking for code
-  that compensated for the swap itself**; `postprocess=False` still returns the
-  raw response. `get_dabi_idm_data` (`idm_long` / `idm_short`) is unchanged.
-  The trap is documented in AGENTS.md, the `idm-qty` help text and the
-  market-operations, convenience-wrappers and API-discovery skills.
-- Composite functions build on other composites instead of repeating base
-  calls: `get_org_estimated_activity` takes MCP and WAP from
-  `get_hourly_price_and_cost_data` (its CSV export writes one `prices` file
-  instead of `mcp` and `wap`; files from 1.4.0 are fetched again), and
-  `get_reference_imbalance_costs` is built on it too (its columns are now that
-  function's: `mcp`, `smp`, `pos_imb_price`, `neg_imb_price`, … plus
-  `ref_imb_cost`).
-- `calculate_portfolio_costs` and the generation organization wrappers
-  (`get_generation_org_and_uevcb_wrapper`, `get_periodic_generation_organization_lists`,
-  `get_multiperiod_generation_org_and_uevcb_wrapper`) create one client for
-  all their calls when none is passed, instead of logging in for each plant,
-  period or step.
-- `get_org_estimated_activity` / `calculate_org_activity` / `calculate_idm_contract_stats`:
-  `idm_tad` is renamed `idm_mad`. It is a per MWh value, the quantity-weighted
-  mean absolute deviation of trade prices from WAP (TL/MWh), not a total.
-  `day_trade_tad = day_trade × idm_mad` keeps its name: it is the total (TL).
-  **Breaking** for code and exported `idm_contract_stats` files that use `idm_tad`.
-- New composite `get_idm_contract_stats(start_date, end_date, eptr=...)`:
-  market-wide GİP statistics per hourly contract from the trade log, `idm_wap`,
-  `idm_mad` (TL/MWh), the new `idm_tad` (TL, `idm_mad × idm_volume_mwh`),
-  trade count and volume. It writes `idm_log` and `idm_contract_stats` CSV files
-  and reads them first (`export_to_csv=True`, `check_existing=True` by
-  default); old statistics files without the current columns are recalculated.
-  `get_org_estimated_activity(include_tad=True)` uses it and shares its files.
-  `calculate_idm_contract_stats` now lives in `eptr2.composite.idm_log` (still
-  importable from `org_activity`).
-- `get_org_estimated_activity` writes its CSV files by default
-  (`export_to_csv=True`, like `get_idm_contract_stats`), so repeated runs read
-  files instead of fetching again. Pass `export_to_csv=False` to write nothing.
-- `mcp-smp-imb`: EPİAŞ returns every hour of 2026-11-01 twice (identical rows
-  in every field), which doubled that day in `get_hourly_price_and_cost_data`,
-  `calculate_imbalance_prices` and the functions built on them. New
-  `eptr.call(..., drop_duplicates=True)` option (default `False`, any
-  DataFrame result) drops rows identical in every column, with a warning; the
-  price composite, `calculate_imbalance_prices` and the MCP imbalance price
-  tool use it. `calculate_imbalance_prices` also keeps one row per hour of any
-  input (raw responses, `prices`), raising `ValueError` for conflicting rows of
-  an hour.
-- KÜPST coefficients of `26_01` (2026-01-01 to 2026-10-31) corrected against
-  EPDK Decision 14029 ([#8](https://github.com/Tideseed/eptr2/issues/8)):
+- KÜPST coefficients of `26_01` (2026-01-01 to 2026-10-31) per EPDK Decision
+  14029 ([#8](https://github.com/Tideseed/eptr2/issues/8)):
   transmission-connected unlicensed plants n = 0.02 (was 0.05), plants with
-  storage (`plant_w_battery`) n = 0.10 (fell back to `other`, 0.05), and the
-  maintenance multiplier 0.08 now applies from 30 monthly fault entries for
-  wind and solar and 25 for other sources (it could never apply before).
-  **KÜPST results for January–October 2026 change for these categories.**
-  The `26_02` row now cites Decisions 14907 and 14911.
-- KÜPST maintenance threshold for renewables other than wind and solar: new
-  `other_renewable` category (hydro, geothermal, biomass, biogas, …;
-  "renewable" as in Law 5346 Art. 3), with the tolerance and multiplier of
-  other sources but the renewables threshold of 30 monthly fault entries
-  (Decisions 14029 and 14907, Article 2); they used the 25 of `other`.
-  `normalize_kupst_category` maps HES, JES, Biyokütle etc. to it.
-- Consumption settlement units get KÜPST from 2027-01-01 (Decision 14907,
-  Provisional Article 1): new `27_01` regulation row and categories
-  `consumption_art17` (withdrawal units of DUY Art. 17(2) (a)–(ç), tolerance
-  0.75) and `consumption_other` (0.30), both with n = 0.01.
-  `calculate_imbalance_costs` applies KÜPST to consumers in these categories
-  from that date (`kupst_applies`). `regulation_period="current"` is now
-  `27_01` (production values unchanged).
-- `calculate_portfolio_costs` used the `other` KÜPST multiplier for every
-  plant; the unit KÜPST cost now follows each plant's `source` (e.g. 0.10 for
-  plants with storage, 0.02 for transmission-connected unlicensed plants).
-- `calculate_kupsm` uses `|forecast|` for the tolerance amount, so negative
-  (consumption) plans work, and returns 0 when KÜPST does not apply.
-- `calculate_imbalance_costs` documents the decision rules it does not model
-  (net UEVM − UEÇM deviation, generation-only for unlicensed plants,
-  per-participant aggregation, the Art. 5 exclusion).
+  storage n = 0.10 (fell back to `other`, 0.05), and the 0.08 maintenance
+  multiplier applies from 30 monthly fault entries for renewables and 25 for
+  other sources (it could never apply before). The `26_02` row cites
+  Decisions 14907 and 14911.
+- `calculate_imbalance_costs`: consumers pay KÜPST from 2027-01-01 (a consumer
+  without a consumption category is `consumption_other`), and a consumption
+  category makes the row a consumer.
+- `calculate_kupst_cost(source=…)` took the tolerance from the source but the
+  multiplier and floor from `other`; `calculate_portfolio_costs` used the
+  `other` multiplier for every plant. Both follow the category now.
 - `calculate_kupst_cost(..., return_detail=True)`: `kupsm_tol` is the tolerance
-  amount in MWh (`forecast × tolerance`), as documented; it returned the ratio.
-- `calculate_imbalance_costs` documents the choice of `forecast`: KUDÜP
-  approximates settlement (BUDÜP = KUDÜP + YAL − YAT + SRDM + SFHM, with
-  plant-level YAL/YAT unavailable and taken as 0), KGÜP v1 is a what-if with
-  the day-ahead plan unchanged.
-- Deprecated cost functions (`calculate_imbalance_cost_list`,
+  amount in MWh, not the ratio; consumption sources before 2027 return zero
+  instead of raising. `calculate_kupsm` works with negative (consumption)
+  plans.
+- `calculate_unit_kupst_cost_2026(source=…)` raised for sources outside its
+  draft-regulation shortcut.
+- `normalize_kupst_category`: `dammedHydro`, Hidro, Nehir and BES map to
+  `other_renewable`; "Depolama tesisi" is standalone storage (`battery`), not
+  a plant with storage.
+- Request bodies accept numpy / pandas values: an id taken from a DataFrame
+  (`int64`) raised "not JSON serializable", and arrays and Series are sent as
+  lists.
+- `calculate_portfolio_costs` reads its cached export without logging in.
+- Composites reuse other composites and share one client:
+  `calculate_portfolio_costs` and the generation organization wrappers no
+  longer log in for each plant, period or step.
+- Checked against EPİAŞ's electricity technical documentation v1.16.4:
+  `dam-block-bid` / `dam-block-offer` help says blocks span at least 3 hours
+  (was 4); `ren-total-cost` has a new `lumUretimYektob` column, which passes
+  through.
+
+### Documentation
+- `calculate_imbalance_costs` documents the choice of `forecast` (KUDÜP
+  approximates settlement, with plant-level YAL/YAT unavailable and taken as 0;
+  KGÜP v1 is a what-if with the day-ahead plan unchanged), the storage cases
+  of Article 3(3), and the decision rules it does not model (net UEVM − UEÇM
+  deviation, generation-only for unlicensed plants, per-participant
+  aggregation, the Art. 5 exclusion). Docstring examples show the real
+  outputs (with the 750 TL/MWh floor).
+- The `idm-qty` trap is documented in AGENTS.md, the help text and the
+  market-operations, convenience-wrappers and API-discovery skills.
+
+### Deprecated
+- The cost list helpers (`calculate_imbalance_cost_list`,
   `calculate_diff_costs_list`, `calculate_kupst_cost_list`, the `*_pre_2026`
-  list helpers, `calculate_imbalance_price_and_costs_2026` and the `temp_*`
-  helpers) now warn that they will be removed in **1.5.0** and name a current
-  replacement.
-- New calls `meter-count` (Sayaç Adedi: the whole monthly meter count series,
-  no parameters) and `multiple-factor-bulk` (Çarpan Değeri toplu: hourly
-  multiple factors of one distribution company for all profile groups and
-  meter reading types, up to three months from `period`; `distribution_id` from
-  `mf-distribution`),
-  with wrappers `get_meter_count` and `get_multiple_factor_bulk`. 236 call
-  keys. Of the other unmapped endpoints in the technical documentation, AUF
-  (`maximum-settlement-price`, last data 2023-09) and five YEKDEM endpoints
-  have had no data for years, and the rest serve the platform's home page and
-  charts, so they are not added.
-- Checked against EPİAŞ's electricity technical documentation v1.16.4 (last
-  updated 2026-10-08): `dam-block-bid` / `dam-block-offer` help now says blocks
-  span at least 3 hours (was 4); `ren-total-cost` returns a new
-  `lumUretimYektob` column (LÜM generation YEKTOB, TL), which passes through.
-- Request bodies accept numpy / pandas scalars: an id taken from a DataFrame
-  (`int64`) raised "Object of type int64 is not JSON serializable".
+  and `temp_*` helpers, `calculate_imbalance_price_and_costs_2026`) will be
+  removed in 1.5.0; their warnings name the replacements.
+
+### Development
+- CI runs on `main` and pull requests only, with locked `uv` installs and a
+  cache; a rate limiter test no longer sleeps 30 s (offline suite about 5 s).
 
 ## Version 1.4.0 (2026-10-30)
 

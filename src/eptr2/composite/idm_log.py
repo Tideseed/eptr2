@@ -188,6 +188,15 @@ def calculate_idm_contract_stats(log_df: pd.DataFrame) -> pd.DataFrame:
     return stats_df[cols].sort_values("contract").reset_index(drop=True)
 
 
+def _missing_days(contracts, start_date: str, end_date: str) -> list[str]:
+    """Days of the period without any hourly contract in ``contracts``; a
+    trade log or statistics with missing days is partial (e.g. a failed
+    idm_log_longer chunk) and is not cached."""
+    days = pd.date_range(start_date, end_date, freq="D").strftime("%y%m%d")
+    covered = {str(c)[2:8] for c in contracts if str(c).startswith("PH")}
+    return [f"20{d[:2]}-{d[2:4]}-{d[4:]}" for d in days if d not in covered]
+
+
 def get_idm_contract_stats(
     start_date: str,
     end_date: str,
@@ -202,7 +211,7 @@ def get_idm_contract_stats(
     """
     Market wide intraday (GİP) statistics per hourly contract for the given period (start_date and end_date inclusive), from the IDM trade log: idm_wap, idm_mad (MAD, mean absolute deviation, TL/MWh), idm_tad (TAD, total absolute deviation, TL), idm_trade_count and idm_volume_mwh. See calculate_idm_contract_stats.
 
-    The trade log is large (about 20k trades a day) and slow to fetch (roughly 30-70 s per week, depending on EPİAŞ), so by default the results are kept in files: idm_log_{start_date}_{end_date}.csv (the log, idm_log_longer output) and idm_contract_stats_{start_date}_{end_date}.csv in export_dir. With check_existing=True (default) the statistics file is read if it exists, otherwise the log file, and only then is the log fetched. get_org_estimated_activity uses the same files.
+    The trade log is large (about 20k trades a day) and slow to fetch (roughly 30-70 s per week, depending on EPİAŞ), so by default the results are kept in files: idm_log_{start_date}_{end_date}.csv (the log, idm_log_longer output) and idm_contract_stats_{start_date}_{end_date}.csv in export_dir. With check_existing=True (default) the statistics file is read if it exists, otherwise the log file, and only then is the log fetched. get_org_estimated_activity uses the same files. A log or statistics that misses days of the period (e.g. a failed request inside idm_log_longer) is not written, and such files are not read back.
 
     end_date must be before today (Europe/Istanbul): the log of the current day is not final, so neither are the statistics or the files.
 
@@ -210,7 +219,7 @@ def get_idm_contract_stats(
         start_date: Start date in 'YYYY-MM-DD' format
         end_date: End date in 'YYYY-MM-DD' format (inclusive), before today
         eptr: EPTR2 object. Created from .env if needed.
-        idm_log_df: Previously fetched trade log covering the period (idm_log_longer output). Used instead of the files and the API.
+        idm_log_df: Previously fetched trade log covering the period (idm_log_longer output). Used instead of the files and the API, and not written to files.
         export_to_csv: Write the log and the statistics to export_dir (files that were read are not written again).
         export_dir: Directory of the CSV files, created if missing.
         check_existing: Read existing files of the same period before fetching.
@@ -231,23 +240,34 @@ def get_idm_contract_stats(
 
     stats_path, log_path = csv_path("idm_contract_stats"), csv_path("idm_log")
 
-    if idm_log_df is None and check_existing and os.path.exists(stats_path):
+    ## A trade log passed in by the caller is used as is and never cached: it
+    ## may cover a different or partial period
+    caller_log = idm_log_df is not None
+
+    if not caller_log and check_existing and os.path.exists(stats_path):
         stats_df = pd.read_csv(stats_path, dtype={"contract": str})
-        if all(c in stats_df.columns for c in IDM_CONTRACT_STATS_COLUMNS):
+        if not all(c in stats_df.columns for c in IDM_CONTRACT_STATS_COLUMNS):
+            ## e.g. files of eptr2 1.4.0, whose idm_tad column was the MAD
+            logger.warning(
+                "%s does not have the current columns, recalculating it.", stats_path
+            )
+        elif _missing_days(stats_df["contract"], start_date, end_date):
+            logger.warning("%s does not cover every day of the period, recalculating it.", stats_path)
+        else:
             if verbose:
                 logger.info("Read IDM contract statistics from %s", stats_path)
             return stats_df[IDM_CONTRACT_STATS_COLUMNS]
-        ## e.g. files of eptr2 1.4.0, whose idm_tad column was the MAD
-        logger.warning(
-            "%s does not have the current columns, recalculating it.", stats_path
-        )
 
     log_loaded = False
-    if idm_log_df is None and check_existing and os.path.exists(log_path):
-        if verbose:
-            logger.info("Reading the IDM trade log from %s", log_path)
-        idm_log_df = pd.read_csv(log_path, dtype={"contractName": str})
-        log_loaded = True
+    if not caller_log and check_existing and os.path.exists(log_path):
+        log_df = pd.read_csv(log_path, dtype={"contractName": str})
+        if _missing_days(log_df["contractName"], start_date, end_date):
+            logger.warning("%s does not cover every day of the period, fetching the log again.", log_path)
+        else:
+            if verbose:
+                logger.info("Reading the IDM trade log from %s", log_path)
+            idm_log_df = log_df
+            log_loaded = True
 
     if idm_log_df is None:
         if verbose:
@@ -267,7 +287,16 @@ def get_idm_contract_stats(
 
     stats_df = calculate_idm_contract_stats(idm_log_df)
 
-    if export_to_csv:
+    missing = _missing_days(stats_df["contract"], start_date, end_date)
+    if missing and not caller_log:
+        logger.warning(
+            "The IDM trade log has no hourly contracts for %d day(s) of the period (%s ...); "
+            "the files are not written, so the next run fetches it again.",
+            len(missing),
+            ", ".join(missing[:3]),
+        )
+
+    if export_to_csv and not caller_log and not missing:
         os.makedirs(export_dir, exist_ok=True)
         if not log_loaded:
             idm_log_df.to_csv(log_path, index=False)

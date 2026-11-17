@@ -311,6 +311,8 @@ def get_reference_imbalance_costs(
     Returns the get_hourly_price_and_cost_data columns (without WAP and KUPST) plus ref_imb_cost.
     """
 
+    ## The client's default read timeout, as before this function used the price composite
+    kwargs.setdefault("timeout", 60)
     df = get_hourly_price_and_cost_data(
         start_date=start_date,
         end_date=end_date,
