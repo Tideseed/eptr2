@@ -174,7 +174,9 @@ df = get_hourly_consumption_and_forecast_data(
 BOUGHT (Alış) and `clearingQuantityBid` = SOLD (Satış). From 1.4.1 the eptr2 DataFrame corrects them
 (`clearingQuantityBid` = bought, `clearingQuantityAsk` = sold); `postprocess=False` and eptr2 1.4.0 or earlier keep
 EPİAŞ's labels. `get_dabi_idm_data` maps them to `idm_long` (purchases) and `idm_short` (sales) in every version; its nets
-are long minus short (net purchases) and `net_sales` has the opposite sign.
+are long minus short (net purchases) and `net_sales` has the opposite sign. Code written for earlier versions that
+swapped the columns itself (`clearingQuantityAsk` → buy) double-swaps silently on 1.4.1: switch it to `postprocess=False`
+(raw labels in every version) or `get_dabi_idm_data`, or pin `eptr2<1.4.1`, and do not mix tables stored before and after.
 
 Note: composite functions take `start_date`/`end_date` first and the client as the `eptr` keyword argument.
 
