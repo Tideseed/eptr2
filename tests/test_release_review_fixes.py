@@ -130,6 +130,7 @@ def test_json_default_arrays():
 ## --- portfolio cost cache needs no login ---
 
 def test_portfolio_cached_export_without_client(tmp_path, monkeypatch):
+    pytest.importorskip("openpyxl")  # the cache is an Excel file
     import eptr2.composite.plant_costs as pc
 
     path = tmp_path / "portfolio_costs_data_2026-10-01_2026-10-02.xlsx"

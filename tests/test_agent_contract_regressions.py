@@ -195,9 +195,10 @@ def test_portfolio_tolerance_resolved_per_contract():
     with tempfile.TemporaryDirectory() as directory, patch.object(
         pc, "wrapper_hourly_production_plan_and_realized", return_value=data
     ):
+        ## Data is stubbed and prices are given: no request is made, so any client will do
         output = pc.calculate_portfolio_costs(
             "2025-12-31", "2026-01-01", ids, cost_df=costs,
-            verbose=False, export_dir=directory,
+            verbose=False, export_dir=directory, eptr=object(),
         )
 
     expected = [
