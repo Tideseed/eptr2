@@ -82,6 +82,7 @@ def _function_entry(func, module_name: str) -> dict:
 def _endpoint_entries() -> dict:
     from eptr2.agentic.discovery import _all_call_info
     from eptr2.mapping.help import get_call_help
+    from eptr2.mapping.publication import get_publication_change
 
     endpoints = {}
     for key, info in _all_call_info().items():
@@ -96,6 +97,9 @@ def _endpoint_entries() -> dict:
             "required_params": h.get("required_body_params"),
             "optional_params": h.get("optional_body_params"),
         }
+        change = get_publication_change(key)
+        if change is not None:
+            endpoints[key]["publication_change"] = change
     return endpoints
 
 

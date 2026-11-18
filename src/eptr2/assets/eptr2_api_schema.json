@@ -433,6 +433,16 @@
       "optional_params": [
         "org_id"
       ],
+      "publication_change": {
+        "alternative": "the hourly market total (without org_id) stays on the list (row 49)",
+        "effective_date": "2027-01-01",
+        "kind": "participant",
+        "notice": "'bi-long' with org_id is not on the Transparency Platform data list from 2027-01-01 (EPDK Decision 14968, RG 20/10/2026 No. 33406), and Art. 6/4 of the Transparency Regulation (RG 14/2/2026 No. 33168) bars publishing individual data that identifies a market participant, so EPİAŞ is likely to stop serving it. Instead: the hourly market total (without org_id) stays on the list (row 49). eptr2 keeps the call while EPİAŞ serves it.",
+        "source": "EPDK Decision 14968, RG 20/10/2026 No. 33406; Art. 6/4 of the Transparency Regulation (RG 14/2/2026 No. 33168)",
+        "when_params": [
+          "org_id"
+        ]
+      },
       "required_params": [
         "start_date",
         "end_date"
@@ -454,6 +464,16 @@
       "optional_params": [
         "org_id"
       ],
+      "publication_change": {
+        "alternative": "the hourly market total (without org_id) stays on the list (row 50)",
+        "effective_date": "2027-01-01",
+        "kind": "participant",
+        "notice": "'bi-short' with org_id is not on the Transparency Platform data list from 2027-01-01 (EPDK Decision 14968, RG 20/10/2026 No. 33406), and Art. 6/4 of the Transparency Regulation (RG 14/2/2026 No. 33168) bars publishing individual data that identifies a market participant, so EPİAŞ is likely to stop serving it. Instead: the hourly market total (without org_id) stays on the list (row 50). eptr2 keeps the call while EPİAŞ serves it.",
+        "source": "EPDK Decision 14968, RG 20/10/2026 No. 33406; Art. 6/4 of the Transparency Regulation (RG 14/2/2026 No. 33168)",
+        "when_params": [
+          "org_id"
+        ]
+      },
       "required_params": [
         "start_date",
         "end_date"
@@ -591,6 +611,14 @@
         "province_id",
         "profile_group_id"
       ],
+      "publication_change": {
+        "alternative": "consumer counts by province and profile group are not on the list; the eligible consumer count (row 78) stays",
+        "effective_date": "2027-01-01",
+        "kind": "not_listed",
+        "notice": "'consumer-breakdown' is not on the Transparency Platform data list from 2027-01-01 (EPDK Decision 14968, RG 20/10/2026 No. 33406); publishing it is no longer required and EPİAŞ may stop serving it. Instead: consumer counts by province and profile group are not on the list; the eligible consumer count (row 78) stays. eptr2 keeps the call while EPİAŞ serves it.",
+        "source": "EPDK Decision 14968, RG 20/10/2026 No. 33406",
+        "when_params": null
+      },
       "required_params": [
         "period"
       ],
@@ -612,6 +640,14 @@
         "province_id",
         "profile_group_id"
       ],
+      "publication_change": {
+        "alternative": "consumption by province and profile group is not on the list; UEÇM (row 73) and eligible consumer consumption (row 79) stay",
+        "effective_date": "2027-01-01",
+        "kind": "not_listed",
+        "notice": "'consumption-breakdown' is not on the Transparency Platform data list from 2027-01-01 (EPDK Decision 14968, RG 20/10/2026 No. 33406); publishing it is no longer required and EPİAŞ may stop serving it. Instead: consumption by province and profile group is not on the list; UEÇM (row 73) and eligible consumer consumption (row 79) stay. eptr2 keeps the call while EPİAŞ serves it.",
+        "source": "EPDK Decision 14968, RG 20/10/2026 No. 33406",
+        "when_params": null
+      },
       "required_params": [
         "period"
       ],
@@ -689,6 +725,16 @@
       "optional_params": [
         "org_id"
       ],
+      "publication_change": {
+        "alternative": "the market total (without org_id) stays on the list (row 11)",
+        "effective_date": "2027-01-01",
+        "kind": "participant",
+        "notice": "'dam-clearing' with org_id is not on the Transparency Platform data list from 2027-01-01 (EPDK Decision 14968, RG 20/10/2026 No. 33406), and Art. 6/4 of the Transparency Regulation (RG 14/2/2026 No. 33168) bars publishing individual data that identifies a market participant, so EPİAŞ is likely to stop serving it. Instead: the market total (without org_id) stays on the list (row 11). eptr2 keeps the call while EPİAŞ serves it.",
+        "source": "EPDK Decision 14968, RG 20/10/2026 No. 33406; Art. 6/4 of the Transparency Regulation (RG 14/2/2026 No. 33168)",
+        "when_params": [
+          "org_id"
+        ]
+      },
       "required_params": [
         "start_date",
         "end_date"
@@ -708,6 +754,14 @@
         "tr": "Göp Eşleşme Miktarı Organizasyon Listeleme."
       },
       "optional_params": [],
+      "publication_change": {
+        "alternative": "only market totals of GÖP matching stay on the list (row 11)",
+        "effective_date": "2027-01-01",
+        "kind": "participant",
+        "notice": "'dam-clearing-org-list' is not on the Transparency Platform data list from 2027-01-01 (EPDK Decision 14968, RG 20/10/2026 No. 33406), and Art. 6/4 of the Transparency Regulation (RG 14/2/2026 No. 33168) bars publishing individual data that identifies a market participant, so EPİAŞ is likely to stop serving it. Instead: only market totals of GÖP matching stay on the list (row 11). eptr2 keeps the call while EPİAŞ serves it.",
+        "source": "EPDK Decision 14968, RG 20/10/2026 No. 33406; Art. 6/4 of the Transparency Regulation (RG 14/2/2026 No. 33168)",
+        "when_params": null
+      },
       "required_params": [
         "period"
       ],
@@ -861,6 +915,17 @@
         "basin_name",
         "dam_name"
       ],
+      "publication_change": {
+        "alternative": "only the Türkiye total stays on the list (row 102)",
+        "effective_date": "2027-01-01",
+        "kind": "aggregated",
+        "notice": "'dams-active-fullness' with basin_name or dam_name is not on the Transparency Platform data list from 2027-01-01 at this level of detail (EPDK Decision 14968, RG 20/10/2026 No. 33406); EPİAŞ may stop serving it. Instead: only the Türkiye total stays on the list (row 102). eptr2 keeps the call while EPİAŞ serves it.",
+        "source": "EPDK Decision 14968, RG 20/10/2026 No. 33406",
+        "when_params": [
+          "basin_name",
+          "dam_name"
+        ]
+      },
       "required_params": [],
       "title": {
         "en": "Active Fullness",
@@ -880,6 +945,17 @@
         "basin_name",
         "dam_name"
       ],
+      "publication_change": {
+        "alternative": "only the Türkiye total stays on the list (row 102)",
+        "effective_date": "2027-01-01",
+        "kind": "aggregated",
+        "notice": "'dams-active-volume' with basin_name or dam_name is not on the Transparency Platform data list from 2027-01-01 at this level of detail (EPDK Decision 14968, RG 20/10/2026 No. 33406); EPİAŞ may stop serving it. Instead: only the Türkiye total stays on the list (row 102). eptr2 keeps the call while EPİAŞ serves it.",
+        "source": "EPDK Decision 14968, RG 20/10/2026 No. 33406",
+        "when_params": [
+          "basin_name",
+          "dam_name"
+        ]
+      },
       "required_params": [],
       "title": {
         "en": "Active Volume",
@@ -899,6 +975,14 @@
         "basin_name",
         "dam_name"
       ],
+      "publication_change": {
+        "alternative": "dam data on the list are Türkiye totals: active fullness and volume (row 102) and water energy provision (row 103)",
+        "effective_date": "2027-01-01",
+        "kind": "not_listed",
+        "notice": "'dams-daily-level' is not on the Transparency Platform data list from 2027-01-01 (EPDK Decision 14968, RG 20/10/2026 No. 33406); publishing it is no longer required and EPİAŞ may stop serving it. Instead: dam data on the list are Türkiye totals: active fullness and volume (row 102) and water energy provision (row 103). eptr2 keeps the call while EPİAŞ serves it.",
+        "source": "EPDK Decision 14968, RG 20/10/2026 No. 33406",
+        "when_params": null
+      },
       "required_params": [],
       "title": {
         "en": "Daily Kot",
@@ -918,6 +1002,14 @@
         "basin_name",
         "dam_name"
       ],
+      "publication_change": {
+        "alternative": "dam data on the list are Türkiye totals: active fullness and volume (row 102) and water energy provision (row 103)",
+        "effective_date": "2027-01-01",
+        "kind": "not_listed",
+        "notice": "'dams-daily-volume' is not on the Transparency Platform data list from 2027-01-01 (EPDK Decision 14968, RG 20/10/2026 No. 33406); publishing it is no longer required and EPİAŞ may stop serving it. Instead: dam data on the list are Türkiye totals: active fullness and volume (row 102) and water energy provision (row 103). eptr2 keeps the call while EPİAŞ serves it.",
+        "source": "EPDK Decision 14968, RG 20/10/2026 No. 33406",
+        "when_params": null
+      },
       "required_params": [],
       "title": {
         "en": "Daily Volume",
@@ -937,6 +1029,14 @@
         "basin_name",
         "dam_name"
       ],
+      "publication_change": {
+        "alternative": "dam data on the list are Türkiye totals: active fullness and volume (row 102) and water energy provision (row 103)",
+        "effective_date": "2027-01-01",
+        "kind": "not_listed",
+        "notice": "'dams-info' is not on the Transparency Platform data list from 2027-01-01 (EPDK Decision 14968, RG 20/10/2026 No. 33406); publishing it is no longer required and EPİAŞ may stop serving it. Instead: dam data on the list are Türkiye totals: active fullness and volume (row 102) and water energy provision (row 103). eptr2 keeps the call while EPİAŞ serves it.",
+        "source": "EPDK Decision 14968, RG 20/10/2026 No. 33406",
+        "when_params": null
+      },
       "required_params": [],
       "title": {
         "en": "Flow Rate and Installed Power",
@@ -956,6 +1056,14 @@
         "basin_name",
         "dam_name"
       ],
+      "publication_change": {
+        "alternative": "dam data on the list are Türkiye totals: active fullness and volume (row 102) and water energy provision (row 103)",
+        "effective_date": "2027-01-01",
+        "kind": "not_listed",
+        "notice": "'dams-level-minmax' is not on the Transparency Platform data list from 2027-01-01 (EPDK Decision 14968, RG 20/10/2026 No. 33406); publishing it is no longer required and EPİAŞ may stop serving it. Instead: dam data on the list are Türkiye totals: active fullness and volume (row 102) and water energy provision (row 103). eptr2 keeps the call while EPİAŞ serves it.",
+        "source": "EPDK Decision 14968, RG 20/10/2026 No. 33406",
+        "when_params": null
+      },
       "required_params": [],
       "title": {
         "en": "Kot",
@@ -975,6 +1083,14 @@
         "basin_name",
         "dam_name"
       ],
+      "publication_change": {
+        "alternative": "dam data on the list are Türkiye totals: active fullness and volume (row 102) and water energy provision (row 103)",
+        "effective_date": "2027-01-01",
+        "kind": "not_listed",
+        "notice": "'dams-volume-minmax' is not on the Transparency Platform data list from 2027-01-01 (EPDK Decision 14968, RG 20/10/2026 No. 33406); publishing it is no longer required and EPİAŞ may stop serving it. Instead: dam data on the list are Türkiye totals: active fullness and volume (row 102) and water energy provision (row 103). eptr2 keeps the call while EPİAŞ serves it.",
+        "source": "EPDK Decision 14968, RG 20/10/2026 No. 33406",
+        "when_params": null
+      },
       "required_params": [],
       "title": {
         "en": "Volume",
@@ -994,6 +1110,17 @@
         "basin_name",
         "dam_name"
       ],
+      "publication_change": {
+        "alternative": "only the Türkiye total stays on the list (row 103)",
+        "effective_date": "2027-01-01",
+        "kind": "aggregated",
+        "notice": "'dams-water-energy-provision' with basin_name or dam_name is not on the Transparency Platform data list from 2027-01-01 at this level of detail (EPDK Decision 14968, RG 20/10/2026 No. 33406); EPİAŞ may stop serving it. Instead: only the Türkiye total stays on the list (row 103). eptr2 keeps the call while EPİAŞ serves it.",
+        "source": "EPDK Decision 14968, RG 20/10/2026 No. 33406",
+        "when_params": [
+          "basin_name",
+          "dam_name"
+        ]
+      },
       "required_params": [],
       "title": {
         "en": "Water Energy Provision",
@@ -1448,6 +1575,16 @@
       "optional_params": [
         "org_id"
       ],
+      "publication_change": {
+        "alternative": "the market total per contract (without org_id) stays on the list (row 17)",
+        "effective_date": "2027-01-01",
+        "kind": "participant",
+        "notice": "'idm-qty' with org_id is not on the Transparency Platform data list from 2027-01-01 (EPDK Decision 14968, RG 20/10/2026 No. 33406), and Art. 6/4 of the Transparency Regulation (RG 14/2/2026 No. 33168) bars publishing individual data that identifies a market participant, so EPİAŞ is likely to stop serving it. Instead: the market total per contract (without org_id) stays on the list (row 17). eptr2 keeps the call while EPİAŞ serves it.",
+        "source": "EPDK Decision 14968, RG 20/10/2026 No. 33406; Art. 6/4 of the Transparency Regulation (RG 14/2/2026 No. 33168)",
+        "when_params": [
+          "org_id"
+        ]
+      },
       "required_params": [
         "start_date",
         "end_date"
@@ -1617,6 +1754,14 @@
         "tr": "TCAT'ten temin edilen uluslararası hatlarda oluşan kesinti bilgileri sayfasıdır."
       },
       "optional_params": [],
+      "publication_change": {
+        "alternative": "transmission and interconnection outage notices move to the Dâhilî Bilgi Platformu (14967 row 4)",
+        "effective_date": "2027-01-01",
+        "kind": "dbp",
+        "notice": "'international-line-events' moves from the Transparency Platform to the Dâhilî Bilgi Platformu on 2027-01-01 (EPDK Decision 14967, RG 20/10/2026 No. 33406) and is not on the Transparency Platform data list, so EPİAŞ may stop serving it here. Instead: transmission and interconnection outage notices move to the Dâhilî Bilgi Platformu (14967 row 4). eptr2 keeps the call while EPİAŞ serves it.",
+        "source": "EPDK Decision 14967, RG 20/10/2026 No. 33406",
+        "when_params": null
+      },
       "required_params": [
         "start_date",
         "end_date"
@@ -1816,6 +1961,14 @@
       "optional_params": [
         "dist_org_id"
       ],
+      "publication_change": {
+        "alternative": "the day-ahead load plan (load-plan, row 71) stays",
+        "effective_date": "2027-01-01",
+        "kind": "not_listed",
+        "notice": "'long-term-demand-forecast' is not on the Transparency Platform data list from 2027-01-01 (EPDK Decision 14968, RG 20/10/2026 No. 33406); publishing it is no longer required and EPİAŞ may stop serving it. Instead: the day-ahead load plan (load-plan, row 71) stays. eptr2 keeps the call while EPİAŞ serves it.",
+        "source": "EPDK Decision 14968, RG 20/10/2026 No. 33406",
+        "when_params": null
+      },
       "required_params": [],
       "title": {
         "en": "Demand Forecast",
@@ -2010,6 +2163,14 @@
         "pp_id",
         "message_type_id"
       ],
+      "publication_change": {
+        "alternative": "outage and maintenance notices move to the Dâhilî Bilgi Platformu (14967 rows 1-3: 30 MW per facility, 50 MW per portfolio, within 1 hour)",
+        "effective_date": "2027-01-01",
+        "kind": "dbp",
+        "notice": "'mms' moves from the Transparency Platform to the Dâhilî Bilgi Platformu on 2027-01-01 (EPDK Decision 14967, RG 20/10/2026 No. 33406) and is not on the Transparency Platform data list, so EPİAŞ may stop serving it here. Instead: outage and maintenance notices move to the Dâhilî Bilgi Platformu (14967 rows 1-3: 30 MW per facility, 50 MW per portfolio, within 1 hour). eptr2 keeps the call while EPİAŞ serves it.",
+        "source": "EPDK Decision 14967, RG 20/10/2026 No. 33406",
+        "when_params": null
+      },
       "required_params": [
         "start_date",
         "end_date",
@@ -2101,6 +2262,14 @@
         "tr": "Piyasa Takas Fiyatı (PTF), Negatif Sistem Dengesizlik Fiyatı, YEKDEM Birim Fiyat, Ulusal Tarife Birim Fiyatları ve Piyasa Yönetim Sistemine kayıtlı tüketicilere ait uzlaştırma dönemi bazındaki çekiş miktarları kullanılarak hesaplanan değere ilişkin veri seti."
       },
       "optional_params": [],
+      "publication_change": {
+        "alternative": null,
+        "effective_date": "2027-01-01",
+        "kind": "not_listed",
+        "notice": "'monthly-index' is not on the Transparency Platform data list from 2027-01-01 (EPDK Decision 14968, RG 20/10/2026 No. 33406); publishing it is no longer required and EPİAŞ may stop serving it. eptr2 keeps the call while EPİAŞ serves it.",
+        "source": "EPDK Decision 14968, RG 20/10/2026 No. 33406",
+        "when_params": null
+      },
       "required_params": [
         "start_date",
         "end_date",
@@ -3490,6 +3659,14 @@
       "optional_params": [
         "province_id"
       ],
+      "publication_change": {
+        "alternative": null,
+        "effective_date": "2027-01-01",
+        "kind": "not_listed",
+        "notice": "'percentage-consumption-info' is not on the Transparency Platform data list from 2027-01-01 (EPDK Decision 14968, RG 20/10/2026 No. 33406); publishing it is no longer required and EPİAŞ may stop serving it. eptr2 keeps the call while EPİAŞ serves it.",
+        "source": "EPDK Decision 14968, RG 20/10/2026 No. 33406",
+        "when_params": null
+      },
       "required_params": [
         "period",
         "province_id"
@@ -3550,6 +3727,14 @@
         "province_id",
         "dist_company_id"
       ],
+      "publication_change": {
+        "alternative": null,
+        "effective_date": "2027-01-01",
+        "kind": "not_listed",
+        "notice": "'planned-outages' is not on the Transparency Platform data list from 2027-01-01 (EPDK Decision 14968, RG 20/10/2026 No. 33406); publishing it is no longer required and EPİAŞ may stop serving it. eptr2 keeps the call while EPİAŞ serves it.",
+        "source": "EPDK Decision 14968, RG 20/10/2026 No. 33406",
+        "when_params": null
+      },
       "required_params": [
         "period"
       ],
@@ -3932,6 +4117,16 @@
       "optional_params": [
         "pp_id"
       ],
+      "publication_change": {
+        "alternative": "the list keeps YEKDEM real-time generation by source and organization (row 81); per plant, use rt-gen (row 66)",
+        "effective_date": "2027-01-01",
+        "kind": "aggregated",
+        "notice": "'ren-rt-gen' with pp_id is not on the Transparency Platform data list from 2027-01-01 at this level of detail (EPDK Decision 14968, RG 20/10/2026 No. 33406); EPİAŞ may stop serving it. Instead: the list keeps YEKDEM real-time generation by source and organization (row 81); per plant, use rt-gen (row 66). eptr2 keeps the call while EPİAŞ serves it.",
+        "source": "EPDK Decision 14968, RG 20/10/2026 No. 33406",
+        "when_params": [
+          "pp_id"
+        ]
+      },
       "required_params": [
         "start_date",
         "end_date"
@@ -4314,6 +4509,14 @@
         "province_id",
         "dist_company_id"
       ],
+      "publication_change": {
+        "alternative": null,
+        "effective_date": "2027-01-01",
+        "kind": "not_listed",
+        "notice": "'unplanned-outages' is not on the Transparency Platform data list from 2027-01-01 (EPDK Decision 14968, RG 20/10/2026 No. 33406); publishing it is no longer required and EPİAŞ may stop serving it. eptr2 keeps the call while EPİAŞ serves it.",
+        "source": "EPDK Decision 14968, RG 20/10/2026 No. 33406",
+        "when_params": null
+      },
       "required_params": [
         "period"
       ],

@@ -180,6 +180,28 @@ swapped the columns itself (`clearingQuantityAsk` → buy) double-swaps silently
 
 Note: composite functions take `start_date`/`end_date` first and the client as the `eptr` keyword argument.
 
+## Data Leaving the Transparency Platform List on 2027-01-01
+
+EPDK Decision 14968 (RG 20/10/2026 No. 33406) replaces the list of data EPİAŞ must publish on the Transparency
+Platform from 2027-01-01; Decision 14967 moves outage and maintenance notices to the Dâhilî Bilgi Platformu (DBP).
+The decisions do not switch endpoints off, but data that is no longer required may stop being served, and the
+Transparency Regulation Art. 6/4 bars publishing data that identifies a single participant. `eptr.call` warns once
+per call key and process with `eptr2.TransparencyListWarning` (a `FutureWarning`); `describe_call` and the schema
+carry a `publication_change` entry for these keys.
+
+- **Per organization** (likely to stop): `dam-clearing`, `idm-qty`, `bi-long`, `bi-short` with `org_id`, and
+  `dam-clearing-org-list`. Their market totals (without `org_id`) stay. `get_dabi_idm_data` and
+  `get_org_estimated_activity` depend on them.
+- **To the DBP:** `mms` (market messages: outages and maintenance), `international-line-events`.
+- **Not on the list:** `planned-outages`, `unplanned-outages`, `long-term-demand-forecast`, `monthly-index`,
+  `consumption-breakdown`, `consumer-breakdown`, `percentage-consumption-info`, and the per-dam calls
+  `dams-daily-level`, `dams-daily-volume`, `dams-level-minmax`, `dams-volume-minmax`, `dams-info`.
+- **Only at a coarser level:** `dams-active-fullness`, `dams-active-volume`, `dams-water-energy-provision` with
+  `basin_name`/`dam_name` (Türkiye totals stay); `ren-rt-gen` with `pp_id` (by source and organization stays; per
+  plant use `rt-gen`).
+
+Silence with `warnings.filterwarnings("ignore", category=eptr2.TransparencyListWarning)`.
+
 ## Date Format
 
 Always use ISO format: `YYYY-MM-DD` (e.g., "2024-07-29"). The market timezone is Europe/Istanbul.

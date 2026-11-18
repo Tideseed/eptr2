@@ -122,6 +122,13 @@ def get_international_line_events(start_date: str, end_date: str, eptr: EPTR2 | 
         TCAT'ten temin edilen uluslararası hatlarda oluşan kesinti bilgileri sayfasıdır.
 
     Reference: https://seffaflik.epias.com.tr/electricity/electricity-transmission/interconnection-failure-and-maintenance-notices
+
+    Note:
+        'international-line-events' moves from the Transparency Platform to the Dâhilî Bilgi Platformu on
+        2027-01-01 (EPDK Decision 14967, RG 20/10/2026 No. 33406) and is not on the Transparency Platform
+        data list, so EPİAŞ may stop serving it here. Alternative: transmission and interconnection outage
+        notices move to the Dâhilî Bilgi Platformu (14967 row 4). eptr2 keeps the call while EPİAŞ serves
+        it.
     """
     if eptr is None:
         eptr = EPTR2()

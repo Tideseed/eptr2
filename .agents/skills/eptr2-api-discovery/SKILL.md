@@ -26,6 +26,8 @@ eptr2 list --category GÖP --format json
 eptr2 schema --stdout
 ```
 
+A `publication_change` entry in `describe_call` (or the schema) means the data leaves the mandatory Transparency Platform list on 2027-01-01 (EPDK Decisions 14968 and 14967) and may stop being served; `eptr.call` then warns with `TransparencyListWarning`. Prefer the alternative it names.
+
 Inspect required and optional parameters, then choose the date range and IDs relevant to the user's question. An alias is not necessarily a wrapper name: inspect `eptr2.calls` before importing a guessed `get_*` function. Raw result types vary by endpoint; inspect the response instead of assuming every call returns a DataFrame.
 
 When executing an authorized data query, reuse a client with `strict_params=True` and automatic `.env` loading. Use the user's existing environment and runtime tools; no particular model vendor, shell-tool name, or skill directory is required.

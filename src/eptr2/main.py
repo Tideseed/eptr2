@@ -3,6 +3,7 @@ import difflib
 import hashlib
 import logging
 import warnings
+from eptr2.mapping.publication import warn_publication_change
 import urllib3
 import re
 import os
@@ -456,6 +457,10 @@ class EPTR2:
                 UserWarning,
                 stacklevel=2,
             )
+
+        ## Data leaving the mandatory Transparency Platform list on 2027-01-01
+        ## (EPDK Decisions 14968 / 14967): warn once per key and process.
+        warn_publication_change(key, call_body_raw, stacklevel=3)
 
         ## Generated wrappers forward unset optional parameters as None; an
         ## optional None means "not given" (a None date would crash preprocessing)

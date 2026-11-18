@@ -27,6 +27,9 @@ def get_mms_detail(
 ):
     """
     This composite function gets market message system (MMS) data, expands it and adds the contract symbols (optional).
+
+    From 2027-01-01 outage and maintenance notices move to the Dâhilî Bilgi Platformu (EPDK Decision 14967) and are
+    not on the Transparency Platform data list (Decision 14968), so EPİAŞ may stop serving MMS data here.
     """
 
     if eptr is None:

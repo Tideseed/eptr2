@@ -231,7 +231,9 @@ if MCP_AVAILABLE:
         """Get full details for one API call key: description (EN/TR), category,
         HTTP method, endpoint path, and required/optional parameters.
         Use before call_eptr2_api to learn which parameters an endpoint needs.
-        Resolves aliases (e.g. 'ptf' -> 'mcp'). Requires no credentials."""
+        Resolves aliases (e.g. 'ptf' -> 'mcp'). A publication_change entry means
+        the data leaves the mandatory Transparency Platform list on 2027-01-01
+        (EPDK Decisions 14968/14967) and may stop being served. Requires no credentials."""
         from eptr2.agentic.discovery import describe_call
 
         d = describe_call(call_key)

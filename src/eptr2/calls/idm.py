@@ -116,6 +116,13 @@ def get_idm_qty(start_date: str, end_date: str, org_id: str | int | None = None,
         Gün İçi Piyasası’nda kontrat türüne göre saatlik veya blok olarak gösterilen toplam eşleşme miktarıdır. EPİAŞ alışı clearingQuantityAsk, satışı clearingQuantityBid olarak döndürür; eptr2 DataFrame'inde bunlar düzeltilmiştir: clearingQuantityBid = alış, clearingQuantityAsk = satış (postprocess=False ham yanıtı değiştirmez).
 
     Reference: https://seffaflik.epias.com.tr/electricity/electricity-markets/intraday-market-idm/idm-matching-quantity
+
+    Note:
+        'idm-qty' with org_id is not on the Transparency Platform data list from 2027-01-01 (EPDK Decision
+        14968, RG 20/10/2026 No. 33406), and Art. 6/4 of the Transparency Regulation (RG 14/2/2026 No.
+        33168) bars publishing individual data that identifies a market participant, so EPİAŞ is likely to
+        stop serving it. Alternative: the market total per contract (without org_id) stays on the list (row
+        17). eptr2 keeps the call while EPİAŞ serves it.
     """
     if eptr is None:
         eptr = EPTR2()

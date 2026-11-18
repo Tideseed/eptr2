@@ -170,6 +170,12 @@ def get_long_term_demand_forecast(dist_org_id: str | int | None = None, eptr: EP
         İlgili dağıtım bölgesinde dağıtım şirketine ait 2018-2027 arası tüketicilerin yıllık brüt tahmin değerleridir.
 
     Reference: https://seffaflik.epias.com.tr/electricity/electricity-consumption/forecast/demand-forecast
+
+    Note:
+        'long-term-demand-forecast' is not on the Transparency Platform data list from 2027-01-01 (EPDK
+        Decision 14968, RG 20/10/2026 No. 33406); publishing it is no longer required and EPİAŞ may stop
+        serving it. Alternative: the day-ahead load plan (load-plan, row 71) stays. eptr2 keeps the call
+        while EPİAŞ serves it.
     """
     if eptr is None:
         eptr = EPTR2()
@@ -278,6 +284,11 @@ def get_monthly_index(start_date: str, end_date: str, tariff_group_id: str | int
         Piyasa Takas Fiyatı (PTF), Negatif Sistem Dengesizlik Fiyatı, YEKDEM Birim Fiyat, Ulusal Tarife Birim Fiyatları ve Piyasa Yönetim Sistemine kayıtlı tüketicilere ait uzlaştırma dönemi bazındaki çekiş miktarları kullanılarak hesaplanan değere ilişkin veri seti.
 
     Reference: https://seffaflik.epias.com.tr/electricity/electricity-consumption/supply-price-index/monthly-index
+
+    Note:
+        'monthly-index' is not on the Transparency Platform data list from 2027-01-01 (EPDK Decision 14968,
+        RG 20/10/2026 No. 33406); publishing it is no longer required and EPİAŞ may stop serving it. eptr2
+        keeps the call while EPİAŞ serves it.
     """
     if eptr is None:
         eptr = EPTR2()
@@ -332,6 +343,11 @@ def get_percentage_consumption_info(period: str, province_id: str | int, eptr: E
         Fiili tüketimin il bazında ve profil abone grubu bazında yüzdesel kırılımına ilişkin veri seti.
 
     Reference: https://seffaflik.epias.com.tr/electricity/electricity-consumption/ex-post-consumption/percentage-of-consumption-information
+
+    Note:
+        'percentage-consumption-info' is not on the Transparency Platform data list from 2027-01-01 (EPDK
+        Decision 14968, RG 20/10/2026 No. 33406); publishing it is no longer required and EPİAŞ may stop
+        serving it. eptr2 keeps the call while EPİAŞ serves it.
     """
     if eptr is None:
         eptr = EPTR2()
@@ -350,6 +366,11 @@ def get_planned_outages(period: str, province_id: str | int | None = None, dist_
         Yapılması planlanan kesinti bilgilerinin sunulduğu ekrandır.
 
     Reference: https://seffaflik.epias.com.tr/electricity/electricity-consumption/failure-information/planned-failure-information
+
+    Note:
+        'planned-outages' is not on the Transparency Platform data list from 2027-01-01 (EPDK Decision
+        14968, RG 20/10/2026 No. 33406); publishing it is no longer required and EPİAŞ may stop serving it.
+        eptr2 keeps the call while EPİAŞ serves it.
     """
     if eptr is None:
         eptr = EPTR2()
@@ -446,6 +467,11 @@ def get_unplanned_outages(period: str, province_id: str | int | None = None, dis
         Plansız kesintilerin sunulduğu ekrandır.
 
     Reference: https://seffaflik.epias.com.tr/electricity/electricity-consumption/failure-information/unplanned-failure-information
+
+    Note:
+        'unplanned-outages' is not on the Transparency Platform data list from 2027-01-01 (EPDK Decision
+        14968, RG 20/10/2026 No. 33406); publishing it is no longer required and EPİAŞ may stop serving it.
+        eptr2 keeps the call while EPİAŞ serves it.
     """
     if eptr is None:
         eptr = EPTR2()

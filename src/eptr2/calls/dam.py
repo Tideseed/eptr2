@@ -90,6 +90,13 @@ def get_dam_clearing(start_date: str, end_date: str, org_id: str | int | None = 
         Gün Öncesi Piyasası'nda eşleşen tekliflerin saatlik toplam miktardır.
 
     Reference: https://seffaflik.epias.com.tr/electricity/electricity-markets/day-ahead-market-dam/dam-matching-quantity
+
+    Note:
+        'dam-clearing' with org_id is not on the Transparency Platform data list from 2027-01-01 (EPDK
+        Decision 14968, RG 20/10/2026 No. 33406), and Art. 6/4 of the Transparency Regulation (RG 14/2/2026
+        No. 33168) bars publishing individual data that identifies a market participant, so EPİAŞ is likely
+        to stop serving it. Alternative: the market total (without org_id) stays on the list (row 11). eptr2
+        keeps the call while EPİAŞ serves it.
     """
     if eptr is None:
         eptr = EPTR2()
@@ -108,6 +115,13 @@ def get_dam_clearing_org_list(period: str, eptr: EPTR2 | None = None, **kwargs):
         Göp Eşleşme Miktarı Organizasyon Listeleme.
 
     Reference: https://seffaflik.epias.com.tr/electricity/electricity-markets/day-ahead-market-dam/dam-matching-quantity
+
+    Note:
+        'dam-clearing-org-list' is not on the Transparency Platform data list from 2027-01-01 (EPDK Decision
+        14968, RG 20/10/2026 No. 33406), and Art. 6/4 of the Transparency Regulation (RG 14/2/2026 No.
+        33168) bars publishing individual data that identifies a market participant, so EPİAŞ is likely to
+        stop serving it. Alternative: only market totals of GÖP matching stay on the list (row 11). eptr2
+        keeps the call while EPİAŞ serves it.
     """
     if eptr is None:
         eptr = EPTR2()

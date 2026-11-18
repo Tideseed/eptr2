@@ -85,6 +85,11 @@ def describe_call(key: str) -> Optional[dict]:
     out.update(d)
     if out.get("help") is None:
         out["help"] = _all_call_info().get(resolved)
+    from eptr2.mapping.publication import get_publication_change
+
+    change = get_publication_change(resolved)
+    if change is not None:
+        out["publication_change"] = change
     return out
 
 

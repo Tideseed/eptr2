@@ -11,12 +11,14 @@ Usage:
 
 from __future__ import annotations
 
+import textwrap
 from pathlib import Path
 
 from eptr2.mapping import get_path_map
 from eptr2.mapping.parameters import get_required_parameters, get_optional_parameters
 from eptr2.mapping.path import get_alias_map
 from eptr2.mapping.help import get_help_d
+from eptr2.mapping.publication import publication_notice
 
 
 # (root, prev) -> module filename (without .py)
@@ -173,6 +175,14 @@ def render_docstring(call_key: str, indent: str = "    ") -> str:
         lines.append("")
     if url:
         lines.append(f"Reference: {url}")
+    notice = publication_notice(call_key)
+    if notice:
+        if url:
+            lines.append("")
+        lines.append("Note:")
+        lines.extend(
+            "    " + ln for ln in textwrap.wrap(_sanitize(notice), width=100)
+        )
 
     # Trim trailing blank lines.
     while lines and lines[-1] == "":

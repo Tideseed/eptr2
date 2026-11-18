@@ -130,6 +130,8 @@ def get_org_estimated_activity(
 
     end_date must be before today (Europe/Istanbul): data of the current day is not final, so neither the result nor the exported files would be.
 
+    Per-organization GÖP, bilateral and GİP matching quantities are not on the Transparency Platform data list from 2027-01-01 (EPDK Decision 14968), and the Transparency Regulation Art. 6/4 bars publishing data that identifies a participant, so EPİAŞ is likely to stop serving them; ``eptr.call`` then warns with ``TransparencyListWarning``.
+
     Args:
         start_date: Start date in 'YYYY-MM-DD' format
         end_date: End date in 'YYYY-MM-DD' format (inclusive), before today

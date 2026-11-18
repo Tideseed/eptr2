@@ -7,6 +7,7 @@ try:
 except PackageNotFoundError:
     __version__ = "unknown"
 
+from eptr2.mapping.publication import TransparencyListWarning  # noqa: F401
 from eptr2.main import (
     EPTR2,
     transparency_call,

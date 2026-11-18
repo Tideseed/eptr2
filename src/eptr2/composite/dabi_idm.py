@@ -205,6 +205,8 @@ def get_dabi_idm_data(
 
     A wrapper around :func:`get_day_ahead_and_bilateral_matches` with ``include_idm_data=True``; see there
     for the columns and signs (the nets are purchases; ``net_sales`` is positive for a net seller).
+
+    Per-organization GÖP, bilateral and GİP matching quantities are not on the Transparency Platform data list from 2027-01-01 (EPDK Decision 14968), and the Transparency Regulation Art. 6/4 bars publishing data that identifies a participant, so EPİAŞ is likely to stop serving them; ``eptr.call`` then warns with ``TransparencyListWarning``.
     """
 
     return get_day_ahead_and_bilateral_matches(

@@ -2,6 +2,30 @@
 
 All notable changes to eptr2 are documented here.
 
+## Version 1.4.2 (unreleased)
+
+### Added
+- Warnings for data leaving the mandatory Transparency Platform list on
+  2027-01-01. EPDK Decision 14968 (15/10/2026, RG 20/10/2026 No. 33406)
+  replaces the list of Decision 10711, and Decision 14967 moves outage and
+  maintenance notices to the Dâhilî Bilgi Platformu. `eptr.call` warns once per
+  call key and process with the new `eptr2.TransparencyListWarning` (a
+  `FutureWarning`); `describe_call`, the schema and the `get_*` wrapper
+  docstrings carry the notice. eptr2 keeps the calls while EPİAŞ serves them.
+  - Per organization (the Transparency Regulation Art. 6/4 bars publishing data
+    that identifies a participant): `dam-clearing`, `idm-qty`, `bi-long`,
+    `bi-short` with `org_id`, and `dam-clearing-org-list`. This affects
+    `get_dabi_idm_data` and `get_org_estimated_activity`.
+  - Moving to the Dâhilî Bilgi Platformu: `mms`, `international-line-events`.
+  - Not on the list: `planned-outages`, `unplanned-outages`,
+    `long-term-demand-forecast`, `monthly-index`, `consumption-breakdown`,
+    `consumer-breakdown`, `percentage-consumption-info`, `dams-daily-level`,
+    `dams-daily-volume`, `dams-level-minmax`, `dams-volume-minmax`,
+    `dams-info`.
+  - Only at a coarser level: `dams-active-fullness`, `dams-active-volume`,
+    `dams-water-energy-provision` with `basin_name` or `dam_name` (Türkiye
+    totals stay); `ren-rt-gen` with `pp_id` (by source and organization stays).
+
 ## Version 1.4.1 (2026-11-17)
 
 KÜPST checked against the EPDK decisions, EPİAŞ's GİP bid/ask label swap and

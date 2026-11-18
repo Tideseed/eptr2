@@ -64,6 +64,12 @@ def get_dams_active_fullness(basin_name: str | None = None, dam_name: str | None
         Bir barajın maksimum ve minimum işletme seviyeleri arasındaki hacimin yüzdesidir. Formül: Aktif Doluluk= [( İlgili Tarihteki Seviyeye Karşılık Gelen Hacim – Minimum Hacim ) / ( Maksimum Hacim – Minimum Hacim )] * 100. Veriler saat 17:00 itibariyle nihai halini almaktadır.
 
     Reference: https://seffaflik.epias.com.tr/electricity/dams/active-fullness
+
+    Note:
+        'dams-active-fullness' with basin_name or dam_name is not on the Transparency Platform data list
+        from 2027-01-01 at this level of detail (EPDK Decision 14968, RG 20/10/2026 No. 33406); EPİAŞ may
+        stop serving it. Alternative: only the Türkiye total stays on the list (row 102). eptr2 keeps the
+        call while EPİAŞ serves it.
     """
     if eptr is None:
         eptr = EPTR2()
@@ -82,6 +88,12 @@ def get_dams_active_volume(basin_name: str | None = None, dam_name: str | None =
         Bir barajın ilgili tarihteki seviyeye karşılık gelen hacmi ve minimum işletme seviyeleri arasındaki hacimdir. Veriler saat 17:00 itibariyle nihai halini almaktadır.
 
     Reference: https://seffaflik.epias.com.tr/electricity/dams/active-volume
+
+    Note:
+        'dams-active-volume' with basin_name or dam_name is not on the Transparency Platform data list from
+        2027-01-01 at this level of detail (EPDK Decision 14968, RG 20/10/2026 No. 33406); EPİAŞ may stop
+        serving it. Alternative: only the Türkiye total stays on the list (row 102). eptr2 keeps the call
+        while EPİAŞ serves it.
     """
     if eptr is None:
         eptr = EPTR2()
@@ -100,6 +112,12 @@ def get_dams_daily_level(basin_name: str | None = None, dam_name: str | None = N
         Barajın ilgili gündeki su yüksekliğini belirtir. Veriler saat 17:00 itibariyle nihai halini almaktadır.
 
     Reference: https://seffaflik.epias.com.tr/electricity/dams/daily-kot
+
+    Note:
+        'dams-daily-level' is not on the Transparency Platform data list from 2027-01-01 (EPDK Decision
+        14968, RG 20/10/2026 No. 33406); publishing it is no longer required and EPİAŞ may stop serving it.
+        Alternative: dam data on the list are Türkiye totals: active fullness and volume (row 102) and water
+        energy provision (row 103). eptr2 keeps the call while EPİAŞ serves it.
     """
     if eptr is None:
         eptr = EPTR2()
@@ -118,6 +136,12 @@ def get_dams_daily_volume(basin_name: str | None = None, dam_name: str | None = 
         Bir barajın ilgili tarihteki seviyesine karşılık gelen hacimdir. Veriler saat 17:00 itibariyle nihai halini almaktadır.
 
     Reference: https://seffaflik.epias.com.tr/electricity/dams/daily-volume
+
+    Note:
+        'dams-daily-volume' is not on the Transparency Platform data list from 2027-01-01 (EPDK Decision
+        14968, RG 20/10/2026 No. 33406); publishing it is no longer required and EPİAŞ may stop serving it.
+        Alternative: dam data on the list are Türkiye totals: active fullness and volume (row 102) and water
+        energy provision (row 103). eptr2 keeps the call while EPİAŞ serves it.
     """
     if eptr is None:
         eptr = EPTR2()
@@ -136,6 +160,12 @@ def get_dams_info(basin_name: str | None = None, dam_name: str | None = None, ep
         İlgili barajda üniteden geçen suyun miktarını ve barajın kurulu gücünü gösterir.
 
     Reference: https://seffaflik.epias.com.tr/electricity/dams/dam-info/volume
+
+    Note:
+        'dams-info' is not on the Transparency Platform data list from 2027-01-01 (EPDK Decision 14968, RG
+        20/10/2026 No. 33406); publishing it is no longer required and EPİAŞ may stop serving it.
+        Alternative: dam data on the list are Türkiye totals: active fullness and volume (row 102) and water
+        energy provision (row 103). eptr2 keeps the call while EPİAŞ serves it.
     """
     if eptr is None:
         eptr = EPTR2()
@@ -154,6 +184,12 @@ def get_dams_level_minmax(basin_name: str | None = None, dam_name: str | None = 
         İlgili barajın maximum ve minumum seviyesini gösterir.
 
     Reference: https://seffaflik.epias.com.tr/electricity/dams/dam-info/kot
+
+    Note:
+        'dams-level-minmax' is not on the Transparency Platform data list from 2027-01-01 (EPDK Decision
+        14968, RG 20/10/2026 No. 33406); publishing it is no longer required and EPİAŞ may stop serving it.
+        Alternative: dam data on the list are Türkiye totals: active fullness and volume (row 102) and water
+        energy provision (row 103). eptr2 keeps the call while EPİAŞ serves it.
     """
     if eptr is None:
         eptr = EPTR2()
@@ -172,6 +208,12 @@ def get_dams_volume_minmax(basin_name: str | None = None, dam_name: str | None =
         İlgili barajın maksimum ve minumum hacim seviyesini gösterir.
 
     Reference: https://seffaflik.epias.com.tr/electricity/dams/dam-info/volume
+
+    Note:
+        'dams-volume-minmax' is not on the Transparency Platform data list from 2027-01-01 (EPDK Decision
+        14968, RG 20/10/2026 No. 33406); publishing it is no longer required and EPİAŞ may stop serving it.
+        Alternative: dam data on the list are Türkiye totals: active fullness and volume (row 102) and water
+        energy provision (row 103). eptr2 keeps the call while EPİAŞ serves it.
     """
     if eptr is None:
         eptr = EPTR2()
@@ -190,6 +232,12 @@ def get_dams_water_energy_provision(basin_name: str | None = None, dam_name: str
         Barajda yer alan suyun hesaplanan MWh cinsinden enerji karşılığıdır. Veriler saat 17:00 itibariyle nihai halini almaktadır.
 
     Reference: https://seffaflik.epias.com.tr/electricity/dams/water-energy-provision
+
+    Note:
+        'dams-water-energy-provision' with basin_name or dam_name is not on the Transparency Platform data
+        list from 2027-01-01 at this level of detail (EPDK Decision 14968, RG 20/10/2026 No. 33406); EPİAŞ
+        may stop serving it. Alternative: only the Türkiye total stays on the list (row 103). eptr2 keeps
+        the call while EPİAŞ serves it.
     """
     if eptr is None:
         eptr = EPTR2()
