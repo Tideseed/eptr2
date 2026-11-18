@@ -113,18 +113,21 @@ PUBLICATION_CHANGES: dict[str, dict] = {
     },
     "dams-active-fullness": {
         "kind": "aggregated",
-        "when_params": ["basin_name", "dam_name"],
-        "alternative": "only the Türkiye total stays on the list (row 102)",
+        "when_params": None,
+        "alternative": "the list keeps only the Türkiye total (row 102); this call returns "
+        "one row per dam, with or without basin_name/dam_name",
     },
     "dams-active-volume": {
         "kind": "aggregated",
-        "when_params": ["basin_name", "dam_name"],
-        "alternative": "only the Türkiye total stays on the list (row 102)",
+        "when_params": None,
+        "alternative": "the list keeps only the Türkiye total (row 102); this call returns "
+        "one row per dam, with or without basin_name/dam_name",
     },
     "dams-water-energy-provision": {
         "kind": "aggregated",
-        "when_params": ["basin_name", "dam_name"],
-        "alternative": "only the Türkiye total stays on the list (row 103)",
+        "when_params": None,
+        "alternative": "the list keeps only the Türkiye total (row 103); this call returns "
+        "one row per dam, with or without basin_name/dam_name",
     },
     "dams-daily-level": {
         "kind": "not_listed",

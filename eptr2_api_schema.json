@@ -916,15 +916,12 @@
         "dam_name"
       ],
       "publication_change": {
-        "alternative": "only the Türkiye total stays on the list (row 102)",
+        "alternative": "the list keeps only the Türkiye total (row 102); this call returns one row per dam, with or without basin_name/dam_name",
         "effective_date": "2027-01-01",
         "kind": "aggregated",
-        "notice": "'dams-active-fullness' with basin_name or dam_name is not on the Transparency Platform data list from 2027-01-01 at this level of detail (EPDK Decision 14968, RG 20/10/2026 No. 33406); EPİAŞ may stop serving it. Instead: only the Türkiye total stays on the list (row 102). eptr2 keeps the call while EPİAŞ serves it.",
+        "notice": "'dams-active-fullness' is not on the Transparency Platform data list from 2027-01-01 at this level of detail (EPDK Decision 14968, RG 20/10/2026 No. 33406); EPİAŞ may stop serving it. Instead: the list keeps only the Türkiye total (row 102); this call returns one row per dam, with or without basin_name/dam_name. eptr2 keeps the call while EPİAŞ serves it.",
         "source": "EPDK Decision 14968, RG 20/10/2026 No. 33406",
-        "when_params": [
-          "basin_name",
-          "dam_name"
-        ]
+        "when_params": null
       },
       "required_params": [],
       "title": {
@@ -946,15 +943,12 @@
         "dam_name"
       ],
       "publication_change": {
-        "alternative": "only the Türkiye total stays on the list (row 102)",
+        "alternative": "the list keeps only the Türkiye total (row 102); this call returns one row per dam, with or without basin_name/dam_name",
         "effective_date": "2027-01-01",
         "kind": "aggregated",
-        "notice": "'dams-active-volume' with basin_name or dam_name is not on the Transparency Platform data list from 2027-01-01 at this level of detail (EPDK Decision 14968, RG 20/10/2026 No. 33406); EPİAŞ may stop serving it. Instead: only the Türkiye total stays on the list (row 102). eptr2 keeps the call while EPİAŞ serves it.",
+        "notice": "'dams-active-volume' is not on the Transparency Platform data list from 2027-01-01 at this level of detail (EPDK Decision 14968, RG 20/10/2026 No. 33406); EPİAŞ may stop serving it. Instead: the list keeps only the Türkiye total (row 102); this call returns one row per dam, with or without basin_name/dam_name. eptr2 keeps the call while EPİAŞ serves it.",
         "source": "EPDK Decision 14968, RG 20/10/2026 No. 33406",
-        "when_params": [
-          "basin_name",
-          "dam_name"
-        ]
+        "when_params": null
       },
       "required_params": [],
       "title": {
@@ -1111,15 +1105,12 @@
         "dam_name"
       ],
       "publication_change": {
-        "alternative": "only the Türkiye total stays on the list (row 103)",
+        "alternative": "the list keeps only the Türkiye total (row 103); this call returns one row per dam, with or without basin_name/dam_name",
         "effective_date": "2027-01-01",
         "kind": "aggregated",
-        "notice": "'dams-water-energy-provision' with basin_name or dam_name is not on the Transparency Platform data list from 2027-01-01 at this level of detail (EPDK Decision 14968, RG 20/10/2026 No. 33406); EPİAŞ may stop serving it. Instead: only the Türkiye total stays on the list (row 103). eptr2 keeps the call while EPİAŞ serves it.",
+        "notice": "'dams-water-energy-provision' is not on the Transparency Platform data list from 2027-01-01 at this level of detail (EPDK Decision 14968, RG 20/10/2026 No. 33406); EPİAŞ may stop serving it. Instead: the list keeps only the Türkiye total (row 103); this call returns one row per dam, with or without basin_name/dam_name. eptr2 keeps the call while EPİAŞ serves it.",
         "source": "EPDK Decision 14968, RG 20/10/2026 No. 33406",
-        "when_params": [
-          "basin_name",
-          "dam_name"
-        ]
+        "when_params": null
       },
       "required_params": [],
       "title": {

@@ -44,8 +44,8 @@ def get_bi_long(start_date: str, end_date: str, org_id: str | int | None = None,
         'bi-long' with org_id is not on the Transparency Platform data list from 2027-01-01 (EPDK Decision
         14968, RG 20/10/2026 No. 33406), and Art. 6/4 of the Transparency Regulation (RG 14/2/2026 No.
         33168) bars publishing individual data that identifies a market participant, so EPİAŞ is likely to
-        stop serving it. Alternative: the hourly market total (without org_id) stays on the list (row 49).
-        eptr2 keeps the call while EPİAŞ serves it.
+        stop serving it. Instead: the hourly market total (without org_id) stays on the list (row 49). eptr2
+        keeps the call while EPİAŞ serves it.
     """
     if eptr is None:
         eptr = EPTR2()
@@ -69,8 +69,8 @@ def get_bi_short(start_date: str, end_date: str, org_id: str | int | None = None
         'bi-short' with org_id is not on the Transparency Platform data list from 2027-01-01 (EPDK Decision
         14968, RG 20/10/2026 No. 33406), and Art. 6/4 of the Transparency Regulation (RG 14/2/2026 No.
         33168) bars publishing individual data that identifies a market participant, so EPİAŞ is likely to
-        stop serving it. Alternative: the hourly market total (without org_id) stays on the list (row 50).
-        eptr2 keeps the call while EPİAŞ serves it.
+        stop serving it. Instead: the hourly market total (without org_id) stays on the list (row 50). eptr2
+        keeps the call while EPİAŞ serves it.
     """
     if eptr is None:
         eptr = EPTR2()

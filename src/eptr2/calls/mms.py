@@ -27,9 +27,9 @@ def get_mms(start_date: str, end_date: str, region_id: str | int, org_id: str | 
     Note:
         'mms' moves from the Transparency Platform to the Dâhilî Bilgi Platformu on 2027-01-01 (EPDK
         Decision 14967, RG 20/10/2026 No. 33406) and is not on the Transparency Platform data list, so EPİAŞ
-        may stop serving it here. Alternative: outage and maintenance notices move to the Dâhilî Bilgi
-        Platformu (14967 rows 1-3: 30 MW per facility, 50 MW per portfolio, within 1 hour). eptr2 keeps the
-        call while EPİAŞ serves it.
+        may stop serving it here. Instead: outage and maintenance notices move to the Dâhilî Bilgi Platformu
+        (14967 rows 1-3: 30 MW per facility, 50 MW per portfolio, within 1 hour). eptr2 keeps the call while
+        EPİAŞ serves it.
     """
     if eptr is None:
         eptr = EPTR2()

@@ -66,10 +66,10 @@ def get_dams_active_fullness(basin_name: str | None = None, dam_name: str | None
     Reference: https://seffaflik.epias.com.tr/electricity/dams/active-fullness
 
     Note:
-        'dams-active-fullness' with basin_name or dam_name is not on the Transparency Platform data list
-        from 2027-01-01 at this level of detail (EPDK Decision 14968, RG 20/10/2026 No. 33406); EPİAŞ may
-        stop serving it. Alternative: only the Türkiye total stays on the list (row 102). eptr2 keeps the
-        call while EPİAŞ serves it.
+        'dams-active-fullness' is not on the Transparency Platform data list from 2027-01-01 at this level
+        of detail (EPDK Decision 14968, RG 20/10/2026 No. 33406); EPİAŞ may stop serving it. Instead: the
+        list keeps only the Türkiye total (row 102); this call returns one row per dam, with or without
+        basin_name/dam_name. eptr2 keeps the call while EPİAŞ serves it.
     """
     if eptr is None:
         eptr = EPTR2()
@@ -90,10 +90,10 @@ def get_dams_active_volume(basin_name: str | None = None, dam_name: str | None =
     Reference: https://seffaflik.epias.com.tr/electricity/dams/active-volume
 
     Note:
-        'dams-active-volume' with basin_name or dam_name is not on the Transparency Platform data list from
-        2027-01-01 at this level of detail (EPDK Decision 14968, RG 20/10/2026 No. 33406); EPİAŞ may stop
-        serving it. Alternative: only the Türkiye total stays on the list (row 102). eptr2 keeps the call
-        while EPİAŞ serves it.
+        'dams-active-volume' is not on the Transparency Platform data list from 2027-01-01 at this level of
+        detail (EPDK Decision 14968, RG 20/10/2026 No. 33406); EPİAŞ may stop serving it. Instead: the list
+        keeps only the Türkiye total (row 102); this call returns one row per dam, with or without
+        basin_name/dam_name. eptr2 keeps the call while EPİAŞ serves it.
     """
     if eptr is None:
         eptr = EPTR2()
@@ -116,7 +116,7 @@ def get_dams_daily_level(basin_name: str | None = None, dam_name: str | None = N
     Note:
         'dams-daily-level' is not on the Transparency Platform data list from 2027-01-01 (EPDK Decision
         14968, RG 20/10/2026 No. 33406); publishing it is no longer required and EPİAŞ may stop serving it.
-        Alternative: dam data on the list are Türkiye totals: active fullness and volume (row 102) and water
+        Instead: dam data on the list are Türkiye totals: active fullness and volume (row 102) and water
         energy provision (row 103). eptr2 keeps the call while EPİAŞ serves it.
     """
     if eptr is None:
@@ -140,7 +140,7 @@ def get_dams_daily_volume(basin_name: str | None = None, dam_name: str | None = 
     Note:
         'dams-daily-volume' is not on the Transparency Platform data list from 2027-01-01 (EPDK Decision
         14968, RG 20/10/2026 No. 33406); publishing it is no longer required and EPİAŞ may stop serving it.
-        Alternative: dam data on the list are Türkiye totals: active fullness and volume (row 102) and water
+        Instead: dam data on the list are Türkiye totals: active fullness and volume (row 102) and water
         energy provision (row 103). eptr2 keeps the call while EPİAŞ serves it.
     """
     if eptr is None:
@@ -163,9 +163,9 @@ def get_dams_info(basin_name: str | None = None, dam_name: str | None = None, ep
 
     Note:
         'dams-info' is not on the Transparency Platform data list from 2027-01-01 (EPDK Decision 14968, RG
-        20/10/2026 No. 33406); publishing it is no longer required and EPİAŞ may stop serving it.
-        Alternative: dam data on the list are Türkiye totals: active fullness and volume (row 102) and water
-        energy provision (row 103). eptr2 keeps the call while EPİAŞ serves it.
+        20/10/2026 No. 33406); publishing it is no longer required and EPİAŞ may stop serving it. Instead:
+        dam data on the list are Türkiye totals: active fullness and volume (row 102) and water energy
+        provision (row 103). eptr2 keeps the call while EPİAŞ serves it.
     """
     if eptr is None:
         eptr = EPTR2()
@@ -188,7 +188,7 @@ def get_dams_level_minmax(basin_name: str | None = None, dam_name: str | None = 
     Note:
         'dams-level-minmax' is not on the Transparency Platform data list from 2027-01-01 (EPDK Decision
         14968, RG 20/10/2026 No. 33406); publishing it is no longer required and EPİAŞ may stop serving it.
-        Alternative: dam data on the list are Türkiye totals: active fullness and volume (row 102) and water
+        Instead: dam data on the list are Türkiye totals: active fullness and volume (row 102) and water
         energy provision (row 103). eptr2 keeps the call while EPİAŞ serves it.
     """
     if eptr is None:
@@ -212,7 +212,7 @@ def get_dams_volume_minmax(basin_name: str | None = None, dam_name: str | None =
     Note:
         'dams-volume-minmax' is not on the Transparency Platform data list from 2027-01-01 (EPDK Decision
         14968, RG 20/10/2026 No. 33406); publishing it is no longer required and EPİAŞ may stop serving it.
-        Alternative: dam data on the list are Türkiye totals: active fullness and volume (row 102) and water
+        Instead: dam data on the list are Türkiye totals: active fullness and volume (row 102) and water
         energy provision (row 103). eptr2 keeps the call while EPİAŞ serves it.
     """
     if eptr is None:
@@ -234,10 +234,10 @@ def get_dams_water_energy_provision(basin_name: str | None = None, dam_name: str
     Reference: https://seffaflik.epias.com.tr/electricity/dams/water-energy-provision
 
     Note:
-        'dams-water-energy-provision' with basin_name or dam_name is not on the Transparency Platform data
-        list from 2027-01-01 at this level of detail (EPDK Decision 14968, RG 20/10/2026 No. 33406); EPİAŞ
-        may stop serving it. Alternative: only the Türkiye total stays on the list (row 103). eptr2 keeps
-        the call while EPİAŞ serves it.
+        'dams-water-energy-provision' is not on the Transparency Platform data list from 2027-01-01 at this
+        level of detail (EPDK Decision 14968, RG 20/10/2026 No. 33406); EPİAŞ may stop serving it. Instead:
+        the list keeps only the Türkiye total (row 103); this call returns one row per dam, with or without
+        basin_name/dam_name. eptr2 keeps the call while EPİAŞ serves it.
     """
     if eptr is None:
         eptr = EPTR2()

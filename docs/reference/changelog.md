@@ -23,8 +23,9 @@ All notable changes to eptr2 are documented here.
     `dams-daily-volume`, `dams-level-minmax`, `dams-volume-minmax`,
     `dams-info`.
   - Only at a coarser level: `dams-active-fullness`, `dams-active-volume`,
-    `dams-water-energy-provision` with `basin_name` or `dam_name` (Türkiye
-    totals stay); `ren-rt-gen` with `pp_id` (by source and organization stays).
+    `dams-water-energy-provision` (the list keeps Türkiye totals; these calls
+    return one row per dam); `ren-rt-gen` with `pp_id` (by source and
+    organization stays).
 
 ## Version 1.4.1 (2026-11-17)
 

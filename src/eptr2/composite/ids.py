@@ -13,11 +13,11 @@ def get_all_important_ids(
 ) -> list[int]:
     """Get all relevant ID lists for a given date/period.
 
-    Args:
-        the_date (str): The date for which to retrieve relevant UEVCB IDs in 'YYYY-MM-DD' format.
-
     The GÖP organization list (``dam-clearing-org-list``) is not on the Transparency Platform data list from
     2027-01-01 (EPDK Decision 14968) and may stop being served.
+
+    Args:
+        the_date (str): The date for which to retrieve relevant UEVCB IDs in 'YYYY-MM-DD' format.
     Returns:
         list[int]: A list of relevant UEVCB IDs.
     """

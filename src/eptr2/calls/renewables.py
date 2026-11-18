@@ -161,9 +161,9 @@ def get_ren_rt_gen(start_date: str, end_date: str, pp_id: str | int | None = Non
 
     Note:
         'ren-rt-gen' with pp_id is not on the Transparency Platform data list from 2027-01-01 at this level
-        of detail (EPDK Decision 14968, RG 20/10/2026 No. 33406); EPİAŞ may stop serving it. Alternative:
-        the list keeps YEKDEM real-time generation by source and organization (row 81); per plant, use rt-
-        gen (row 66). eptr2 keeps the call while EPİAŞ serves it.
+        of detail (EPDK Decision 14968, RG 20/10/2026 No. 33406); EPİAŞ may stop serving it. Instead: the
+        list keeps YEKDEM real-time generation by source and organization (row 81); per plant, use rt-gen
+        (row 66). eptr2 keeps the call while EPİAŞ serves it.
     """
     if eptr is None:
         eptr = EPTR2()

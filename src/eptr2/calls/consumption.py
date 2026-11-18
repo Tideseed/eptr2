@@ -174,8 +174,8 @@ def get_long_term_demand_forecast(dist_org_id: str | int | None = None, eptr: EP
     Note:
         'long-term-demand-forecast' is not on the Transparency Platform data list from 2027-01-01 (EPDK
         Decision 14968, RG 20/10/2026 No. 33406); publishing it is no longer required and EPİAŞ may stop
-        serving it. Alternative: the day-ahead load plan (load-plan, row 71) stays. eptr2 keeps the call
-        while EPİAŞ serves it.
+        serving it. Instead: the day-ahead load plan (load-plan, row 71) stays. eptr2 keeps the call while
+        EPİAŞ serves it.
     """
     if eptr is None:
         eptr = EPTR2()

@@ -196,9 +196,9 @@ carry a `publication_change` entry for these keys.
 - **Not on the list:** `planned-outages`, `unplanned-outages`, `long-term-demand-forecast`, `monthly-index`,
   `consumption-breakdown`, `consumer-breakdown`, `percentage-consumption-info`, and the per-dam calls
   `dams-daily-level`, `dams-daily-volume`, `dams-level-minmax`, `dams-volume-minmax`, `dams-info`.
-- **Only at a coarser level:** `dams-active-fullness`, `dams-active-volume`, `dams-water-energy-provision` with
-  `basin_name`/`dam_name` (Türkiye totals stay); `ren-rt-gen` with `pp_id` (by source and organization stays; per
-  plant use `rt-gen`).
+- **Only at a coarser level:** `dams-active-fullness`, `dams-active-volume`, `dams-water-energy-provision` (the list
+  keeps Türkiye totals; these calls return one row per dam); `ren-rt-gen` with `pp_id` (by source and organization
+  stays; per plant use `rt-gen`).
 
 Silence with `warnings.filterwarnings("ignore", category=eptr2.TransparencyListWarning)`.
 

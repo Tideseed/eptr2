@@ -83,6 +83,9 @@ def _cmd_describe(args) -> int:
         print(f"  Optional params: {d.get('optional_body_params') or []}")
         if help_d.get("url"):
             print(f"  URL: {help_d['url']}")
+        change = d.get("publication_change")
+        if change:
+            print(f"  Note: {change['notice']}")
         print(f"\nExample: eptr2 call {d['key']}"
               + "".join(f" --{p.replace('_', '-')} <value>"
                         for p in (d.get("required_body_params") or [])
