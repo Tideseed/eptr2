@@ -101,7 +101,7 @@ Responses are kept compressed. As a guide, measured on October 2026:
 | GİP matching of one organization (`idm-qty` with `org_id`) | about 85 KB |
 | GİP trade log (`idm-log`) | about 100 MB |
 
-A year of market-wide data plus per-organization series is a few hundred MB at most, which SQLite handles without trouble.
+There is no size limit: the archive only adds the convenience of keeping what you fetch, and grows with what you request. A year of market-wide data plus per-organization series is a few hundred MB at most, which SQLite handles without trouble. To shrink it, delete rows with `clear_archive`.
 
 ## Notes
 
