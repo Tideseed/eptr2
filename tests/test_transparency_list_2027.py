@@ -97,3 +97,46 @@ def test_describe_call_and_schema_carry_the_change():
     schema = load_bundled_schema()
     schema = json.loads(schema) if isinstance(schema, str) else schema
     assert schema["endpoints"]["mms"]["publication_change"] == get_publication_change("mms")
+
+
+def _composite_client(monkeypatch):
+    """Stub client whose calls return small per-key frames, for the composites."""
+    import eptr2.main as main
+
+    eptr = _client(monkeypatch, [])
+    eptr.postprocess = True
+    hour = "2026-11-01T00:00:00+03:00"
+    items = {
+        "dam-clearing": [{"date": hour, "hour": "00:00", "matchedBids": 1.0, "matchedOffers": 0.0}],
+        "bi-long": [{"date": hour, "hour": "00:00", "quantity": 2.0}],
+        "bi-short": [{"date": hour, "hour": "00:00", "quantity": 0.5}],
+        "idm-qty": [],
+    }
+    real_call = main.EPTR2.call
+
+    def call(self, key, **kw):
+        body = json.dumps({"items": items.get(key, [])}).encode()
+        resp = SimpleNamespace(data=body, status=200)
+        monkeypatch.setattr(main, "transparency_call", lambda *a, **k: resp)
+        return real_call(self, key, **kw)
+
+    monkeypatch.setattr(main.EPTR2, "call", call)
+    return eptr
+
+
+def test_composite_warns_through_underlying_calls_only_with_org_id(monkeypatch):
+    from eptr2.composite import get_dabi_idm_data
+
+    eptr = _composite_client(monkeypatch)
+    with warnings.catch_warnings(record=True) as rec:
+        warnings.simplefilter("always")
+        get_dabi_idm_data("2026-11-01", "2026-11-01", eptr=eptr)
+    assert not [w for w in rec if issubclass(w.category, TransparencyListWarning)]
+
+    with warnings.catch_warnings(record=True) as rec:
+        warnings.simplefilter("always")
+        get_dabi_idm_data("2026-11-01", "2026-11-01", eptr=eptr, org_id=1)
+        get_dabi_idm_data("2026-11-02", "2026-11-02", eptr=eptr, org_id=1)
+    got = [str(w.message).split("'")[1] for w in rec if issubclass(w.category, TransparencyListWarning)]
+    ## One warning per underlying call, none from the composite itself, none repeated.
+    assert sorted(got) == ["bi-long", "bi-short", "dam-clearing", "idm-qty"]
