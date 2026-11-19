@@ -7,7 +7,10 @@ try:
 except PackageNotFoundError:
     __version__ = "unknown"
 
-from eptr2.mapping.publication import TransparencyListWarning  # noqa: F401
+from eptr2.mapping.publication import (  # noqa: F401
+    TransparencyListWarning,
+    set_transparency_warnings,
+)
 from eptr2.main import (
     EPTR2,
     transparency_call,
@@ -39,4 +42,6 @@ __all__ = [
     "transparency_call",
     "generate_eptr2_credentials_file",
     "eptr_w_tgt_wrapper",
+    "TransparencyListWarning",
+    "set_transparency_warnings",
 ]

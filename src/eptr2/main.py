@@ -56,6 +56,9 @@ class EPTR2:
         ### When True, unknown call parameters raise instead of only warning.
         ### Recommended for unattended/agent use; kept False for compatibility.
         self.strict_params = kwargs.get("strict_params", False)
+        ### Warnings for data leaving the Transparency Platform list on 2027-01-01.
+        ### None follows eptr2.set_transparency_warnings / EPTR2_TRANSPARENCY_WARNINGS.
+        self.transparency_warnings = kwargs.get("transparency_warnings", None)
         ### Bounded execution policy (per-operation, not a total deadline).
         self.connect_timeout = kwargs.get("connect_timeout", DEFAULT_CONNECT_TIMEOUT)
         self.read_timeout = kwargs.get("read_timeout", DEFAULT_READ_TIMEOUT)
@@ -460,7 +463,14 @@ class EPTR2:
 
         ## Data leaving the mandatory Transparency Platform list on 2027-01-01
         ## (EPDK Decisions 14968 / 14967): warn once per key and process.
-        warn_publication_change(key, call_body_raw, stacklevel=3)
+        warn_publication_change(
+            key,
+            call_body_raw,
+            stacklevel=3,
+            enabled=kwargs.get(
+                "transparency_warnings", self.__dict__.get("transparency_warnings")
+            ),
+        )
 
         ## Generated wrappers forward unset optional parameters as None; an
         ## optional None means "not given" (a None date would crash preprocessing)
@@ -659,6 +669,7 @@ RESERVED_CALL_OPTIONS = frozenset(
         "tgt_d",
         "tgt_path",
         "tgt_profile",
+        "transparency_warnings",
     }
 )
 
@@ -770,7 +781,7 @@ def transparency_call(
 
 def load_eptr_credentials_from_dotenv(env_file_path: str = ".env") -> None:
     """
-    Load (only) EPTR credentials from a .env file and set them as environment variables.
+    Load (only) EPTR credentials, and EPTR2_TRANSPARENCY_WARNINGS, from a .env file and set them as environment variables.
     """
 
     check_d = {"EPTR_USERNAME": False, "EPTR_PASSWORD": False}
@@ -785,16 +796,21 @@ def load_eptr_credentials_from_dotenv(env_file_path: str = ".env") -> None:
             line = raw_line.strip()
             if not line or line.startswith("#"):
                 continue
+            if "=" not in line:
+                continue
             key, value = line.split("=", 1)
+            key = key.strip()
+            if key not in ("EPTR_USERNAME", "EPTR_PASSWORD", "EPTR2_TRANSPARENCY_WARNINGS"):
+                continue
             value = shlex.split(value, posix=True)[0] if value else ""
             ## Only set EPTR_USERNAME and EPTR_PASSWORD
             if key in ["EPTR_USERNAME", "EPTR_PASSWORD"]:
                 os.environ[key] = value
                 check_d[key] = True
-
-            ## If both credentials are set, break the loop
-            if all(check_d.values()):
-                break
+            ## and the switch for the Transparency Platform list warnings
+            ## (a variable already set in the environment wins)
+            elif key == "EPTR2_TRANSPARENCY_WARNINGS":
+                os.environ.setdefault(key, value)
 
     return check_d
 

@@ -20,6 +20,8 @@ from eptr2.mapping.publication import (
 @pytest.fixture(autouse=True)
 def _reset_warned(monkeypatch):
     monkeypatch.setattr(publication, "_warned", set())
+    monkeypatch.setattr(publication, "_process_setting", None)
+    monkeypatch.delenv(publication.ENV_VAR, raising=False)
 
 
 def _client(monkeypatch, items):
@@ -140,3 +142,77 @@ def test_composite_warns_through_underlying_calls_only_with_org_id(monkeypatch):
     got = [str(w.message).split("'")[1] for w in rec if issubclass(w.category, TransparencyListWarning)]
     ## One warning per underlying call, none from the composite itself, none repeated.
     assert sorted(got) == ["bi-long", "bi-short", "dam-clearing", "idm-qty"]
+
+
+def _warned_keys(rec):
+    return [str(w.message).split("'")[1] for w in rec if issubclass(w.category, TransparencyListWarning)]
+
+
+def _org_call(eptr, **kw):
+    eptr.call("dam-clearing", start_date="2026-11-01", end_date="2026-11-01", org_id=1, **kw)
+
+
+@pytest.mark.parametrize(
+    "switch",
+    ["call", "client", "process", "env"],
+)
+def test_warnings_can_be_turned_off(monkeypatch, switch):
+    from eptr2 import set_transparency_warnings
+
+    eptr = _client(monkeypatch, [])
+    kw = {}
+    if switch == "call":
+        kw = {"transparency_warnings": False}
+    elif switch == "client":
+        eptr.transparency_warnings = False
+    elif switch == "process":
+        set_transparency_warnings(False)
+    else:
+        monkeypatch.setenv(publication.ENV_VAR, "false")
+    with warnings.catch_warnings(record=True) as rec:
+        warnings.simplefilter("always")
+        _org_call(eptr, **kw)
+    assert _warned_keys(rec) == []
+    ## A suppressed call does not use up the once-per-key warning.
+    with warnings.catch_warnings(record=True) as rec:
+        warnings.simplefilter("always")
+        _org_call(eptr, transparency_warnings=True)
+    assert _warned_keys(rec) == ["dam-clearing"]
+
+
+def test_narrowest_setting_wins(monkeypatch):
+    from eptr2 import set_transparency_warnings
+
+    eptr = _client(monkeypatch, [])
+    monkeypatch.setenv(publication.ENV_VAR, "0")
+    set_transparency_warnings(True)
+    eptr.transparency_warnings = False
+    with warnings.catch_warnings(record=True) as rec:
+        warnings.simplefilter("always")
+        _org_call(eptr)
+    assert _warned_keys(rec) == []
+    set_transparency_warnings(None)
+    eptr.transparency_warnings = None
+    with warnings.catch_warnings(record=True) as rec:
+        warnings.simplefilter("always")
+        _org_call(eptr)
+    assert _warned_keys(rec) == []  # environment says off
+
+
+def test_dotenv_switch(monkeypatch, tmp_path):
+    from eptr2.main import load_eptr_credentials_from_dotenv
+
+    env = tmp_path / ".env"
+    env.write_text(
+        "EPTR_USERNAME=a@b.c\nEPTR_PASSWORD='x y'\nnot a pair\nOTHER='unbalanced\n"
+        "EPTR2_TRANSPARENCY_WARNINGS=0\n"
+    )
+    monkeypatch.delenv("EPTR_USERNAME", raising=False)
+    monkeypatch.delenv("EPTR_PASSWORD", raising=False)
+    check = load_eptr_credentials_from_dotenv(str(env))
+    assert all(check.values())
+    assert not publication.transparency_warnings_enabled()
+    ## A variable already set in the environment wins over the file.
+    monkeypatch.setenv(publication.ENV_VAR, "1")
+    load_eptr_credentials_from_dotenv(str(env))
+    assert publication.transparency_warnings_enabled()

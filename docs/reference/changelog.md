@@ -26,6 +26,12 @@ All notable changes to eptr2 are documented here.
     `dams-water-energy-provision` (the list keeps Türkiye totals; these calls
     return one row per dam); `ren-rt-gen` with `pp_id` (by source and
     organization stays).
+- Switches for these warnings: `transparency_warnings=False` per call or per
+  client, `eptr2.set_transparency_warnings(False)` per process, or the
+  environment variable `EPTR2_TRANSPARENCY_WARNINGS=0`, which is also read from
+  the `.env` file (a variable already set in the environment wins).
+  Composites such as `get_dabi_idm_data` warn only through the calls they make
+  (only with `org_id`, once per call key).
 
 ## Version 1.4.1 (2026-11-17)
 

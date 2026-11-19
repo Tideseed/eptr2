@@ -55,6 +55,7 @@ eptr = EPTR2(
     connect_timeout=10.0,   # seconds; per-operation, not a total deadline
     read_timeout=60.0,
     tgt_profile="prod",     # separate cached tickets per credential set
+    transparency_warnings=False,  # silence the 2027 Transparency list warnings
 )
 ```
 
@@ -200,7 +201,16 @@ carry a `publication_change` entry for these keys.
   keeps Türkiye totals; these calls return one row per dam); `ren-rt-gen` with `pp_id` (by source and organization
   stays; per plant use `rt-gen`).
 
-Silence with `warnings.filterwarnings("ignore", category=eptr2.TransparencyListWarning)`.
+Composites such as `get_dabi_idm_data` warn only through these calls, so only with `org_id`, once per call key.
+
+Turn the warnings off (the narrowest setting given wins):
+
+- per call: `eptr.call(..., transparency_warnings=False)`
+- per client: `EPTR2(..., transparency_warnings=False)`
+- per process: `eptr2.set_transparency_warnings(False)` (`None` goes back to the environment)
+- by environment: `EPTR2_TRANSPARENCY_WARNINGS=0` (or `false`, `no`, `off`), also read from the `.env` file of
+  `EPTR2(use_dotenv=True)`; a variable already set in the environment wins over the file
+- or `warnings.filterwarnings("ignore", category=eptr2.TransparencyListWarning)`
 
 ## Date Format
 

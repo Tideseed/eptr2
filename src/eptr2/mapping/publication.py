@@ -12,10 +12,21 @@ market participant are a different matter: the Transparency Regulation (RG
 data that reveals a participant's identity, so they are likely to stop.
 
 `eptr.call` warns once per call key and process with
-:class:`TransparencyListWarning` (a ``FutureWarning``, shown by default). Silence it
-with ``warnings.filterwarnings("ignore", category=TransparencyListWarning)``.
+:class:`TransparencyListWarning` (a ``FutureWarning``, shown by default). Turn the warnings off, from the narrowest to the widest scope:
+
+- per call: ``eptr.call(..., transparency_warnings=False)``
+- per client: ``EPTR2(..., transparency_warnings=False)``
+- per process: :func:`set_transparency_warnings` (``eptr2.set_transparency_warnings(False)``)
+- by environment: ``EPTR2_TRANSPARENCY_WARNINGS=0`` (also read from the ``.env`` file
+  of ``EPTR2(use_dotenv=True)``; a variable already set in the environment wins)
+- or the standard filter:
+  ``warnings.filterwarnings("ignore", category=TransparencyListWarning)``
+
+The narrowest setting given wins: ``transparency_warnings=True`` on a call or client
+warns even when the process setting or the environment variable is off.
 """
 
+import os
 import warnings
 
 EFFECTIVE_DATE = "2027-01-01"
@@ -191,6 +202,31 @@ class TransparencyListWarning(FutureWarning):
 
 _warned: set[str] = set()
 
+ENV_VAR = "EPTR2_TRANSPARENCY_WARNINGS"
+_FALSE_VALUES = {"0", "false", "no", "off"}
+## None: follow the environment variable
+_process_setting: bool | None = None
+
+
+def set_transparency_warnings(enabled: bool | None) -> None:
+    """Turn the Transparency Platform list warnings on or off for this process.
+
+    ``None`` goes back to the ``EPTR2_TRANSPARENCY_WARNINGS`` environment variable
+    (on unless it is ``0``, ``false``, ``no`` or ``off``).
+    """
+    global _process_setting
+    _process_setting = None if enabled is None else bool(enabled)
+
+
+def transparency_warnings_enabled(enabled: bool | None = None) -> bool:
+    """Whether the warnings are on: ``enabled`` if given, else the process setting,
+    else the environment variable (default on)."""
+    if enabled is not None:
+        return bool(enabled)
+    if _process_setting is not None:
+        return _process_setting
+    return os.environ.get(ENV_VAR, "1").strip().lower() not in _FALSE_VALUES
+
 
 def _given(params: dict | None, names: list[str]) -> list[str]:
     params = params or {}
@@ -237,9 +273,16 @@ def publication_notice(key: str, params: dict | None = None) -> str | None:
     return text + " eptr2 keeps the call while EPİAŞ serves it."
 
 
-def warn_publication_change(key: str, params: dict | None, stacklevel: int = 3) -> None:
-    """Warn once per call key and process if the request's data leaves the list."""
-    if key in _warned:
+def warn_publication_change(
+    key: str, params: dict | None, stacklevel: int = 3, enabled: bool | None = None
+) -> None:
+    """Warn once per call key and process if the request's data leaves the list.
+
+    ``enabled`` is the call's or client's ``transparency_warnings`` setting (None:
+    see :func:`transparency_warnings_enabled`). A suppressed call does not count as
+    warned, so a later call with the warnings on still warns.
+    """
+    if key in _warned or not transparency_warnings_enabled(enabled):
         return
     notice = publication_notice(key, params if params is not None else {})
     if notice is None:
