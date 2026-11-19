@@ -165,7 +165,7 @@ eptr = EPTR2(
 )
 ```
 
-An experimental local SQLite cache of responses is available with `EPTR2(cache=True)` or `EPTR2_CACHE=1` (off by default); see the [Response Cache](https://tideseed.github.io/eptr2/user-guide/caching/) guide.
+An experimental local SQLite archive is available with `EPTR2(archive=True)` or `EPTR2_ARCHIVE=1` (off by default): settled responses are kept as you fetch them and repeated requests are answered locally; see the [Local Archive](https://tideseed.github.io/eptr2/user-guide/local-archive/) guide.
 
 `strict_params` matters more than it looks: an unknown parameter is dropped from the request, so a misspelled filter (`ppID` instead of `pp_id`) silently turns a filtered query into an unfiltered one. By default eptr2 warns and names the correct parameter; `strict_params=True` makes it an error.
 

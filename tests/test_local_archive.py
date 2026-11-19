@@ -1,4 +1,4 @@
-"""Experimental SQLite response cache (eptr2.cache, eptr2.mapping.settle)."""
+"""Experimental local SQLite archive (eptr2.archive, eptr2.mapping.settle)."""
 
 import json
 import sqlite3
@@ -8,9 +8,9 @@ from types import SimpleNamespace
 
 import pytest
 
-import eptr2.cache as cache
+import eptr2.archive as archive
 import eptr2.main as main
-from eptr2 import EPTR2, set_cache
+from eptr2 import EPTR2, set_archive
 from eptr2.mapping import get_path_map
 from eptr2.mapping import settle
 
@@ -19,11 +19,14 @@ OLD = "2026-01-05"  ## settled for every rule
 
 @pytest.fixture(autouse=True)
 def _isolate(monkeypatch, tmp_path):
-    monkeypatch.setattr(cache, "_process", {n: None for n in cache.OPTION_NAMES})
-    monkeypatch.setattr(cache, "_initialized", set())
-    for name in cache.ENV_VARS:
-        monkeypatch.delenv(name, raising=False)
-    monkeypatch.setenv("XDG_CACHE_HOME", str(tmp_path / "xdg"))
+    monkeypatch.setattr(archive, "_process", {n: None for n in archive.OPTION_NAMES})
+    monkeypatch.setattr(archive, "_initialized", set())
+    ## setenv first so monkeypatch restores the original state even when a test
+    ## (the .env loader) sets a variable that was unset
+    for name in archive.ENV_VARS + ("EPTR_USERNAME", "EPTR_PASSWORD"):
+        monkeypatch.setenv(name, "")
+        monkeypatch.delenv(name)
+    monkeypatch.setenv("XDG_DATA_HOME", str(tmp_path / "xdg"))
 
 
 class Transport:
@@ -94,7 +97,7 @@ def test_off_by_default(monkeypatch, tmp_path):
 def test_miss_then_hit_without_network_or_login(monkeypatch, tmp_path):
     t = Transport()
     path = tmp_path / "c.sqlite"
-    eptr = _client(monkeypatch, t, cache=True, cache_path=str(path))
+    eptr = _client(monkeypatch, t, archive=True, archive_path=str(path))
     first = _mcp(eptr)
     assert (t.n, eptr.renewals) == (1, 1)
     second = _mcp(eptr)
@@ -108,50 +111,48 @@ def test_miss_then_hit_without_network_or_login(monkeypatch, tmp_path):
 def test_default_path_and_env_switches(monkeypatch, tmp_path):
     t = Transport()
     eptr = _client(monkeypatch, t)
-    monkeypatch.setenv("EPTR2_CACHE", "yes")
+    monkeypatch.setenv("EPTR2_ARCHIVE", "yes")
     _mcp(eptr)
     _mcp(eptr)
     assert t.n == 1
-    assert (tmp_path / "xdg" / "eptr2" / "responses.sqlite").exists()
-    monkeypatch.setenv("EPTR2_CACHE", "0")
+    assert (tmp_path / "xdg" / "eptr2" / "archive.sqlite").exists()
+    monkeypatch.setenv("EPTR2_ARCHIVE", "0")
     _mcp(eptr)
     assert t.n == 2
 
 
 def test_resolution_order(monkeypatch, tmp_path):
     t = Transport()
-    eptr = _client(monkeypatch, t, cache=False)
-    set_cache(True, path=str(tmp_path / "p.sqlite"))
+    eptr = _client(monkeypatch, t, archive=False)
+    set_archive(True, path=str(tmp_path / "p.sqlite"))
     _mcp(eptr)
     _mcp(eptr)
     assert t.n == 2  ## client off beats process on
-    _mcp(eptr, cache=True)
-    _mcp(eptr, cache=True)
+    _mcp(eptr, archive=True)
+    _mcp(eptr, archive=True)
     assert t.n == 3  ## call on beats client off
-    ## set_cache changes only the arguments given
-    set_cache(overwrite=True)
-    assert cache._process["cache"] is True
-    set_cache(enabled=None)
-    assert cache.resolve_cache_settings() is None
+    ## set_archive changes only the arguments given
+    set_archive(overwrite=True)
+    assert archive._process["archive"] is True
+    set_archive(enabled=None)
+    assert archive.resolve_archive_settings() is None
 
 
-def test_dotenv_reads_cache_variables(monkeypatch, tmp_path):
+def test_dotenv_reads_archive_variables(monkeypatch, tmp_path):
     from eptr2.main import load_eptr_credentials_from_dotenv
 
     env = tmp_path / ".env"
-    env.write_text(f"EPTR_USERNAME=a\nEPTR_PASSWORD=b\nEPTR2_CACHE=1\nEPTR2_CACHE_PATH={tmp_path / 'd.sqlite'}\n")
-    monkeypatch.delenv("EPTR_USERNAME", raising=False)
-    monkeypatch.delenv("EPTR_PASSWORD", raising=False)
-    monkeypatch.setenv("EPTR2_CACHE_SETTLE_DAYS", "5")
+    env.write_text(f"EPTR_USERNAME=a\nEPTR_PASSWORD=b\nEPTR2_ARCHIVE=1\nEPTR2_ARCHIVE_PATH={tmp_path / 'd.sqlite'}\n")
+    monkeypatch.setenv("EPTR2_ARCHIVE_SETTLE_DAYS", "5")
     load_eptr_credentials_from_dotenv(str(env))
-    s = cache.resolve_cache_settings()
+    s = archive.resolve_archive_settings()
     assert s.path == str(tmp_path / "d.sqlite")
     assert s.settle_days == 5
 
 
 def test_key_identity(monkeypatch, tmp_path):
     t = Transport()
-    eptr = _client(monkeypatch, t, cache=True, cache_path=str(tmp_path / "c.sqlite"))
+    eptr = _client(monkeypatch, t, archive=True, archive_path=str(tmp_path / "c.sqlite"))
     eptr.call("mcp", start_date=OLD, end_date=OLD)
     eptr.call("ptf", end_date=OLD, start_date=OLD)  ## alias, other kwarg order
     eptr.call("mcp", start_date=date(2026, 1, 5), end_date=date(2026, 1, 5))
@@ -186,7 +187,7 @@ def test_settle_windows():
 def test_unsettled_and_spanning_requests_are_not_stored(monkeypatch, tmp_path):
     t = Transport()
     path = tmp_path / "c.sqlite"
-    eptr = _client(monkeypatch, t, cache=True, cache_path=str(path))
+    eptr = _client(monkeypatch, t, archive=True, archive_path=str(path))
     today = settle.today_istanbul()
     yesterday = (today - timedelta(days=1)).isoformat()
     eptr.call("mcp", start_date=OLD, end_date=yesterday)
@@ -197,18 +198,18 @@ def test_unsettled_and_spanning_requests_are_not_stored(monkeypatch, tmp_path):
 
 def test_short_window_row_not_served_to_default_reader(monkeypatch, tmp_path):
     t = Transport()
-    eptr = _client(monkeypatch, t, cache=True, cache_path=str(tmp_path / "c.sqlite"))
+    eptr = _client(monkeypatch, t, archive=True, archive_path=str(tmp_path / "c.sqlite"))
     yesterday = (settle.today_istanbul() - timedelta(days=1)).isoformat()
-    _mcp(eptr, day=yesterday, cache_settle_days=0)
-    _mcp(eptr, day=yesterday, cache_settle_days=0)
+    _mcp(eptr, day=yesterday, archive_settle_days=0)
+    _mcp(eptr, day=yesterday, archive_settle_days=0)
     assert t.n == 1
     _mcp(eptr, day=yesterday)
     assert t.n == 2
 
 
-def test_undated_and_never_cache_calls(monkeypatch, tmp_path):
+def test_undated_and_never_archive_calls(monkeypatch, tmp_path):
     t = Transport()
-    eptr = _client(monkeypatch, t, cache=True, cache_path=str(tmp_path / "c.sqlite"))
+    eptr = _client(monkeypatch, t, archive=True, archive_path=str(tmp_path / "c.sqlite"))
     eptr.call("pp-list")
     eptr.call("pp-list")
     eptr.call("page-update-date")
@@ -227,7 +228,7 @@ def test_undated_and_never_cache_calls(monkeypatch, tmp_path):
 def test_invalid_bodies_are_not_stored(monkeypatch, tmp_path, body):
     path = tmp_path / "c.sqlite"
     t = Transport(body=body)
-    eptr = _client(monkeypatch, t, cache=True, cache_path=str(path))
+    eptr = _client(monkeypatch, t, archive=True, archive_path=str(path))
     for _ in range(2):
         try:
             _mcp(eptr)
@@ -235,72 +236,55 @@ def test_invalid_bodies_are_not_stored(monkeypatch, tmp_path, body):
             pass  ## the HTML page does not decode as JSON
     assert t.n == 2
     assert not path.exists() or _rows(path) == []
-    assert cache.storable_items(body) == 0
+    assert archive.storable_items(body) == 0
 
 
 def test_installed_capacities_body_is_storable():
-    assert cache.storable_items(json.dumps({"installedCapacities": [{"a": 1}]}).encode()) == 1
+    assert archive.storable_items(json.dumps({"installedCapacities": [{"a": 1}]}).encode()) == 1
 
 
 def test_overwrite_replaces_and_failures_keep_the_row(monkeypatch, tmp_path):
     path = tmp_path / "c.sqlite"
     t = Transport(items=[{"v": 1}])
-    eptr = _client(monkeypatch, t, cache=True, cache_path=str(path))
+    eptr = _client(monkeypatch, t, archive=True, archive_path=str(path))
     _mcp(eptr)
     t.items = [{"v": 2}]
-    assert _mcp(eptr, cache_overwrite=True)["items"] == [{"v": 2}]
+    assert _mcp(eptr, archive_overwrite=True)["items"] == [{"v": 2}]
     assert _mcp(eptr)["items"] == [{"v": 2}] and t.n == 2
     t.items = []
-    assert _mcp(eptr, cache_overwrite=True)["items"] == []
+    assert _mcp(eptr, archive_overwrite=True)["items"] == []
     t.exc = RuntimeError("boom")
     with pytest.raises(RuntimeError):
-        _mcp(eptr, cache_overwrite=True)
+        _mcp(eptr, archive_overwrite=True)
     t.exc = None
     assert _mcp(eptr)["items"] == [{"v": 2}]
     assert len(_rows(path)) == 1
 
 
-def test_max_age(monkeypatch, tmp_path):
-    path = tmp_path / "c.sqlite"
-    t = Transport()
-    eptr = _client(monkeypatch, t, cache=True, cache_path=str(path))
-    _mcp(eptr)
-    _mcp(eptr, cache_max_age=1)
-    assert t.n == 1
-    con = sqlite3.connect(path)
-    with con:
-        con.execute("UPDATE responses SET fetched_at = '2026-01-20T00:00:00+00:00'")
-    con.close()
-    _mcp(eptr, cache_max_age=1)
-    assert t.n == 2
-    _mcp(eptr, cache_max_age=1)
-    assert t.n == 2  ## refreshed row
-
-
 def test_bypass_raw_response(monkeypatch, tmp_path):
     t = Transport()
-    eptr = _client(monkeypatch, t, cache=True, cache_path=str(tmp_path / "c.sqlite"))
+    eptr = _client(monkeypatch, t, archive=True, archive_path=str(tmp_path / "c.sqlite"))
     _mcp(eptr, get_raw_response=True)
     _mcp(eptr, get_raw_response=True)
     assert t.n == 2
 
 
-def test_broken_cache_files_fall_back_to_network(monkeypatch, tmp_path):
+def test_broken_archive_files_fall_back_to_network(monkeypatch, tmp_path):
     t = Transport()
     bad = tmp_path / "bad.sqlite"
     bad.write_bytes(b"not a database at all" * 100)
-    eptr = _client(monkeypatch, t, cache=True, cache_path=str(bad))
+    eptr = _client(monkeypatch, t, archive=True, archive_path=str(bad))
     assert _mcp(eptr)["items"]
     newer = tmp_path / "newer.sqlite"
     con = sqlite3.connect(newer)
     con.execute("PRAGMA user_version = 99")
     con.close()
-    _mcp(eptr, cache_path=str(newer))
-    _mcp(eptr, cache_path=str(newer))
+    _mcp(eptr, archive_path=str(newer))
+    _mcp(eptr, archive_path=str(newer))
     assert t.n == 3
     blocked = tmp_path / "file"
     blocked.write_text("x")
-    _mcp(eptr, cache_path=str(blocked / "sub" / "c.sqlite"))
+    _mcp(eptr, archive_path=str(blocked / "sub" / "c.sqlite"))
     assert t.n == 4
 
 
@@ -309,7 +293,7 @@ def test_row_metadata_wal_and_threads(monkeypatch, tmp_path):
 
     path = tmp_path / "c.sqlite"
     t = Transport()
-    eptr = _client(monkeypatch, t, cache=True, cache_path=str(path))
+    eptr = _client(monkeypatch, t, archive=True, archive_path=str(path))
     days = [f"2026-01-{d:02d}" for d in range(1, 13)]
     threads = [threading.Thread(target=_mcp, args=(eptr, d)) for d in days]
     for th in threads:
@@ -325,23 +309,25 @@ def test_row_metadata_wal_and_threads(monkeypatch, tmp_path):
     con.close()
 
 
-def test_cache_info_and_clear(monkeypatch, tmp_path):
+def test_archive_info_and_clear(monkeypatch, tmp_path):
     path = str(tmp_path / "c.sqlite")
     t = Transport()
-    eptr = _client(monkeypatch, t, cache=True, cache_path=path)
+    eptr = _client(monkeypatch, t, archive=True, archive_path=path)
     _mcp(eptr)
     _mcp(eptr, day="2026-01-06")
     eptr.call("smp", start_date=OLD, end_date=OLD)
-    info = cache.cache_info(path)
-    assert info["rows"] == 3 and info["calls"] == {"mcp": 2, "smp": 1}
-    assert cache.clear_cache(path, call_key="smp") == 1
-    assert cache.clear_cache(path) == 2
+    info = archive.archive_info(path)
+    assert info["rows"] == 3
+    assert info["calls"]["mcp"] == {"rows": 2, "first_end_date": "2026-01-05", "last_end_date": "2026-01-06"}
+    assert info["calls"]["smp"]["rows"] == 1
+    assert archive.clear_archive(path, call_key="smp") == 1
+    assert archive.clear_archive(path) == 2
 
 
 def test_registry_keys_exist():
     keys = set(get_path_map(just_call_keys=True))
     assert set(settle.SETTLE_RULES) <= keys
-    assert settle.NEVER_CACHE <= keys
+    assert settle.NEVER_ARCHIVE <= keys
 
 
 def test_every_monthly_call_has_a_month_rule():
@@ -350,7 +336,7 @@ def test_every_monthly_call_has_a_month_rule():
     missing = []
     for key in get_path_map(just_call_keys=True):
         params = get_required_parameters(key) + get_optional_parameters(key)
-        if key in settle.NEVER_CACHE or not any(p in settle._MONTH_PARAMS for p in params):
+        if key in settle.NEVER_ARCHIVE or not any(p in settle._MONTH_PARAMS for p in params):
             continue
         if settle.SETTLE_RULES.get(key, ("days", 0))[0] != "month":
             missing.append(key)

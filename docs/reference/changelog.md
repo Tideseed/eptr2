@@ -34,16 +34,17 @@ All notable changes to eptr2 are documented here.
   (only with `org_id`, once per call key).
 
 ### Added (experimental)
-- Local SQLite response cache, off by default. Turn it on with `cache=True` (per call or per client),
-  `eptr2.set_cache(True)` or `EPTR2_CACHE=1`, which is also read from `.env`.
-  - **Settings:** `cache_path`, `cache_overwrite`, `cache_settle_days` and `cache_max_age`, with matching
-    `EPTR2_CACHE_*` variables.
-  - **What is stored:** raw responses, which hits run through the normal postprocessing. A hit needs no network
-    and no login.
-  - **Stored only:** settled, non-empty JSON responses of dated requests. Per-call settle windows are in
+- Local SQLite archive, off by default. Turn it on with `archive=True` (per call or per client),
+  `eptr2.set_archive(True)` or `EPTR2_ARCHIVE=1`, which is also read from `.env`.
+  - **Settings:** `archive_path`, `archive_overwrite` and `archive_settle_days`, with matching `EPTR2_ARCHIVE_*`
+    variables.
+  - **Location:** `~/.local/share/eptr2/archive.sqlite` by default.
+  - **What is kept:** raw responses, kept as they are fetched and without expiry. Reads from the archive run
+    through the normal postprocessing and need no network or login.
+  - **Kept only:** settled, non-empty JSON responses of dated requests. Per-call settle windows are in
     `eptr2.mapping.settle`: 2 days by default, up to the end of the month + 45 days for settlement data.
   - **Overwrite:** replaces a row only after a successful refetch.
-  - **Helpers:** `eptr2.cache.cache_info` and `clear_cache`.
+  - **Helpers:** `eptr2.archive.archive_info` and `clear_archive`.
   - **Order in `EPTR2.call`:** validation now runs before the login, so an invalid call key or parameter fails
     without authenticating.
 

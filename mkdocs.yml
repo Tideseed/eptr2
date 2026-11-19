@@ -155,7 +155,7 @@ nav:
     - Convenience Wrappers: user-guide/convenience-wrappers.md
     - Composite Functions: user-guide/composite-functions.md
     - Working with DataFrames: user-guide/dataframes.md
-    - Response Cache (experimental): user-guide/caching.md
+    - Local Archive (experimental): user-guide/local-archive.md
   - AI Integration:
     - MCP Server: ai-integration/mcp-server.md
     - MCP Client Setup: ai-integration/mcp-clients.md

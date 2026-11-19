@@ -71,24 +71,26 @@ eptr = EPTR2(
   credential sets share a working directory. Tickets are already scoped to the
   account, so the usual single-credential case needs no profile.
 
-## Response Cache (experimental)
+## Local Archive (experimental)
 
-Off by default. `EPTR2(cache=True)`, `eptr.call(..., cache=True)`, `eptr2.set_cache(True)` or `EPTR2_CACHE=1`
-(also in `.env`) keep raw responses in SQLite (`cache_path` / `EPTR2_CACHE_PATH`, default
-`~/.cache/eptr2/responses.sqlite`), and repeated requests are answered without network or login.
+Off by default. `EPTR2(archive=True)`, `eptr.call(..., archive=True)`, `eptr2.set_archive(True)` or
+`EPTR2_ARCHIVE=1` (also in `.env`) keep settled raw responses in a local SQLite archive as they are fetched
+(`archive_path` / `EPTR2_ARCHIVE_PATH`, default `~/.local/share/eptr2/archive.sqlite`). Repeated requests are
+answered without network or login. Rows do not expire.
 
-- **What is stored:** only settled data. A request whose last date is inside the call's settle window is not stored:
+- **What is kept:** only settled data. A request whose last date is inside the call's settle window is not kept:
   - 2 days by default;
   - 6 days for per-organization matchings;
   - 9 days for production plans;
   - for settlement-month data, the end of the month + 45 days.
 
   See `eptr2.mapping.settle`.
-- **What is not stored:** empty, error and non-JSON responses, and requests without dates.
-- **Refreshing:** `cache_overwrite=True` refetches and replaces the row (a failed or empty refetch keeps it), and
-  `cache_max_age=N` refetches rows older than N days.
+- **What is not kept:** empty, error and non-JSON responses, and requests without dates.
+- **Keyed by the exact request:** request in a fixed rhythm (for example one day or one month at a time) to reuse it.
+- **Refreshing:** `archive_overwrite=True` refetches and replaces a row; a failed or empty refetch keeps it.
+- **Size:** a year of market-wide data is a few hundred MB at most, mostly the GİP trade log (`idm-log`).
 
-Guide: `docs/user-guide/caching.md`.
+Guide: `docs/user-guide/local-archive.md`.
 
 ## Command-Line Interface
 

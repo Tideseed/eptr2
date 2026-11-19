@@ -1,18 +1,18 @@
-"""When a response is settled enough to be stored in the (experimental) response cache.
+"""When a response is settled enough to be kept in the (experimental) local archive.
 
 EPİAŞ keeps revising data after first publishing it: real-time series are provisional
 for hours, unpublished hours of KUDÜP and DGP instructions come back as zeros rather
 than empty, production plans are revised during the day, and settlement-month data
-appears around the 15th of the next month and is revised for about 45 days. A cache
-that stored "yesterday" would serve such rows as final.
+appears around the 15th of the next month and is revised for about 45 days. An archive
+that kept "yesterday" would serve such rows as final.
 
-So a response is stored only when the request's last date is outside a settle window:
+So a response is kept only when the request's last date is outside a settle window:
 
 - ``("days", N)``: settled from ``end_date + N`` days
 - ``("month", N)``: settled from ``month_end(end_date) + N`` days
 
 Calls not in :data:`SETTLE_RULES` use :data:`DEFAULT_SETTLE_DAYS`. Requests without a
-date parameter are not cached, and :data:`NEVER_CACHE` keys are never cached. The
+date parameter are not archived, and :data:`NEVER_ARCHIVE` keys are never archived. The
 windows come from the refresh experience of an archive of EPİAŞ data; several are
 conservative assumptions (see the comments).
 """
@@ -121,7 +121,7 @@ SETTLE_RULES: dict[str, tuple[str, int]] = {
 }
 
 ## Calls whose value is being live, or that are not data.
-NEVER_CACHE = frozenset(
+NEVER_ARCHIVE = frozenset(
     {
         "page-update-date",
         "page-settings",
@@ -175,7 +175,7 @@ def request_end_date(params: dict) -> date | None:
 
     ``params`` are the call's preprocessed parameters (eptr2 names, before the
     EPİAŞ labels). Month parameters count as the end of their month. If a date
-    parameter is present but cannot be read, None is returned (not cached).
+    parameter is present but cannot be read, None is returned (not archived).
     """
     found = []
     for name in _DAY_PARAMS + _MONTH_PARAMS:
@@ -196,7 +196,7 @@ def settled_from(
 ) -> date:
     """First day on which a response for ``call_key`` ending at ``end_date`` counts as settled.
 
-    ``call_days`` (a per-call ``cache_settle_days``) replaces the key's rule;
+    ``call_days`` (a per-call ``archive_settle_days``) replaces the key's rule;
     ``default_days`` replaces only :data:`DEFAULT_SETTLE_DAYS` for keys without a rule.
     """
     if call_days is not None:

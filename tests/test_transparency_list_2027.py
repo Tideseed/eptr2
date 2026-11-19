@@ -21,7 +21,11 @@ from eptr2.mapping.publication import (
 def _reset_warned(monkeypatch):
     monkeypatch.setattr(publication, "_warned", set())
     monkeypatch.setattr(publication, "_process_setting", None)
-    monkeypatch.delenv(publication.ENV_VAR, raising=False)
+    ## setenv first so monkeypatch restores the original state even when a test
+    ## (the .env loader) sets a variable that was unset
+    for name in (publication.ENV_VAR, "EPTR_USERNAME", "EPTR_PASSWORD"):
+        monkeypatch.setenv(name, "")
+        monkeypatch.delenv(name)
 
 
 def _client(monkeypatch, items):
@@ -207,8 +211,6 @@ def test_dotenv_switch(monkeypatch, tmp_path):
         "EPTR_USERNAME=a@b.c\nEPTR_PASSWORD='x y'\nnot a pair\nOTHER='unbalanced\n"
         "EPTR2_TRANSPARENCY_WARNINGS=0\n"
     )
-    monkeypatch.delenv("EPTR_USERNAME", raising=False)
-    monkeypatch.delenv("EPTR_PASSWORD", raising=False)
     check = load_eptr_credentials_from_dotenv(str(env))
     assert all(check.values())
     assert not publication.transparency_warnings_enabled()
