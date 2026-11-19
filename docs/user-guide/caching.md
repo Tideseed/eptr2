@@ -52,12 +52,15 @@ So a response is stored only when the request's last date is outside the call's 
 | Calls | Settled from |
 |---|---|
 | most calls | end date + 2 days |
-| real-time generation per plant (`rt-gen`, `rt-gen-bulk`, `ren-rt-gen`), DGP instructions (`bpm-*`) | end date + 5 days |
+| real-time generation per plant or organization (`rt-gen`, `rt-gen-bulk`, `ren-rt-gen`, `gen-org`), DGP instructions (`bpm-*`) | end date + 5 days |
 | per-organization matchings (`dam-clearing`, `idm-qty`, `bi-long`, `bi-short`), `capacity-demand`, `line-capacities` | end date + 6 days |
-| production plans (`kgup`, `kgup-v1`, `eak`, `dpp-bulk`, `kudup`) | end date + 9 days |
+| production plans (`kgup`, `kgup-v1`, `eak`, `dpp-bulk`, `kudup`); natural gas realizations and transmission actuals | end date + 9 days |
 | `bi-euas` | end date + 120 days |
-| settlement-month data (`uevm`, `uecm`, `imb-*`, `ren-ul-gen`, `ren-uevm`, `iskk`, ...) | end of the month + 45 days |
-| lists by start date (`uevcb-list-bulk`, `gen-uevcb`, `mms-pp-list`, `mms-uevcb-list`) | end of the month + 2 days |
+| settlement-month data: `uevm`, `uecm`, `imb-qty`, `imb-vol`, `imb-qty-g`, `imb-org-list`, `ren-ul-gen`, `ren-uevm`, `iskk`, and alike (`st-uecm`, `su-uecm`, consumption breakdowns, eligible consumers, YEKDEM costs, meter volumes, market quantities, congestion cost, natural gas imbalance) | end of the month + 45 days |
+| outage lists (`planned-outages`, `unplanned-outages`) | end of the month + 9 days |
+| lists by month or start date (UEVÇB, EIC, organization and plant lists, multiple factors, renewable capacity) | end of the month + 2 days |
+
+Several windows are assumptions rather than measurements: `kudup`, `bpm-*`, `gen-org`, the natural gas rules and the settlement siblings. A call that takes a month parameter always has a month rule.
 
 The full table is `eptr2.mapping.settle.SETTLE_RULES`.
 

@@ -63,11 +63,61 @@ SETTLE_RULES: dict[str, tuple[str, int]] = {
     "su-uecm": ("month", 45),
     "ren-ul-cost": ("month", 45),
     "zero-balance": ("month", 45),
-    ## Lists by start date: the current month's list can be incomplete.
+    ## Settlement-based monthly data without archive evidence: assumed like the
+    ## settlement month (consumption breakdowns, eligible consumers, YEKDEM costs,
+    ## meter volumes, market quantities, congestion cost, natural gas imbalance).
+    "consumption-breakdown": ("month", 45),
+    "consumer-breakdown": ("month", 45),
+    "percentage-consumption-info": ("month", 45),
+    "eligible-consumer-count": ("month", 45),
+    "eligible-consumer-count-detail": ("month", 45),
+    "eligible-consumer-quantity": ("month", 45),
+    "electricity-market-quantity": ("month", 45),
+    "congestion-cost": ("month", 45),
+    "ren-income": ("month", 45),
+    "ren-lic-cost": ("month", 45),
+    "ren-total-cost": ("month", 45),
+    "ren-unit-cost": ("month", 45),
+    "ra-meter-volumes-period": ("month", 45),
+    "ra-meter-volumes-version": ("month", 45),
+    "ra-meters": ("month", 45),
+    "ra-sum": ("month", 45),
+    "ng-imbalance-amount": ("month", 45),
+    "ng-shippers-imbalance-quantity": ("month", 45),
+    "ng-bast": ("month", 45),
+    ## Natural gas physical and transmission realizations: no evidence, assumed
+    ## revised like the per-entity plan series.
+    "ng-physical-realization": ("days", 9),
+    "ng-virtual-realization": ("days", 9),
+    "ng-imbalance-system": ("days", 9),
+    "ng-tr-actual-entry-amount": ("days", 9),
+    "ng-tr-actual-exit-amount": ("days", 9),
+    "ng-tr-daily-transmission": ("days", 9),
+    "ng-tr-day-end": ("days", 9),
+    "ng-tr-stock-amount": ("days", 9),
+    ## Generation by organization (real-time based, like rt-gen).
+    "gen-org": ("days", 5),
+    ## Lists and notices by month or start date: the current month's list can be
+    ## incomplete; past months are stored.
     "uevcb-list-bulk": ("month", 2),
     "gen-uevcb": ("month", 2),
     "mms-pp-list": ("month", 2),
     "mms-uevcb-list": ("month", 2),
+    "dam-clearing-org-list": ("month", 2),
+    "eic-w-org-list": ("month", 2),
+    "eic-w-uevcb-list": ("month", 2),
+    "eic-x-org-list": ("month", 2),
+    "elig-profile-groups": ("month", 2),
+    "mf-distribution": ("month", 2),
+    "mf-profile-group": ("month", 2),
+    "multiple-factor": ("month", 2),
+    "multiple-factor-bulk": ("month", 2),
+    "ren-capacity": ("month", 2),
+    "ren-capacity-old": ("month", 2),
+    "ren-pp-list": ("month", 2),
+    ## Outage lists by month: entries are added and changed after the fact.
+    "planned-outages": ("month", 9),
+    "unplanned-outages": ("month", 9),
 }
 
 ## Calls whose value is being live, or that are not data.

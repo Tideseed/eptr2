@@ -344,6 +344,19 @@ def test_registry_keys_exist():
     assert settle.NEVER_CACHE <= keys
 
 
+def test_every_monthly_call_has_a_month_rule():
+    from eptr2.mapping.parameters import get_optional_parameters, get_required_parameters
+
+    missing = []
+    for key in get_path_map(just_call_keys=True):
+        params = get_required_parameters(key) + get_optional_parameters(key)
+        if key in settle.NEVER_CACHE or not any(p in settle._MONTH_PARAMS for p in params):
+            continue
+        if settle.SETTLE_RULES.get(key, ("days", 0))[0] != "month":
+            missing.append(key)
+    assert missing == []
+
+
 def test_invalid_key_raises_before_login(monkeypatch):
     t = Transport()
     eptr = _client(monkeypatch, t)
