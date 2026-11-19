@@ -33,6 +33,20 @@ All notable changes to eptr2 are documented here.
   Composites such as `get_dabi_idm_data` warn only through the calls they make
   (only with `org_id`, once per call key).
 
+### Added (experimental)
+- Local SQLite response cache, off by default. Turn it on with `cache=True` (per call or per client),
+  `eptr2.set_cache(True)` or `EPTR2_CACHE=1`, which is also read from `.env`.
+  - **Settings:** `cache_path`, `cache_overwrite`, `cache_settle_days` and `cache_max_age`, with matching
+    `EPTR2_CACHE_*` variables.
+  - **What is stored:** raw responses, which hits run through the normal postprocessing. A hit needs no network
+    and no login.
+  - **Stored only:** settled, non-empty JSON responses of dated requests. Per-call settle windows are in
+    `eptr2.mapping.settle`: 2 days by default, up to the end of the month + 45 days for settlement data.
+  - **Overwrite:** replaces a row only after a successful refetch.
+  - **Helpers:** `eptr2.cache.cache_info` and `clear_cache`.
+  - **Order in `EPTR2.call`:** validation now runs before the login, so an invalid call key or parameter fails
+    without authenticating.
+
 ## Version 1.4.1 (2026-11-17)
 
 KÜPST checked against the EPDK decisions, EPİAŞ's GİP bid/ask label swap and

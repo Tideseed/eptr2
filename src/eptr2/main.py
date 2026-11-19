@@ -59,6 +59,10 @@ class EPTR2:
         ### Warnings for data leaving the Transparency Platform list on 2027-01-01.
         ### None follows eptr2.set_transparency_warnings / EPTR2_TRANSPARENCY_WARNINGS.
         self.transparency_warnings = kwargs.get("transparency_warnings", None)
+        ### Experimental SQLite response cache (eptr2.cache); None follows
+        ### eptr2.set_cache / the EPTR2_CACHE* environment variables (off by default).
+        for _name in ("cache", "cache_path", "cache_overwrite", "cache_settle_days", "cache_max_age"):
+            self.__dict__[_name] = kwargs.get(_name, None)
         ### Bounded execution policy (per-operation, not a total deadline).
         self.connect_timeout = kwargs.get("connect_timeout", DEFAULT_CONNECT_TIMEOUT)
         self.read_timeout = kwargs.get("read_timeout", DEFAULT_READ_TIMEOUT)
@@ -381,7 +385,6 @@ class EPTR2:
         drop_duplicates=True drops rows that are identical in every column from the DataFrame (postprocessed results only), e.g. EPİAŞ's mcp-smp-imb returned every hour of 2026-11-01 twice. Default False: the data is returned as EPİAŞ sends it.
         """
 
-        self.check_renew_tgt(**kwargs)
         raw_key = key
         key = alias_to_path(alias=key, custom_aliases=self.custom_aliases)
 
@@ -485,6 +488,9 @@ class EPTR2:
                 call_body[body_key] = preprocess_parameter(body_key, None)
             kwargs.pop(body_key, None)
 
+        ## eptr2-named parameters, for the cache's settle window
+        params_pre = dict(call_body)
+
         if call_body is not None:
             if not all([x in call_body.keys() for x in required_body_params]):
                 raise Exception("Some required parameters are missing in call body.")
@@ -521,6 +527,16 @@ class EPTR2:
             self.__dict__.get("read_timeout", DEFAULT_READ_TIMEOUT),
         )
 
+        ## Experimental response cache: look up before any network or login
+        cache_ctx = self._cache_context(key, call_method, call_path, call_body, params_pre, kwargs)
+        if cache_ctx is not None and cache_ctx["hit"] is not None:
+            return self._finish_response(
+                json.loads(cache_ctx["hit"].decode("utf-8")), key, kwargs
+            )
+
+        ## Validation above runs before login, so a bad request fails without one
+        self.check_renew_tgt(**kwargs)
+
         res = transparency_call(
             call_path=call_path,
             call_method=call_method,
@@ -544,7 +560,103 @@ class EPTR2:
         if kwargs.get("get_raw_response", self.get_raw_response):
             return res
 
-        res = json.loads(res.data.decode("utf-8"))
+        if cache_ctx is not None:
+            self._cache_store(cache_ctx, res)
+
+        return self._finish_response(json.loads(res.data.decode("utf-8")), key, kwargs)
+
+    def _cache_context(self, key, call_method, call_path, call_body, params_pre, kwargs):
+        """Cache settings and lookup result of one call, or None if the cache does not apply."""
+        from eptr2 import cache as _cache
+        from eptr2.mapping import settle
+
+        settings = _cache.resolve_cache_settings(
+            call={k: kwargs.get(k) for k in _cache.OPTION_NAMES},
+            client={k: self.__dict__.get(k) for k in _cache.OPTION_NAMES},
+        )
+        if settings is None:
+            return None
+        if kwargs.get("get_raw_response", self.__dict__.get("get_raw_response", False)):
+            return None
+        if kwargs.get("just_call_phrase") or key in settle.NEVER_CACHE:
+            return None
+        root = self.__dict__.get("root_phrase")
+        if not isinstance(root, str):
+            return None
+        end_date = settle.request_end_date(params_pre)
+        if end_date is None:
+            return None
+        try:
+            body_json = json.dumps(
+                call_body,
+                sort_keys=True,
+                separators=(",", ":"),
+                ensure_ascii=False,
+                default=_json_default,
+            )
+        except (TypeError, ValueError):
+            return None
+        url = build_call_url(call_path, root, kwargs.get("query_parameters"))
+        cache_key = _cache.request_key(key, call_method, url, body_json)
+        settled = settle.settled_from(
+            key,
+            end_date,
+            call_days=settings.call_settle_days,
+            default_days=settings.settle_days,
+        )
+        ctx = {
+            "settings": settings,
+            "key": key,
+            "method": call_method,
+            "url": url,
+            "body_json": body_json,
+            "end_date": end_date,
+            "cache_key": cache_key,
+            "settled": settled,
+            "hit": None,
+        }
+        if settings.overwrite:
+            return ctx
+        row = _cache.lookup(settings, cache_key)
+        if row is None:
+            return ctx
+        ## A row stored under a shorter window (e.g. cache_settle_days=0) is not
+        ## served to a caller whose window it was fetched inside.
+        if _cache.fetched_day_istanbul(row["fetched_at"]) < settled:
+            return ctx
+        if settings.max_age is not None:
+            age = datetime.now(row["fetched_at"].tzinfo) - row["fetched_at"]
+            if age.total_seconds() > settings.max_age * 86400:
+                return ctx
+        ctx["hit"] = row["response"]
+        return ctx
+
+    def _cache_store(self, ctx, res):
+        """Store a fetched response if it is settled and has records."""
+        from eptr2 import cache as _cache
+        from eptr2.mapping import settle
+
+        if settle.today_istanbul() < ctx["settled"]:
+            return
+        data = res.data
+        n_items = _cache.storable_items(data)
+        if n_items <= 0:
+            return
+        _cache.store(
+            ctx["settings"],
+            ctx["cache_key"],
+            call_key=ctx["key"],
+            method=ctx["method"],
+            url=ctx["url"],
+            body_json=ctx["body_json"],
+            end_date=ctx["end_date"],
+            data=data,
+            n_items=n_items,
+            http_status=int(getattr(res, "status", 200) or 200),
+        )
+
+    def _finish_response(self, res, key, kwargs):
+        """Postprocess (and de-duplicate) a decoded response, fetched or cached."""
         if kwargs.get("postprocess", self.postprocess):
             from eptr2.mapping.processing import get_postprocess_function
 
@@ -670,6 +782,11 @@ RESERVED_CALL_OPTIONS = frozenset(
         "tgt_path",
         "tgt_profile",
         "transparency_warnings",
+        "cache",
+        "cache_path",
+        "cache_overwrite",
+        "cache_settle_days",
+        "cache_max_age",
     }
 )
 
@@ -695,15 +812,7 @@ def transparency_call(
     root_phrase_default = f"https://seffaflik{root_phrase_test}.epias.com.tr"
     root_phrase = kwargs.get("root_phrase", root_phrase_default)
 
-    call_phrase = urljoin(root_phrase, call_path)
-
-    ## If there are query parameters (not body parameters), append
-    q_params = kwargs.get("query_parameters", {})
-
-    if len(q_params.keys()) > 0:
-        call_phrase += "?" + "&".join(
-            [str(k) + "=" + str(v) for k, v in q_params.items()]
-        )
+    call_phrase = build_call_url(call_path, root_phrase, kwargs.get("query_parameters"))
 
     if kwargs.pop("just_call_phrase", False):
         return call_phrase
@@ -779,9 +888,31 @@ def transparency_call(
         attempt += 1
 
 
+## Keys read from .env: credentials, then eptr2 switches (environment wins for those)
+_DOTENV_KEYS = (
+    "EPTR_USERNAME",
+    "EPTR_PASSWORD",
+    "EPTR2_TRANSPARENCY_WARNINGS",
+    "EPTR2_CACHE",
+    "EPTR2_CACHE_PATH",
+    "EPTR2_CACHE_OVERWRITE",
+    "EPTR2_CACHE_SETTLE_DAYS",
+    "EPTR2_CACHE_MAX_AGE",
+)
+
+
+def build_call_url(call_path: str, root_phrase: str, query_parameters: dict | None = None) -> str:
+    """The request URL: root, path and query parameters (not body parameters)."""
+    call_phrase = urljoin(root_phrase, call_path)
+    q_params = query_parameters or {}
+    if len(q_params.keys()) > 0:
+        call_phrase += "?" + "&".join([str(k) + "=" + str(v) for k, v in q_params.items()])
+    return call_phrase
+
+
 def load_eptr_credentials_from_dotenv(env_file_path: str = ".env") -> None:
     """
-    Load (only) EPTR credentials, and EPTR2_TRANSPARENCY_WARNINGS, from a .env file and set them as environment variables.
+    Load (only) EPTR credentials and the eptr2 switches (EPTR2_TRANSPARENCY_WARNINGS, EPTR2_CACHE*) from a .env file and set them as environment variables.
     """
 
     check_d = {"EPTR_USERNAME": False, "EPTR_PASSWORD": False}
@@ -800,16 +931,16 @@ def load_eptr_credentials_from_dotenv(env_file_path: str = ".env") -> None:
                 continue
             key, value = line.split("=", 1)
             key = key.strip()
-            if key not in ("EPTR_USERNAME", "EPTR_PASSWORD", "EPTR2_TRANSPARENCY_WARNINGS"):
+            if key not in _DOTENV_KEYS:
                 continue
             value = shlex.split(value, posix=True)[0] if value else ""
             ## Only set EPTR_USERNAME and EPTR_PASSWORD
             if key in ["EPTR_USERNAME", "EPTR_PASSWORD"]:
                 os.environ[key] = value
                 check_d[key] = True
-            ## and the switch for the Transparency Platform list warnings
-            ## (a variable already set in the environment wins)
-            elif key == "EPTR2_TRANSPARENCY_WARNINGS":
+            ## and the eptr2 switches (EPTR2_TRANSPARENCY_WARNINGS, EPTR2_CACHE*);
+            ## a variable already set in the environment wins
+            else:
                 os.environ.setdefault(key, value)
 
     return check_d

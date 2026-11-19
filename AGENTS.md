@@ -71,6 +71,25 @@ eptr = EPTR2(
   credential sets share a working directory. Tickets are already scoped to the
   account, so the usual single-credential case needs no profile.
 
+## Response Cache (experimental)
+
+Off by default. `EPTR2(cache=True)`, `eptr.call(..., cache=True)`, `eptr2.set_cache(True)` or `EPTR2_CACHE=1`
+(also in `.env`) keep raw responses in SQLite (`cache_path` / `EPTR2_CACHE_PATH`, default
+`~/.cache/eptr2/responses.sqlite`), and repeated requests are answered without network or login.
+
+- **What is stored:** only settled data. A request whose last date is inside the call's settle window is not stored:
+  - 2 days by default;
+  - 6 days for per-organization matchings;
+  - 9 days for production plans;
+  - for settlement-month data, the end of the month + 45 days.
+
+  See `eptr2.mapping.settle`.
+- **What is not stored:** empty, error and non-JSON responses, and requests without dates.
+- **Refreshing:** `cache_overwrite=True` refetches and replaces the row (a failed or empty refetch keeps it), and
+  `cache_max_age=N` refetches rows older than N days.
+
+Guide: `docs/user-guide/caching.md`.
+
 ## Command-Line Interface
 
 The `eptr2` CLI is designed for shell-driven agents: data goes to stdout, diagnostics to stderr, nonzero exit codes on error.

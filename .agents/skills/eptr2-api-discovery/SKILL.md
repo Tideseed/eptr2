@@ -28,6 +28,8 @@ eptr2 schema --stdout
 
 A `publication_change` entry in `describe_call` (or the schema) means the data leaves the mandatory Transparency Platform list on 2027-01-01 (EPDK Decisions 14968 and 14967) and may stop being served; `eptr.call` then warns with `TransparencyListWarning` (once per call key; off with `transparency_warnings=False`, `eptr2.set_transparency_warnings(False)` or `EPTR2_TRANSPARENCY_WARNINGS=0`). Prefer the alternative it names.
 
+For repeated requests over settled past dates, the experimental response cache (`EPTR2(cache=True)` or `EPTR2_CACHE=1`, off by default) answers from a local SQLite file without network or login; it stores nothing inside a call's settle window (see `eptr2.mapping.settle`), so recent data is always fetched. `cache_overwrite=True` refreshes a row.
+
 Inspect required and optional parameters, then choose the date range and IDs relevant to the user's question. An alias is not necessarily a wrapper name: inspect `eptr2.calls` before importing a guessed `get_*` function. Raw result types vary by endpoint; inspect the response instead of assuming every call returns a DataFrame.
 
 When executing an authorized data query, reuse a client with `strict_params=True` and automatic `.env` loading. Use the user's existing environment and runtime tools; no particular model vendor, shell-tool name, or skill directory is required.

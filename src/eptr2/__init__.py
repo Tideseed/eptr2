@@ -11,6 +11,7 @@ from eptr2.mapping.publication import (  # noqa: F401
     TransparencyListWarning,
     set_transparency_warnings,
 )
+from eptr2.cache import set_cache  # noqa: F401
 from eptr2.main import (
     EPTR2,
     transparency_call,
@@ -44,4 +45,5 @@ __all__ = [
     "eptr_w_tgt_wrapper",
     "TransparencyListWarning",
     "set_transparency_warnings",
+    "set_cache",
 ]
